@@ -1,0 +1,13 @@
+./Lexer/Lexer.cpp:30:1: error: unterminated comment
+   30 | /*
+      | ^
+./Lexer/Lexer.cpp: In member function ‘void Lex::GetToken()’:
+./Lexer/Lexer.cpp:6:8: error: ‘st’ was not declared in this scope; did you mean ‘sb’?
+    6 |   if(!*st){
+      |        ^~
+      |        sb
+./Lexer/Lexer.cpp:18:9: error: ‘st’ was not declared in this scope; did you mean ‘sb’?
+   18 |         st->read()
+      |         ^~
+      |         sb
+make: *** [Makefile:14: compile] Error 1
