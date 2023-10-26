@@ -4,17 +4,22 @@
 #include <fstream>
 
 std::ostream &operator<< (std::ostream &a, Token &b){
-  return a << "List pointer (prev,next): " << b.prev << b.next << "\nToken str: " << b.str << "\nToken type: " << b.tok << std::endl;
+  return a << "List pointer (prev,next): " << b.prev << ',' << b.next << "\nToken str: " << b.str << "\nToken type: " << b.tok << std::endl;
 }
 
 Token *Lex::GetToken(){
-  if(!st){
-    //error
-    return nullptr;
-
-  }
+  #ifdef DEBUG
+  std::cout << "Calling GetToken" << std::endl;
+  #endif
   do{
-    switch (st.peek()){
+    if(!st){
+      #ifdef DEBUG
+      std::cout << "EOF" << std::endl;
+      #endif
+      //error
+      return nullptr;
+    }
+    else switch (st.peek()){
       case ' ':
       case '\t':
       case '\n':
@@ -27,7 +32,7 @@ Token *Lex::GetToken(){
       //"walk " [ <expr> | ( "back" <expr> ) | "home" ]
       case 'w':
         st.get();
-        RWalk();
+        return RWalk();
         continue;
     }
   }while(true);
@@ -35,6 +40,10 @@ Token *Lex::GetToken(){
 
 //"walk " [ <Int> | ( "back" <Int> ) | "home" ]
 Token *Lex::RWalk(){ 
+  #ifdef DEBUG
+  std::cout << "Calling RWalk" << std::endl;
+  #endif
+
   ConsumTerm('a');
   ConsumTerm('l');
   ConsumTerm('k');
@@ -47,7 +56,6 @@ Token *Lex::RWalk(){
       //role
     default:
       Token *zwi = new Token(RInt(),new char[] { 'w','a','l','k'},TokE::Walk);
-      zwi->next->prev = zwi;
       return zwi;
 
       //expr role
