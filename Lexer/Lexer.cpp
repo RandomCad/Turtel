@@ -3,26 +3,30 @@
 #include <cctype>
 #include <fstream>
 
+std::ostream &operator<< (std::ostream &a, Token &b){
+  return a << "List pointer (prev,next): " << b.prev << b.next << "\nToken str: " << b.str << "\nToken type: " << b.tok << std::endl;
+}
+
 Token *Lex::GetToken(){
-  if(!*this){
+  if(!st){
     //error
     return nullptr;
 
   }
   do{
-    switch (peek()){
+    switch (st.peek()){
       case ' ':
       case '\t':
       case '\n':
       case '\v':
       case '\f':
       case '\r':
-        get();
+        st.get();
         continue;
           
       //"walk " [ <expr> | ( "back" <expr> ) | "home" ]
       case 'w':
-        get();
+        st.get();
         RWalk();
         continue;
     }
@@ -35,7 +39,7 @@ Token *Lex::RWalk(){
   ConsumTerm('l');
   ConsumTerm('k');
   ConsumTerm(' ');
-  switch (peek()){
+  switch (st.peek()){
     case 'b':
       
       //role
@@ -52,23 +56,23 @@ Token *Lex::RWalk(){
 }
 
 Token *Lex::RInt(){
-  int ret;
-  bool neg = false;
-  if(peek() == '-'){
-    sb += get();
+  //int ret;
+  //bool neg = false;
+  if(st.peek() == '-'){
+    sb += st.get();
   }
-  if(!std::isdigit(peek()))
+  if(!std::isdigit(st.peek()))
     return nullptr; //error
 
   do{
-    sb += get();
-  } while(std::isdigit(peek()));
+    sb += st.get();
+  } while(std::isdigit(st.peek()));
   return new Token(sb.c_str(),TokE::Int);
 }
 
 bool Lex::ConsumTerm(char a){
-  if(peek() == a){
-    get();
+  if(st.peek() == a){
+    st.get();
     return true;
   }
   //error

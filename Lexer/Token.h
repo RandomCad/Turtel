@@ -1,11 +1,18 @@
 #ifndef TOKEN
 #define TOKEN
 #include <string.h>
+#include <fstream>
 
 enum TokE{
   Walk,
   Int
 };
+
+struct Token;
+
+#ifdef DEBUG
+std::ostream &operator<< (std::ostream &a, Token &b);
+#endif
 
 struct Token{
   Token *next;
@@ -25,6 +32,8 @@ struct Token{
   void AddPrev(Token *prev){
     this->prev = prev;
   }
+
+  friend std::ostream &operator<< (std::ostream &a, Token &b);
   
 };
 
