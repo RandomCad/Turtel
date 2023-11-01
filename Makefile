@@ -17,5 +17,5 @@ compile:
 
 UDef = 
 test:
-	${gpp} ${UDef} ./UnitTest/UnitTest.cpp -o UTest.out
+	${gpp} ${UDef} ./UnitTest/UnitTest.cpp -DU_TEST -o UTest.out
 	./UTest.out
