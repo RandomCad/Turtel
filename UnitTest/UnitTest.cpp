@@ -60,6 +60,11 @@ TEST(main)
 
   TestLexer();
 
+  if(!error.empty()){
+    
+    return 1;
+  }
+
   return 0;
 }
 
