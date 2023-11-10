@@ -32,22 +32,29 @@ std::forward_list<TestE> error;
 
 //General includes
 #include <ostream>
+#include <iostream>
 
 #include "../Lexer/Lexer.h"
 
-
+//specific includes:
+#include "../Lexer/LexerError.h"
 void TestRemoveWhites(){
   Lex st("./TestD");
+  bool correct = false;
+
   try{
-    Token *res = st.TestGetToken();
-  
-    if(res != nullptr) ERR("TestRemoveWhites", "Testing lexer for removing of whites.\n\
-      Expected nullptr got a real pointer");
+    st.TestGetToken();
+  }
+  catch (EOFErr){
+    correct = true;
   }
   catch (...){
     ERR("TestRemoveWhites", "Testing lexer for removing of whites.\n\
         Error was throwen no respons was expected");
   }
+  if(!correct)
+    ERR("TestRemoveWhites", "Testing lexer for removing of whites.\n\
+      Didn't throw EOFError as expected.");
 }
 
 void TestLexer(){
@@ -61,6 +68,9 @@ TEST(main)
   TestLexer();
 
   if(!error.empty()){
+    for( auto i:error){
+      std::cerr << i;
+    }
     
     return 1;
   }

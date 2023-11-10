@@ -1,5 +1,7 @@
 #include "Token.h"
 #include "Lexer.h"
+#include "LexerError.h"
+
 #include <cctype>
 #include <fstream>
 
@@ -17,7 +19,7 @@ Token *Lex::GetToken(){
       std::cout << "EOF" << std::endl;
       #endif
       //error
-      return nullptr;
+      throw EOFErr();
     }
     else switch (st.peek()){
       case ' ':
@@ -34,6 +36,8 @@ Token *Lex::GetToken(){
         st.get();
         return RWalk();
         continue;
+      default:
+        return nullptr;
     }
   }while(true);
 }
