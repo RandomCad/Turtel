@@ -15,7 +15,7 @@ say_hello:
 compile:
 	${gpp} ${normDef} ${SRCS} 
 
-UDef = $(normDef) 
+UDef =  
 test:
 	${gpp} ${UDef} ${SRCS} ./UnitTest/UnitTest.cpp -DU_TEST -o UTest.out
 	./UTest.out
