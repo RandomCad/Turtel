@@ -16,6 +16,8 @@
 #include <forward_list>
 #include <ostream>
 
+//Defines the TestE class which is the "Error" type to use to represent Unittest errors
+//Use the below list to stor the Errors and the defines afther that to add to the list!
 #include "AssertError.h"
 
 std::forward_list<TestE> error;
