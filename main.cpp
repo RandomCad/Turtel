@@ -3,7 +3,12 @@
 #include "Lexer/Lexer.h"
 #include "Helper.h"
 
+#ifdef U_TEST
+int TestMain(int argc, const char * argv[]){
+#else
 int main(int argc, const char *argv[]){
+#endif
+
   if(argc != 2){
     std::cerr << "Won argument is needed" << std::endl;
     return -1;
@@ -13,6 +18,5 @@ int main(int argc, const char *argv[]){
   ClrStream(CStream(Collor::Red,std::cout) << "Development reding from std::in" ) << "\nTesting lexer with std::in" << std::endl;
   
   Lex lx(argv[1]);
-  std::cerr << *lx.getToken() << std::endl;
   
 }

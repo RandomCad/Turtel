@@ -14,7 +14,6 @@
 #define PREF 0
 
 #include <forward_list>
-#include <ostream>
 
 //Defines the TestE class which is the "Error" type to use to represent Unittest errors
 //Use the below list to stor the Errors and the defines afther that to add to the list!
@@ -23,16 +22,36 @@
 std::forward_list<TestE> error;
 
 //making the use of the AsserError esear:
-#define Inf(meth, name) error.emplace_back( (meth), (name), Sever::Info);
-#define Deb(meth, name) error.emplace_back( (meth), (name), Sever::Debug);
-#define ERR(meth, name) error.emplace_back( (meth), (name), Sever::Error);
-#define Fat(meth, name) error.emplace_back( (meth), (name), Sever::Fatal);
+#define Inf(meth, name) error.emplace_front( (meth), (name), Sever::Info);
+#define Deb(meth, name) error.emplace_front( (meth), (name), Sever::Debug);
+#define ERR(meth, name) error.emplace_front( (meth), (name), Sever::Error);
+#define Fat(meth, name) error.emplace_front( (meth), (name), Sever::Fatal);
 
-void TestWalk(){
+//the TestData Path is shortend for the use in this file:
+#define TestD UnitTest/TestData
 
+//General includes
+#include <ostream>
+
+#include "../Lexer/Lexer.h"
+
+
+void TestRemoveWhites(){
+  Lex st("./TestD");
+  try{
+    Token *res = st.TestGetToken();
+  
+    if(res != nullptr) ERR("TestRemoveWhites", "Testing lexer for removing of whites.\n\
+      Expected nullptr got a real pointer");
+  }
+  catch (...){
+    ERR("TestRemoveWhites", "Testing lexer for removing of whites.\n\
+        Error was throwen no respons was expected");
+  }
 }
 
 void TestLexer(){
+  TestRemoveWhites();
 
 }
 

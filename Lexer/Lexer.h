@@ -30,7 +30,7 @@ class Lex{
     //TODO: dtor!
     
     #ifdef DEBUG
-    Token *getToken() { return GetToken(); }
+    Token *TestGetToken() { return GetToken(); }
     #endif
 
   private:

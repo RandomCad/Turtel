@@ -1,0 +1,60 @@
+./UnitTest/UnitTest.cpp:31:9: error: macro names must be identifiers
+   31 | #define ./TestData ./UnitTest/TestData
+      |         ^
+./UnitTest/UnitTest.cpp:45:29: warning: missing terminating " character
+   45 |     Err("TestRemoveWhites", "Testing lexer for removing of whites.\n
+      |                             ^
+./UnitTest/UnitTest.cpp:45:29: error: missing terminating " character
+   45 |     Err("TestRemoveWhites", "Testing lexer for removing of whites.\n
+      |                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./UnitTest/UnitTest.cpp:46:50: warning: missing terminating " character
+   46 |         Error was throwen no respons was expected");
+      |                                                  ^
+./UnitTest/UnitTest.cpp:46:50: error: missing terminating " character
+   46 |         Error was throwen no respons was expected");
+      |                                                  ^~~
+./UnitTest/UnitTest.cpp:48:46: warning: missing terminating " character
+   48 |   if(res != nullptr) Err("TestRemoveWhites", "Testing lexer for removing of whites.\n
+      |                                              ^
+./UnitTest/UnitTest.cpp:48:46: error: missing terminating " character
+   48 |   if(res != nullptr) Err("TestRemoveWhites", "Testing lexer for removing of whites.\n
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./UnitTest/UnitTest.cpp:49:42: warning: missing terminating " character
+   49 |       Expected nullptr got a real pointer");
+      |                                          ^
+./UnitTest/UnitTest.cpp:49:42: error: missing terminating " character
+   49 |       Expected nullptr got a real pointer");
+      |                                          ^~~
+./UnitTest/UnitTest.cpp: In function ‘void TestRemoveWhites()’:
+./UnitTest/UnitTest.cpp:42:29: error: ‘Token* Lex::GetToken()’ is private within this context
+   42 |     Token *res = st.GetToken();
+      |                  ~~~~~~~~~~~^~
+In file included from ./UnitTest/UnitTest.cpp:36:
+./UnitTest/../Lexer/Lexer.h:37:12: note: declared private here
+   37 |     Token *GetToken();
+      |            ^~~~~~~~
+./UnitTest/UnitTest.cpp:42:12: warning: unused variable ‘res’ [-Wunused-variable]
+   42 |     Token *res = st.GetToken();
+      |            ^~~
+./UnitTest/UnitTest.cpp:46:14: error: expected ‘)’ before ‘was’
+   46 |         Error was throwen no respons was expected");
+      |              ^~~~
+      |              )
+./UnitTest/UnitTest.cpp:45:8: note: to match this ‘(’
+   45 |     Err("TestRemoveWhites", "Testing lexer for removing of whites.\n
+      |        ^
+./UnitTest/UnitTest.cpp:48:6: error: ‘res’ was not declared in this scope
+   48 |   if(res != nullptr) Err("TestRemoveWhites", "Testing lexer for removing of whites.\n
+      |      ^~~
+./UnitTest/UnitTest.cpp:49:7: error: ‘Expected’ was not declared in this scope
+   49 |       Expected nullptr got a real pointer");
+      |       ^~~~~~~~
+./UnitTest/UnitTest.cpp: In function ‘void TestLexer()’:
+./UnitTest/UnitTest.cpp:53:21: error: expected ‘;’ before ‘}’ token
+   53 |   TestRemoveWhites()
+      |                     ^
+      |                     ;
+   54 | 
+   55 | }
+      | ~                    
+make: *** [Makefile:20: test] Error 1
