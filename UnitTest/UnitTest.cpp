@@ -39,7 +39,7 @@ std::forward_list<TestE> error;
 //specific includes:
 #include "../Lexer/LexerError.h"
 void TestRemoveWhites(){
-  Lex st("./TestD");
+  Lex st("./TestD/blanck.test");
   bool correct = false;
 
   try{
@@ -55,6 +55,23 @@ void TestRemoveWhites(){
   if(!correct)
     ERR("TestRemoveWhites", "Testing lexer for removing of whites.\n\
       Didn't throw EOFError as expected.");
+  
+  correct = false;
+  st.swapStream("./TestD/WhiteFollowedByJiber.test");
+  try{
+    st.TestGetToken();
+  }
+  catch (NotImpli){
+    correct = true;
+  }
+  catch (...){
+    //TODO: Impliment
+  }
+  if(!correct)
+    ERR("TestRemoveWhites", "Testing lexer for removing of whites. Second test.\n\
+      Didn't throw NotImpl as expected.");
+
+  
 }
 
 void TestLexer(){

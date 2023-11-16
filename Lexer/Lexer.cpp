@@ -37,7 +37,7 @@ Token *Lex::GetToken(){
         return RWalk();
         continue;
       default:
-        return nullptr;
+        throw NotImpli();
     }
   }while(true);
 }
@@ -90,3 +90,15 @@ bool Lex::ConsumTerm(char a){
   //error
   return false;
 }
+
+#ifdef U_TEST
+void Lex::swapStream(std::ifstream &a){
+  st.close();
+  st.swap(a);
+}
+void Lex::swapStream(const char *a){
+  delete &st;
+  st = new std::ifstream(a);
+}
+
+#endif

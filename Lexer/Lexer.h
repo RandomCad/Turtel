@@ -34,6 +34,8 @@ class Lex{
     #endif
     #ifdef U_TEST
     Token *TestGetToken() { return GetToken(); }
+    void swapStream(std::ifstream &a);
+    void swapStream(const char *a);
     #endif
 
   private:
