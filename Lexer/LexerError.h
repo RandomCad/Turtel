@@ -15,9 +15,14 @@ class EOFErr : public LexErr{
 
 //TODO save what is wrong
 class NotImpli : public LexErr{
+  private:
+    const char wrong;
+    std::string ret = "Encounterd symbole { } for which no lexing path was founde";
   public:
+    NotImpli(const char a) : wrong(a) {}
     const char * what(){
-      return "Encounterd symbole for which no lexing path was founde"; 
+      ret[20] = wrong;
+      return ret.c_str();
     }
 };
 

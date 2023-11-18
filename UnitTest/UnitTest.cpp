@@ -39,35 +39,46 @@ std::forward_list<TestE> error;
 //specific includes:
 #include "../Lexer/LexerError.h"
 void TestRemoveWhites(){
-  Lex st("./TestD/blanck.test");
-  bool correct = false;
+  Lex st("./UnitTest/TestData/blanck.test");
+  bool handeld = false;
 
+  //testing with white file sould return a eof error since file dosn't contain non white caracters
   try{
     st.TestGetToken();
   }
   catch (EOFErr){
-    correct = true;
+    handeld = true;
+  }
+  catch (NotImpli a){
+    ERR("TestRemoveWhites", a.what()); 
+    handeld = true;
   }
   catch (...){
     ERR("TestRemoveWhites", "Testing lexer for removing of whites.\n\
-        Error was throwen no respons was expected");
+Error was throwen EOFErr was expected.");
+    throw;
   }
-  if(!correct)
+  if(!handeld)
     ERR("TestRemoveWhites", "Testing lexer for removing of whites.\n\
-      Didn't throw EOFError as expected.");
+Didn't throw EOFError as expected.");
   
-  correct = false;
-  st.swapStream("./TestD/WhiteFollowedByJiber.test");
+  //testing with whites and no good content. Should return NotImplimented error
+  handeld = false;
+  Lex st2("./UnitTest/TestData/WhiteFollowedByJiber.test");
   try{
-    st.TestGetToken();
+    st2.TestGetToken();
   }
   catch (NotImpli){
-    correct = true;
+    handeld = true;
+  }
+  catch (EOFErr){
+    ERR("TestRemoveWhites", "Testing lexer for removing of whites. Second test.\n\
+Throw EOFError, which isn't expected"); 
   }
   catch (...){
     //TODO: Impliment
   }
-  if(!correct)
+  if(!handeld)
     ERR("TestRemoveWhites", "Testing lexer for removing of whites. Second test.\n\
       Didn't throw NotImpl as expected.");
 
@@ -97,6 +108,6 @@ TEST(main)
 
 std::ostream &operator<< (std::ostream &a, TestE &b){
   return a  << "TestMethode : " << b.meth
-            << "TestError   : " << b.err
-            << "Sevarety    : " << b.sev;
+            << "\nTestError   : " << b.err
+            << "\nSevarety    : " << b.sev << std::endl << std::endl;
 }

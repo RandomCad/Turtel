@@ -9,6 +9,8 @@ std::ostream &operator<< (std::ostream &a, Token &b){
   return a << "List pointer (prev,next): " << b.prev << ',' << b.next << "\nToken str: " << b.str << "\nToken type: " << b.tok << std::endl;
 }
 
+#include <iostream>
+
 Token *Lex::GetToken(){
   #ifdef DEBUG
   std::cout << "Calling GetToken" << std::endl;
@@ -22,6 +24,8 @@ Token *Lex::GetToken(){
       throw EOFErr();
     }
     else switch (st.peek()){
+      case std::char_traits<char>::eof():
+        throw EOFErr();
       case ' ':
       case '\t':
       case '\n':
@@ -37,7 +41,7 @@ Token *Lex::GetToken(){
         return RWalk();
         continue;
       default:
-        throw NotImpli();
+        throw NotImpli(st.peek());
     }
   }while(true);
 }
