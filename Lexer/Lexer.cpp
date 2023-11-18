@@ -97,8 +97,8 @@ void Lex::swapStream(std::ifstream &a){
   st.swap(a);
 }
 void Lex::swapStream(const char *a){
-  delete &st;
-  st = new std::ifstream(a);
+  st.close();
+  new(&st) std::ifstream(a);
 }
 
 #endif
