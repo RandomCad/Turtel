@@ -16,15 +16,11 @@ Token *Lex::GetToken(){
   std::cout << "Calling GetToken" << std::endl;
   #endif
   do{
-    if(!st){
-      #ifdef DEBUG
-      std::cout << "EOF" << std::endl;
-      #endif
-      //error
-      throw EOFErr();
-    }
-    else switch (st.peek()){
+    switch (st.peek()){
       case std::char_traits<char>::eof():
+        #ifdef DEBUG
+        std::cout << "EOF" << std::endl;
+        #endif
         throw EOFErr();
       case ' ':
       case '\t':
