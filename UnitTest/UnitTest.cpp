@@ -85,9 +85,13 @@ Throw EOFError, which isn't expected");
   
 }
 
+void TestLexWalk(){
+
+}
+
 void TestLexer(){
   TestRemoveWhites();
-
+  TestLexWalk();
 }
 
 
