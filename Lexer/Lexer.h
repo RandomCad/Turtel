@@ -50,6 +50,7 @@ class Lex{
     Token *RInt();
 
     bool ConsumTerm(char a);
+    friend void TestConsumTerm();
 
 };
 #endif

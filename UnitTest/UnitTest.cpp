@@ -89,9 +89,18 @@ void TestLexWalk(){
 
 }
 
+#define ConsumeTest(data, num) if(!st.ConsumTerm( data )) ERR("TestConsumTerm", "Testing the consum therm method faild to consum "#num) 
+#define nConsumeTest(data, num) if(st.ConsumTerm( data )) ERR("TestConsumTerm", "Testing the consum therm method faild to consum "#num) 
+void TestConsumTerm(){
+  Lex st("./UnitTest/TestData/RandomContent.test");
+  nConsumeTest('b',1);
+  ConsumeTest('m',1);
+}
+
 void TestLexer(){
   TestRemoveWhites();
   TestLexWalk();
+  TestConsumTerm();
 }
 
 
