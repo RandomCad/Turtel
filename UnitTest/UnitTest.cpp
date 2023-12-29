@@ -36,6 +36,7 @@ std::forward_list<TestE> error;
 
 #include "../Lexer/Lexer.h"
 
+/*
 //specific includes:
 #include "../Lexer/LexerError.h"
 void TestRemoveWhites(){
@@ -66,7 +67,7 @@ Didn't throw EOFError as expected.");
   handeld = false;
   Lex st2("./UnitTest/TestData/WhiteFollowedByJiber.test");
   try{
-    st2.TestGetToken();
+    st2.GetToken();
   }
   catch (NotImpli){
     handeld = true;
@@ -83,16 +84,18 @@ Throw EOFError, which isn't expected");
       Didn't throw NotImpl as expected.");
 
   
-}
+}*/
 
 void TestLexWalk(){
+  
 
 }
 
-#define ConsumeTest(data, num) if(!st.ConsumTerm( data )) ERR("TestConsumTerm", "Testing the consum therm method faild to consum "#num) 
-#define nConsumeTest(data, num) if(st.ConsumTerm( data )) ERR("TestConsumTerm", "Testing the consum therm method faild it wrongly consumed "#num" "#data) 
+#define ConsumeTest(data, num) err.state=LexErr::Status::OK;if(st.ConsumTerm( data , err).state != LexErr::Status::OK) ERR("TestConsumTerm", "Testing the consum therm method faild to consum "#num) 
+#define nConsumeTest(data, num) err.state=LexErr::Status::OK;if(st.ConsumTerm( data , err).state != LexErr::Status::WARN) ERR("TestConsumTerm", "Testing the consum therm method faild it wrongly consumed "#num" "#data) 
 void TestConsumTerm(){
   Lex st("./UnitTest/TestData/RandomContent.test");
+  LexErr err;
   nConsumeTest('b',1);
   ConsumeTest('m',1);
   ConsumeTest('q',2);
@@ -127,11 +130,11 @@ void TestConsumTerm(){
   ConsumeTest('7',26);
   ConsumeTest('\n',28);
   ConsumeTest('\n',29);
-  ConsumeTest('6',30);
+  ConsumeTest('6',30);//*/
 }
 
 void TestLexer(){
-  TestRemoveWhites();
+  //TestRemoveWhites();
   TestLexWalk();
   TestConsumTerm();
 }

@@ -43,6 +43,7 @@ class LexErr: public std::exception{
     }
 
     LexErr &ConsumedWrong(char corr){
+      
       error.push(Error(Error::errorNum::WrongConsum,{corr}, sb.length() - 1));
       state = (state == Status::OK) ? Status::WARN : state;
       return *this;
