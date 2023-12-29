@@ -19,7 +19,7 @@ if (($? != 0)); then
 fi
 
 echo 'Checking ./UnitTest/TestData/./UnitTest/TestData/RandomContent.test'
-echo "95dd80064db9b6761d5bbe3d6ec85505cfa40943a117d30e7c422dcf7757d740  ./UnitTest/TestData/RandomContent.test" | sha256sum --check --status 
+echo "c0df70e17907c3f24e0fabf10549919420352a1ee840465bfc6d9bc887366f7c  UnitTest/TestData/RandomContnt.test" | sha256sum --check --status 
 if (($? != 0)); then
   exit 1
 fi
