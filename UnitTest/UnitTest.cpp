@@ -90,11 +90,44 @@ void TestLexWalk(){
 }
 
 #define ConsumeTest(data, num) if(!st.ConsumTerm( data )) ERR("TestConsumTerm", "Testing the consum therm method faild to consum "#num) 
-#define nConsumeTest(data, num) if(st.ConsumTerm( data )) ERR("TestConsumTerm", "Testing the consum therm method faild to consum "#num) 
+#define nConsumeTest(data, num) if(st.ConsumTerm( data )) ERR("TestConsumTerm", "Testing the consum therm method faild it wrongly consumed "#num" "#data) 
 void TestConsumTerm(){
   Lex st("./UnitTest/TestData/RandomContent.test");
   nConsumeTest('b',1);
   ConsumeTest('m',1);
+  ConsumeTest('q',2);
+  ConsumeTest('6',3);
+  ConsumeTest('E',4);
+  ConsumeTest('l',5);
+  ConsumeTest('d',6);
+  ConsumeTest('8',7);
+  ConsumeTest('I',8);
+  nConsumeTest('I',9);
+  ConsumeTest('c',9);
+  ConsumeTest('7',10);
+  ConsumeTest('U',11);
+  ConsumeTest('K',12);
+  ConsumeTest('A',13);
+  ConsumeTest('1',14);
+  ConsumeTest('S',15);
+  ConsumeTest('t',16);
+  ConsumeTest('p',17);
+  ConsumeTest('2',18);
+  ConsumeTest('2',19);
+  ConsumeTest('J',20);
+  nConsumeTest('J',21);
+  nConsumeTest('\n',21);
+  nConsumeTest('\r',21);
+  ConsumeTest('\t',21);
+  ConsumeTest('6',22);
+  ConsumeTest(' ',23);
+  ConsumeTest('j',24);
+  ConsumeTest(' ',25);
+  ConsumeTest(' ',26);
+  ConsumeTest('7',26);
+  ConsumeTest('\n',28);
+  ConsumeTest('\n',29);
+  ConsumeTest('6',30);
 }
 
 void TestLexer(){
