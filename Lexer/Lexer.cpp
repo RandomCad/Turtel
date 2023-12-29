@@ -4,14 +4,15 @@
 
 #include <cctype>
 #include <fstream>
+#include <iostream>
 
 std::ostream &operator<< (std::ostream &a, Token &b){
   return a << "List pointer (prev,next): " << b.prev << ',' << b.next << "\nToken str: " << b.str << "\nToken type: " << b.tok << std::endl;
 }
 
-#include <iostream>
+#define READ err.AddChar((char)st.get())
 
-Token *Lex::GetToken(){
+Token *Lex::GetToken(LexErr &err){
   #ifdef DEBUG
   std::cout << "Calling GetToken" << std::endl;
   #endif
@@ -21,20 +22,20 @@ Token *Lex::GetToken(){
         #ifdef DEBUG
         std::cout << "EOF" << std::endl;
         #endif
-        throw EOFErr();
+        err.EOFReached();
+        return nullptr;
       case ' ':
       case '\t':
       case '\n':
       case '\v':
       case '\f':
       case '\r':
-        st.get();
+        READ;
         continue;
           
       //"walk " [ <expr> | ( "back" <expr> ) | "home" ]
       case 'w':
-        st.get();
-        return RWalk();
+        return RWalk(err);
         continue;
       default:
         throw NotImpli(st.peek());
@@ -43,15 +44,16 @@ Token *Lex::GetToken(){
 }
 
 //"walk " [ <Int> | ( "back" <Int> ) | "home" ]
-Token *Lex::RWalk(){ 
+Token *Lex::RWalk(LexErr &err){ 
   #ifdef DEBUG
   std::cout << "Calling RWalk" << std::endl;
   #endif
 
-  ConsumTerm('a');
-  ConsumTerm('l');
-  ConsumTerm('k');
-  ConsumTerm(' ');
+  ConsumTerm('w', err);
+  ConsumTerm('a', err);
+  ConsumTerm('l', err);
+  ConsumTerm('k', err);
+  ConsumTerm(' ', err);
   switch (st.peek()){
     case 'b':
       
@@ -82,13 +84,13 @@ Token *Lex::RInt(){
   return new Token(sb.c_str(),TokE::Int);
 }
 
-bool Lex::ConsumTerm(char a){
+LexErr &Lex::ConsumTerm(char a, LexErr &err){
   if(st.peek() == a){
-    st.get();
-    return true;
+    READ;
+    return err;
   }
   //error
-  return false;
+  return err.ConsumedWrong(a);
 }
 
 #ifdef U_TEST

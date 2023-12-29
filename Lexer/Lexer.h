@@ -11,6 +11,7 @@
 #endif
 
 #include "Token.h"
+#include "LexerError.h"
 
 //main Lexer class
 class Lex{
@@ -36,20 +37,22 @@ class Lex{
     Token *getToken() { return GetToken(); }
     #endif
     #ifdef U_TEST
-    Token *TestGetToken() { return GetToken(); }
     void swapStream(std::ifstream &a);
     void swapStream(const char *a);
     #endif
 
   private:
-    Token *GetToken();
+    Token *GetToken(LexErr &err);
+    friend void TestRemoveWhites();
     
-    Token *RWalk();
+    Token *RWalk(LexErr &err);
+    friend void TestLexWalk();
+
     Token *RWalkBack();
 
     Token *RInt();
 
-    bool ConsumTerm(char a);
+    LexErr &ConsumTerm(char a, LexErr &err);
     friend void TestConsumTerm();
 
 };
