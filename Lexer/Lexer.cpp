@@ -83,6 +83,7 @@ LexErr &Lex::ConsumTerm(char a, LexErr &err){
     READ;
     return err;
   }
+  std::cerr <<'t' << std::endl;
   READ;
   //error
   return err.ConsumedWrong(a);

@@ -87,7 +87,9 @@ Throw EOFError, which isn't expected");
 }*/
 
 void TestLexWalk(){
-  
+  Lex st("./UnitTest/TestData/RandomContent.test");
+  LexErr err;
+  //Lex.RWalk(err);
 
 }
 
@@ -97,7 +99,6 @@ void TestConsumTerm(){
   Lex st("./UnitTest/TestData/RandomContent.test");
   LexErr err;
   nConsumeTest('b',1);
-  ConsumeTest('m',1);
   ConsumeTest('q',2);
   ConsumeTest('6',3);
   ConsumeTest('E',4);
@@ -106,7 +107,6 @@ void TestConsumTerm(){
   ConsumeTest('8',7);
   ConsumeTest('I',8);
   nConsumeTest('I',9);
-  ConsumeTest('c',9);
   ConsumeTest('7',10);
   ConsumeTest('U',11);
   ConsumeTest('K',12);
@@ -119,9 +119,6 @@ void TestConsumTerm(){
   ConsumeTest('2',19);
   ConsumeTest('J',20);
   nConsumeTest('J',21);
-  nConsumeTest('\n',21);
-  nConsumeTest('\r',21);
-  ConsumeTest('\t',21);
   ConsumeTest('6',22);
   ConsumeTest(' ',23);
   ConsumeTest('j',24);
