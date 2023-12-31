@@ -13,7 +13,7 @@ if (($? != 0)); then
 fi
 
 echo 'Checking ./UnitTest/TestData/./UnitTest/TestData/Walk.test'
-echo "1a90e2a773aa08df2123f6e8810bd9d9ada29dd017e132f2b62c74edcd21f10e  ./UnitTest/TestData/Walk.test" | sha256sum --check --status 
+echo "1ed24689209fa7593f13f20580194db85af82df4c67bf6afb876f72fafba9860  ./UnitTest/TestData/Walk.test" | sha256sum --check --status 
 if (($? != 0)); then
   exit 1
 fi
