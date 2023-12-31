@@ -159,12 +159,43 @@ void TestTryConsumTerm(){
   ConsumeTest('2',19);
   ConsumeTest('J',20);
 }
-
+#undef nConsumTest
+#undef ConsumeTest
+#define ConsumeTest(data, num) err.state=LexErr::Status::OK;if(st.ConsumTerm<isdigit>( data , err).state != LexErr::Status::OK) ERR("TestConsumTerm", "Testing the consum therm method faild to consum "#num) 
+#define nConsumTest(data, num) err.state=LexErr::Status::OK;if(st.ConsumTerm<isdigit>( data , err).state != LexErr::Status::WARN) ERR("TestConsumTerm", "Testing the consum therm method faild it wrongly consumed "#num" "#data) 
+void TestConsumTermTemplate(){
+  Lex st("./UnitTest/TestData/RandomContent.test");
+  LexErr err;
+  nConsumTest('b',1);
+  ConsumeTest('m',1);
+  ConsumeTest('q',2);
+  ConsumeTest('6',3);
+  ConsumeTest('E',4);
+  ConsumeTest('l',5);
+  ConsumeTest('d',6);
+  nConsumTest('d',7);
+  nConsumTest('d',8);
+  ConsumeTest('I',8);
+  nConsumTest('I',9);
+  ConsumeTest('c',9);
+  ConsumeTest('7',10);
+  ConsumeTest('U',11);
+  ConsumeTest('K',12);
+  ConsumeTest('A',13);
+  ConsumeTest('1',14);
+  ConsumeTest('S',15);
+  ConsumeTest('t',16);
+  ConsumeTest('p',17);
+  ConsumeTest('2',18);
+  ConsumeTest('2',19);
+  ConsumeTest('J',20);
+}
 void TestLexer(){
   //TestRemoveWhites();
   TestLexWalk();
   TestConsumTerm();
   TestTryConsumTerm();
+  TestConsumTermTemplate();
 }
 
 

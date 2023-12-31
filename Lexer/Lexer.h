@@ -57,15 +57,16 @@ class Lex{
     friend void TestTryConsumTerm();
 
   template <int (*Condition)(int)>
-    LexErr &ConsumTerm(char a, LexErr &err){
-      if(st.peek() == a){
-        READ;
-        return err;
-      }
-      if (Condition(st.peek())) READ;
-      //error
-      return err.ConsumedWrong(a);
+  LexErr &ConsumTerm(char a, LexErr &err){
+    if(st.peek() == a){
+      READ;
+      return err;
     }
+    if (Condition(st.peek())) READ;
+    //error
+    return err.ConsumedWrong(a);
+  }
+  friend void TestConsumTermTemplate();
 
     /*Furture use
     template<char C>
