@@ -87,9 +87,23 @@ Throw EOFError, which isn't expected");
 }*/
 
 void TestLexWalk(){
-  Lex st("./UnitTest/TestData/RandomContent.test");
+  Lex st("./UnitTest/TestData/Walk.test");
   LexErr err;
-  //Lex.RWalk(err);
+  auto ret = st.RWalk(err);
+  if (err.state != LexErr::Status::OK) ERR("TestLexWall","Testing the corect lexing of walk, wrong err state");
+  if (ret->tok != TokE::Walk) ERR("TestLexWall","Testing the corect lexing of walk wrong token");
+
+  err.state = LexErr::Status::OK;
+  ret = st.RWalk(err);
+  if (err.state != LexErr::Status::OK) ERR("TestLexWall","Testing the corect lexing of walk, wrong err state");
+  if (ret->tok != TokE::Walk) ERR("TestLexWall","Testing the corect lexing of walk wrong token");
+
+  err.state = LexErr::Status::OK;
+  ret = st.RWalk(err);
+  if (err.state != LexErr::Status::OK) ERR("TestLexWall","Testing the incorect lexing of walk, wrong err state");
+  if (ret == nullptr) ERR("TestLexWall","Testing the incorect lexing of walk a token was lexed");
+  //TODO: check the error list
+ 
 
 }
 
@@ -131,8 +145,8 @@ void TestConsumTerm(){
 }
 #undef nConsumeTest
 #undef ConsumeTest
-#define ConsumeTest(data, num) err.state=LexErr::Status::OK;if(st.TryConsumTerm( data , err).state != LexErr::Status::OK) ERR("TestConsumTerm", "Testing the consum therm method faild to consum "#num) 
-#define nConsumTest(data, num) err.state=LexErr::Status::OK;if(st.TryConsumTerm( data , err).state != LexErr::Status::OK) ERR("TestConsumTerm", "Testing the consum therm method faild it wrongly consumed "#num" "#data) 
+#define ConsumeTest(data, num) err.state=LexErr::Status::OK;if(st.TryConsumTerm( data , err).state != LexErr::Status::OK) ERR("TestTryConsumTerm", "Testing the consum therm method faild to consum "#num) 
+#define nConsumTest(data, num) err.state=LexErr::Status::OK;if(st.TryConsumTerm( data , err).state != LexErr::Status::OK) ERR("TestTryConsumTerm", "Testing the consum therm method faild it wrongly consumed "#num" "#data) 
 void TestTryConsumTerm(){
   Lex st("./UnitTest/TestData/RandomContent.test");
   LexErr err;
@@ -161,8 +175,8 @@ void TestTryConsumTerm(){
 }
 #undef nConsumTest
 #undef ConsumeTest
-#define ConsumeTest(data, num) err.state=LexErr::Status::OK;if(st.ConsumTerm<isdigit>( data , err).state != LexErr::Status::OK) ERR("TestConsumTerm", "Testing the consum therm method faild to consum "#num) 
-#define nConsumTest(data, num) err.state=LexErr::Status::OK;if(st.ConsumTerm<isdigit>( data , err).state != LexErr::Status::WARN) ERR("TestConsumTerm", "Testing the consum therm method faild it wrongly consumed "#num" "#data) 
+#define ConsumeTest(data, num) err.state=LexErr::Status::OK;if(st.ConsumTerm<isdigit>( data , err).state != LexErr::Status::OK) ERR("TestConsumTermTemplate", "Testing the consum therm method faild to consum "#num) 
+#define nConsumTest(data, num) err.state=LexErr::Status::OK;if(st.ConsumTerm<isdigit>( data , err).state != LexErr::Status::WARN) ERR("TestConsumTermTemplate", "Testing the consum therm method faild it wrongly consumed "#num" "#data) 
 void TestConsumTermTemplate(){
   Lex st("./UnitTest/TestData/RandomContent.test");
   LexErr err;
@@ -173,7 +187,7 @@ void TestConsumTermTemplate(){
   ConsumeTest('E',4);
   ConsumeTest('l',5);
   ConsumeTest('d',6);
-  nConsumTest('d',7);
+  ConsumeTest('d',7);
   nConsumTest('d',8);
   ConsumeTest('I',8);
   nConsumTest('I',9);
@@ -190,11 +204,20 @@ void TestConsumTermTemplate(){
   ConsumeTest('2',19);
   ConsumeTest('J',20);
 }
+#undef nConsumTest
+#undef ConsumeTest
+
 void TestLexer(){
   //TestRemoveWhites();
+  std::cout << "Runing TestLexWalk" << std::endl;
   TestLexWalk();
+
+
+  std::cout << "Runing TestConsumTerm" << std::endl;
   TestConsumTerm();
+  std::cout << "Runing TestTryConsumTerm" << std::endl;
   TestTryConsumTerm();
+  std::cout << "Runing TestConsumTermTemplate" << std::endl;
   TestConsumTermTemplate();
 }
 
