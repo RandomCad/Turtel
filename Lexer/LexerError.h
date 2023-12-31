@@ -11,9 +11,12 @@ class LexErr: public std::exception{
     struct Error{
       enum class errorNum {
         EndOfFile,
-        WrongConsum
+        WrongConsum,
+        TryWrongConsum,
+        WalkLexErr //it's a error that specifies errors with already happend
       };
       union S{
+        void *vp;
         char car;
       };
       errorNum err;
@@ -33,20 +36,33 @@ class LexErr: public std::exception{
       sb.reserve(startSize);
     }
     //TODO: Detor
-    
-    void AddChar(const char a) noexcept{
-      sb += a;
+    //
+    //Its more of a warning than a real error!
+    LexErr &TryConsumedWrong(char corr){
+      Error::S zwi;
+      zwi.car = corr;
+      error.push(Error(Error::errorNum::TryWrongConsum,zwi, sb.length() - 1));
+      return *this;
     }
-
-    void EOFReached(){
-      state = Status::FATAL;
+       
+    void WalkLexingError(){
+      Error::S zwi = {nullptr};
+      error.push(Error(Error::errorNum::WalkLexErr,zwi, sb.length() - 1));
+      state = Status::OK;
     }
 
     LexErr &ConsumedWrong(char corr){
-      
-      error.push(Error(Error::errorNum::WrongConsum,{corr}, sb.length() - 1));
+      Error::S zwi;
+      zwi.car = corr;
+      error.push(Error(Error::errorNum::WrongConsum,zwi, sb.length() - 1));
       state = (state == Status::OK) ? Status::WARN : state;
       return *this;
+    }
+    void EOFReached(){
+      state = Status::FATAL;
+    } 
+    void AddChar(const char a) noexcept{
+      sb += a;
     }
   private:
 

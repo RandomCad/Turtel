@@ -1,3 +1,4 @@
+#define LEXER_CPP
 #include "Token.h"
 #include "Lexer.h"
 #include "LexerError.h"
@@ -10,7 +11,6 @@ std::ostream &operator<< (std::ostream &a, Token &b){
   return a << "List pointer (prev,next): " << b.prev << ',' << b.next << "\nToken str: " << b.str << "\nToken type: " << b.tok << std::endl;
 }
 
-#define READ err.AddChar((char)st.get())
 
 Token *Lex::GetToken(LexErr &err){
   #ifdef DEBUG
@@ -49,24 +49,18 @@ Token *Lex::RWalk(LexErr &err){
   std::cout << "Calling RWalk" << std::endl;
   #endif
 
-  ConsumTerm('w', err);
-  ConsumTerm('a', err);
-  ConsumTerm('l', err);
-  ConsumTerm('k', err);
-  ConsumTerm(' ', err);
-  switch (st.peek()){
-    case 'b':
-      
-      //role
-    case 'h':
-      //role
-    default:
-      Token *zwi = new Token(RInt(),new char[] { 'w','a','l','k'},TokE::Walk);
-      return zwi;
+  ConsumTerm<std::isalnum>('w', err);
+  ConsumTerm<std::isalnum>('a', err);
+  ConsumTerm<std::isalnum>('l', err);
+  ConsumTerm<std::isalnum>('k', err);
+  TryConsumTerm(' ', err);
 
-      //expr role
-      break;
+  if (err.state != LexErr::Status::OK && err.state != LexErr::Status::FATAL){
+    err.WalkLexingError();
   }
+  else return nullptr;
+
+  return new Token(new char[] { 'w','a','l','k'},TokE::Walk);
 }
 
 Token *Lex::RInt(){
@@ -89,8 +83,19 @@ LexErr &Lex::ConsumTerm(char a, LexErr &err){
     READ;
     return err;
   }
+  READ;
   //error
   return err.ConsumedWrong(a);
+}
+
+LexErr &Lex::TryConsumTerm(char a, LexErr &err){
+  if(st.peek() == a){
+    READ;
+    return err;
+  }
+  //error
+  return err.TryConsumedWrong(a);
+
 }
 
 #ifdef U_TEST

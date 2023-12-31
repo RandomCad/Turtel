@@ -6,12 +6,10 @@
 #include <vector>
 #include <iostream>
 
-#ifdef DEBUG
-#include <iostream>
-#endif
-
 #include "Token.h"
 #include "LexerError.h"
+
+#define READ err.AddChar((char)st.get())
 
 //main Lexer class
 class Lex{
@@ -55,5 +53,28 @@ class Lex{
     LexErr &ConsumTerm(char a, LexErr &err);
     friend void TestConsumTerm();
 
+    LexErr &TryConsumTerm(char a, LexErr &err);
+
+  template <int (*Condition)(int)>
+    LexErr &ConsumTerm(char a, LexErr &err){
+      if(st.peek() == a){
+        READ;
+        return err;
+      }
+      if (Condition(st.peek())) READ;
+      //error
+      return err.ConsumedWrong(a);
+    }
+
+    /*Furture use
+    template<char C>
+    LexErr &ConsumTerm(char a, LexErr &err){
+      
+    }//*/
+
 };
+
+#ifndef LEXER_CPP
+#undef READ
+#endif
 #endif
