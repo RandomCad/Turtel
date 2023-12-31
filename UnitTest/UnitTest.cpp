@@ -109,8 +109,8 @@ void TestConsumTerm(){
   nConsumeTest('I',9);
   ConsumeTest('7',10);
   ConsumeTest('U',11);
-  ConsumeTest('K',12);
-  ConsumeTest('A',13);
+  nConsumeTest('f',12);
+  nConsumeTest('g',13);
   ConsumeTest('1',14);
   ConsumeTest('S',15);
   ConsumeTest('t',16);
@@ -121,7 +121,7 @@ void TestConsumTerm(){
   nConsumeTest('J',21);
   ConsumeTest('6',22);
   ConsumeTest(' ',23);
-  ConsumeTest('j',24);
+  nConsumeTest('\n',24);
   ConsumeTest(' ',25);
   ConsumeTest(' ',26);
   ConsumeTest('7',26);
@@ -129,11 +129,42 @@ void TestConsumTerm(){
   ConsumeTest('\n',29);
   ConsumeTest('6',30);//*/
 }
+#undef nConsumeTest
+#undef ConsumeTest
+#define ConsumeTest(data, num) err.state=LexErr::Status::OK;if(st.TryConsumTerm( data , err).state != LexErr::Status::OK) ERR("TestConsumTerm", "Testing the consum therm method faild to consum "#num) 
+#define nConsumTest(data, num) err.state=LexErr::Status::OK;if(st.TryConsumTerm( data , err).state != LexErr::Status::OK) ERR("TestConsumTerm", "Testing the consum therm method faild it wrongly consumed "#num" "#data) 
+void TestTryConsumTerm(){
+  Lex st("./UnitTest/TestData/RandomContent.test");
+  LexErr err;
+  nConsumTest('b',1);
+  ConsumeTest('m',1);
+  ConsumeTest('q',2);
+  ConsumeTest('6',3);
+  ConsumeTest('E',4);
+  ConsumeTest('l',5);
+  ConsumeTest('d',6);
+  ConsumeTest('8',7);
+  ConsumeTest('I',8);
+  nConsumTest('I',9);
+  ConsumeTest('c',9);
+  ConsumeTest('7',10);
+  nConsumTest('U',11);
+  ConsumeTest('K',12);
+  ConsumeTest('A',13);
+  nConsumTest('1',14);
+  ConsumeTest('S',15);
+  ConsumeTest('t',16);
+  ConsumeTest('p',17);
+  ConsumeTest('2',18);
+  ConsumeTest('2',19);
+  ConsumeTest('J',20);
+}
 
 void TestLexer(){
   //TestRemoveWhites();
   TestLexWalk();
   TestConsumTerm();
+  TestTryConsumTerm();
 }
 
 

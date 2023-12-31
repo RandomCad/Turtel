@@ -54,6 +54,7 @@ class Lex{
     friend void TestConsumTerm();
 
     LexErr &TryConsumTerm(char a, LexErr &err);
+    friend void TestTryConsumTerm();
 
   template <int (*Condition)(int)>
     LexErr &ConsumTerm(char a, LexErr &err){
