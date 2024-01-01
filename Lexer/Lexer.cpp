@@ -16,6 +16,7 @@ Token *Lex::GetToken(LexErr &err){
   #ifdef DEBUG
   std::cout << "Calling GetToken" << std::endl;
   #endif
+  /*
   do{
     switch (st.peek()){
       case std::char_traits<char>::eof():
@@ -40,7 +41,7 @@ Token *Lex::GetToken(LexErr &err){
       default:
         throw NotImpli(st.peek());
     }
-  }while(true);
+  }while(true); //*/
 }
 
 //"walk " [ <Int> | ( "back" <Int> ) | "home" ]

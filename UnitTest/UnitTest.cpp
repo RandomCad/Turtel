@@ -35,6 +35,7 @@ std::forward_list<TestE> error;
 #include <iostream>
 
 #include "../Lexer/Lexer.h"
+#include "../Lexer/LexerError.h"
 
 /*
 //specific includes:
@@ -90,7 +91,9 @@ void TestLexWalk(){
   Lex st("./UnitTest/TestData/Walk.test");
   LexErr err;
   auto ret = st.RWalk(err);
+  std::cerr << err << std::endl;
   if (err.state != LexErr::Status::OK) ERR("TestLexWall","Testing the corect lexing of walk, wrong err state");
+  std::cerr << ret << ' ' <<(err.state != LexErr::Status::OK) << std::endl;
   if (ret->tok != TokE::Walk) ERR("TestLexWall","Testing the corect lexing of walk wrong token");
 
   err.state = LexErr::Status::OK;

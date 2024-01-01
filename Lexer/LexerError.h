@@ -3,13 +3,16 @@
 
 #include <exception>
 #include <queue>
+#include <fstream>
+#include <string>
+
+class LexErr;
+std::ostream &operator<< (std::ostream &a, LexErr &b);
 
 class LexErr: public std::exception{
   private:
-    std::string sb;
-    const int startSize = 16;
     struct Error{
-      enum class errorNum {
+       enum class errorNum {
         EndOfFile,
         WrongConsum,
         TryWrongConsum,
@@ -26,8 +29,11 @@ class LexErr: public std::exception{
       Error(errorNum e, S c,int s) : err(e),sbPos(s), content(c) {}
     };
 
+    std::string sb;
+    const int startSize = 16;
     std::queue<Error> error;
   public:
+    friend std::ostream &operator<< (std::ostream &a, LexErr &b);
     enum class Status{ OK,WARN,ERROR,FATAL};
     Status state;
 
@@ -38,54 +44,19 @@ class LexErr: public std::exception{
     //TODO: Detor
     //
     //Its more of a warning than a real error!
-    LexErr &TryConsumedWrong(char corr){
-      Error::S zwi;
-      zwi.car = corr;
-      error.push(Error(Error::errorNum::TryWrongConsum,zwi, sb.length() - 1));
-      return *this;
-    }
-       
-    void WalkLexingError(){
-      Error::S zwi = {nullptr};
-      error.push(Error(Error::errorNum::WalkLexErr,zwi, sb.length() - 1));
-      state = Status::OK;
-    }
+    LexErr &TryConsumedWrong(char corr);
+    void WalkLexingError();
+    LexErr &ConsumedWrong(char corr);
 
-    LexErr &ConsumedWrong(char corr){
-      Error::S zwi;
-      zwi.car = corr;
-      error.push(Error(Error::errorNum::WrongConsum,zwi, sb.length() - 1));
-      state = (state == Status::OK) ? Status::WARN : state;
-      return *this;
-    }
-    void EOFReached(){
+    void EOFReached() noexcept{
       state = Status::FATAL;
     } 
     void AddChar(const char a) noexcept{
       sb += a;
     }
   private:
+    static std::ostream &PrintError(std::ostream &a, Error &err);
 
-};
-
-class EOFErr : public LexErr{
-  public:
-    const char * what(){
-      return "Encounterd end of file, whene this wasn't expected";
-    }
-};
-
-//TODO save what is wrong
-class NotImpli : public LexErr{
-  private:
-    const char wrong;
-    std::string ret = "Encounterd symbole { } for which no lexing path was founde";
-  public:
-    NotImpli(const char a) : wrong(a) {}
-    const char * what(){
-      ret[20] = wrong;
-      return ret.c_str();
-    }
 };
 
 #endif
