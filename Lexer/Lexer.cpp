@@ -50,18 +50,25 @@ Token *Lex::RWalk(LexErr &err){
   std::cout << "Calling RWalk" << std::endl;
   #endif
 
-  ConsumTerm<std::isalnum>('w', err);
-  ConsumTerm<std::isalnum>('a', err);
-  ConsumTerm<std::isalnum>('l', err);
-  ConsumTerm<std::isalnum>('k', err);
+  int errCnt = 0;
+  ConsumTerm<std::isalnum>('w', err, errCnt, 40);
+  ConsumTerm<std::isalnum>('a', err, errCnt, 25);
+  ConsumTerm<std::isalnum>('l', err, errCnt, 13);
+  ConsumTerm<std::isalnum>('k', err, errCnt, 12);
   TryConsumTerm(' ', err);
 
-  if (err.state != LexErr::Status::OK && err.state != LexErr::Status::FATAL){
-    err.WalkLexingError();
+  switch (err.state){
+    case LexErr::Status::OK:
+      if (errCnt < 75) return new Token(new char[] { 'w','a','l','k'},TokE::Walk);
+    case LexErr::Status::WARN:
+    case LexErr::Status::ERROR:
+      err.WalkLexingError();
+      return nullptr;
+    case LexErr::Status::FATAL:
+      //TODO:
+      //return nullptr;
+      ;
   }
-  else return nullptr;
-
-  return new Token(new char[] { 'w','a','l','k'},TokE::Walk);
 }
 
 Token *Lex::RInt(){

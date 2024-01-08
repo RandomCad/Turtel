@@ -58,8 +58,23 @@ class Lex{
 
   template <int (*Condition)(int)>
   LexErr &ConsumTerm(char a, LexErr &err){
-    if(st.peek() == a ||Condition(st.peek())){
+    if(st.peek() == a || Condition(st.peek())){
       READ;
+      return err;
+    }
+    //error
+    return err.ConsumedWrong(a);
+  }
+
+  template <int (*Condition)(int)>
+  LexErr &ConsumTerm(char a, LexErr &err, int &errCnt, const int errAdd){
+    if(st.peek() == a){
+      READ;
+      return err;
+    }
+    if(Condition(st.peek())){
+      READ;
+      errCnt+=errAdd;
       return err;
     }
     //error
