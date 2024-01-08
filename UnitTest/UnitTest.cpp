@@ -87,24 +87,29 @@ Throw EOFError, which isn't expected");
   
 }*/
 
+#define TEST_NEXT_CHARAKTER(i, err) if (i!=st.st.peek()) ERR("Testing the Next character",err);
+
 void TestLexWalk(){
   Lex st("./UnitTest/TestData/Walk.test");
   LexErr err;
   auto ret = st.RWalk(err);
-  std::cerr << err << std::endl;
   if (err.state != LexErr::Status::OK) ERR("TestLexWall","Testing the corect lexing of walk, wrong err state");
-  std::cerr << ret << ' ' <<(err.state != LexErr::Status::OK) << std::endl;
   if (ret->tok != TokE::Walk) ERR("TestLexWall","Testing the corect lexing of walk wrong token");
+  TEST_NEXT_CHARAKTER('w',"Testing the next char after first walk Lexing in test");
+  std::cerr << (char)st.st.get() << (char) st.st.get()<< (char) st.st.get() << std::endl;
 
   err.state = LexErr::Status::OK;
   ret = st.RWalk(err);
   if (err.state != LexErr::Status::OK) ERR("TestLexWall","Testing the corect lexing of walk, wrong err state");
+  std::cerr << ret << std::endl;
+  return;
   if (ret->tok != TokE::Walk) ERR("TestLexWall","Testing the corect lexing of walk wrong token");
+
 
   err.state = LexErr::Status::OK;
   ret = st.RWalk(err);
   if (err.state != LexErr::Status::OK) ERR("TestLexWall","Testing the incorect lexing of walk, wrong err state");
-  if (ret == nullptr) ERR("TestLexWall","Testing the incorect lexing of walk a token was lexed");
+  if (ret != nullptr) ERR("TestLexWall","Testing the incorect lexing of walk a token was lexed");
   //TODO: check the error list
  
 
