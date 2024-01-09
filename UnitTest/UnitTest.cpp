@@ -96,13 +96,10 @@ void TestLexWalk(){
   if (err.state != LexErr::Status::OK) ERR("TestLexWall","Testing the corect lexing of walk, wrong err state");
   if (ret->tok != TokE::Walk) ERR("TestLexWall","Testing the corect lexing of walk wrong token");
   TEST_NEXT_CHARAKTER('w',"Testing the next char after first walk Lexing in test");
-  std::cerr << (char)st.st.get() << (char) st.st.get()<< (char) st.st.get() << std::endl;
 
   err.state = LexErr::Status::OK;
   ret = st.RWalk(err);
   if (err.state != LexErr::Status::OK) ERR("TestLexWall","Testing the corect lexing of walk, wrong err state");
-  std::cerr << ret << std::endl;
-  return;
   if (ret->tok != TokE::Walk) ERR("TestLexWall","Testing the corect lexing of walk wrong token");
 
 
