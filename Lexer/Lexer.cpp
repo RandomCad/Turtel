@@ -62,12 +62,11 @@ Token *Lex::RWalk(LexErr &err){
       if (errCnt < 75) return new Token(new char[] { 'w','a','l','k'},TokE::Walk);
     case LexErr::Status::WARN:
     case LexErr::Status::ERROR:
-      err.WalkLexingError();
+      err.ResetError();
+      err.AddWalkLexingError();
       return nullptr;
     case LexErr::Status::FATAL:
-      //TODO:
-      //return nullptr;
-      ;
+      return nullptr;
   }
 }
 

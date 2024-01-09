@@ -9,10 +9,9 @@ LexErr &LexErr::TryConsumedWrong(char corr){
   return *this;
 }
        
-void LexErr::WalkLexingError(){
+void LexErr::AddWalkLexingError(){
   Error::S zwi = {nullptr};
   error.push(Error(Error::errorNum::WalkLexErr,zwi, sb.length() - 1));
-  state = Status::OK;
 }
 
 LexErr &LexErr::ConsumedWrong(char corr){

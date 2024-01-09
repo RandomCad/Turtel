@@ -42,11 +42,32 @@ class LexErr: public std::exception{
       sb.reserve(startSize);
     }
     //TODO: Detor
-    //
+    
+    void ResetWarn(){
+      switch (state){
+        case Status::OK:
+        case Status::WARN:
+          state = Status::OK;
+        case Status::ERROR:
+        case Status::FATAL:
+          break;
+      }
+    }
+    void ResetError(){
+      switch (state){
+        case Status::OK:
+        case Status::WARN:
+        case Status::ERROR:
+          state = Status::OK;
+        case Status::FATAL:
+          break;
+      }
+    }
     //Its more of a warning than a real error!
     LexErr &TryConsumedWrong(char corr);
-    void WalkLexingError();
+    void AddWalkLexingError();
     LexErr &ConsumedWrong(char corr);
+
 
     void EOFReached() noexcept{
       state = Status::FATAL;
