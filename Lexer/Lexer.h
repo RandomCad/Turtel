@@ -46,9 +46,9 @@ class Lex{
     Token *RWalk(LexErr &err);
     friend void TestLexWalk();
 
-    Token *RWalkBack();
+    Token *RInt(LexErr &err);
 
-    Token *RInt();
+    Token *RWalkBack();
 
     LexErr &ConsumTerm(char a, LexErr &err);
     friend void TestConsumTerm();

@@ -28,6 +28,13 @@ LexErr &LexErr::ConsumedWrong(){
   return *this;
 }
 
+LexErr &LexErr::NoNumberInInt(){
+  Error::S zwi = {nullptr};
+  error.push(Error(Error::errorNum::NoNumberInInt, zwi, sb.length() - 1));
+  state = (state != Status::FATAL) ? Status::ERROR : state;
+  return *this;
+}
+
 std::ostream &LexErr::PrintError(std::ostream &a, LexErr::Error &err){
   std::cerr << "test" << std::endl;
   switch(err.err){
@@ -35,6 +42,7 @@ std::ostream &LexErr::PrintError(std::ostream &a, LexErr::Error &err){
     case LexErr::Error::errorNum::WrongConsum:
     case LexErr::Error::errorNum::TryWrongConsum:
     case LexErr::Error::errorNum::WalkLexErr:
+    default:
       a << "REDNotImplimentedCLEAR";
       break;
   }

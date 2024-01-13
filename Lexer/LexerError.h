@@ -16,6 +16,7 @@ class LexErr: public std::exception{
         EndOfFile,
         WrongConsum,
         TryWrongConsum,
+        NoNumberInInt,
         WalkLexErr //it's a error that specifies errors with already happend
       };
       union S{
@@ -69,6 +70,7 @@ class LexErr: public std::exception{
     LexErr &ConsumedWrong(char corr);
     LexErr &ConsumedWrong();
 
+    LexErr &NoNumberInInt();
 
     void EOFReached() noexcept{
       state = Status::FATAL;

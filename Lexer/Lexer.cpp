@@ -70,17 +70,17 @@ Token *Lex::RWalk(LexErr &err){
   }
 }
 
-Token *Lex::RInt(){
-  //int ret;
- //bool neg = false;
+Token *Lex::RInt(LexErr &err){
   if(st.peek() == '-'){
-    sb += st.get();
+    READ;
+  } 
+  if(!std::isdigit(st.peek())){
+    err.NoNumberInInt(); //error
+    return new Token("",TokE::Int);
   }
-  if(!std::isdigit(st.peek()))
-    return nullptr; //error
 
-  do{
-    sb += st.get();
+  do{ 
+    READ;
   } while(std::isdigit(st.peek()));
   return new Token(sb.c_str(),TokE::Int);
 }
@@ -111,7 +111,6 @@ LexErr &Lex::TryConsumTerm(char a, LexErr &err){
   }
   //error
   return err.TryConsumedWrong(a);
-
 }
 
 #ifdef U_TEST
