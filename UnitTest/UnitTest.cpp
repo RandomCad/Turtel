@@ -235,7 +235,6 @@ void TestConsumTermTemplate(){
     ERR("TestConsumTermTemplateWithNum", "Testing the consum therm method faild. The adition to the error number was incorrect occured."#num);\
     number = numCorr;\
   }
-
 void TestConsumTermTemplateWithNum(){
   Lex st("./UnitTest/TestData/RandomContent.test");
   LexErr err;
@@ -262,6 +261,8 @@ void TestConsumTermTemplateWithNum(){
   nConsumTest('2',19,3);
   ConsumeTest('J',20);
 }
+#undef nConsumTest
+#undef ConsumeTest
 
 void TestLexer(){
   //TestRemoveWhites();
