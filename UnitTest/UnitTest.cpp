@@ -150,7 +150,9 @@ void TestConsumTerm(){
 }
 #undef nConsumeTest
 #undef ConsumeTest
-#define ConsumeTest(data, num) err.state=LexErr::Status::OK;if(st.TryConsumTerm( data , err).state != LexErr::Status::OK) ERR("TestTryConsumTerm", "Testing the consum therm method faild to consum "#num) 
+
+
+#define ConsumeTest(data, num) err.state=LexErr::Status::OK;if(st.TryConsumTerm( data , err).state != LexErr::Status::OK) ERR("TestTryConsumTerm", "Testing the consum therm method faild to consum "#num)
 #define nConsumTest(data, num) err.state=LexErr::Status::OK;if(st.TryConsumTerm( data , err).state != LexErr::Status::OK) ERR("TestTryConsumTerm", "Testing the consum therm method faild it wrongly consumed "#num" "#data) 
 void TestTryConsumTerm(){
   Lex st("./UnitTest/TestData/RandomContent.test");
@@ -180,6 +182,8 @@ void TestTryConsumTerm(){
 }
 #undef nConsumTest
 #undef ConsumeTest
+
+
 #define ConsumeTest(data, num) err.state=LexErr::Status::OK;if(st.ConsumTerm<isdigit>( data , err).state != LexErr::Status::OK) ERR("TestConsumTermTemplate", "Testing the consum therm method faild to consum "#num) 
 #define nConsumTest(data, num) err.state=LexErr::Status::OK;if(st.ConsumTerm<isdigit>( data , err).state != LexErr::Status::WARN) ERR("TestConsumTermTemplate", "Testing the consum therm method faild it wrongly consumed "#num" "#data) 
 void TestConsumTermTemplate(){
@@ -211,6 +215,53 @@ void TestConsumTermTemplate(){
 }
 #undef nConsumTest
 #undef ConsumeTest
+
+
+#define ConsumeTest(data, num)\
+  err.state=LexErr::Status::OK;\
+  if(st.ConsumTerm<isdigit>( data , err, number).state != LexErr::Status::OK)\
+    ERR("TestConsumTermTemplateWithNum", "Testing the consum therm method faild to consum "#num);\
+  if(number != numCorr){\
+    ERR("TestConsumTermTemplateWithNum", "Testing the consum therm method faild. The an adition to the error number occured."#num);\
+    number = numCorr;\
+  }
+    
+#define nConsumTest(data, num, errNumAdd)\
+  err.state=LexErr::Status::OK;\
+  if(st.ConsumTerm<isdigit>( data , err, number, errNumAdd).state != LexErr::Status::WARN)\
+    ERR("TestConsumTermTemplateWithNum", "Testing the consum therm method faild it wrongly consumed "#num" "#data)\
+  numCorr += errNumAdd;\
+  if(number != numCorr){\
+    ERR("TestConsumTermTemplateWithNum", "Testing the consum therm method faild. The adition to the error number was incorrect occured."#num);\
+    number = numCorr;\
+  }
+
+void TestConsumTermTemplateWithNum(){
+  Lex st("./UnitTest/TestData/RandomContent.test");
+  LexErr err;
+  int number = 0;
+  int numCorr = 0;
+  ConsumeTest('m',1);
+  ConsumeTest('q',2);
+  nConsumTest('b',3,1);
+  ConsumeTest('E',4);
+  ConsumeTest('l',5);
+  ConsumeTest('d',6);
+  nConsumTest('d',7,20);
+  ConsumeTest('I',8);
+  ConsumeTest('c',9);
+  ConsumeTest('7',10);
+  ConsumeTest('U',11);
+  ConsumeTest('K',12);
+  ConsumeTest('A',13);
+  ConsumeTest('1',14);
+  ConsumeTest('S',15);
+  ConsumeTest('t',16);
+  ConsumeTest('p',17);
+  ConsumeTest('2',18);
+  nConsumTest('2',19,3);
+  ConsumeTest('J',20);
+}
 
 void TestLexer(){
   //TestRemoveWhites();

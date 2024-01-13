@@ -67,9 +67,10 @@ class Lex{
     //error
     return err.ConsumedWrong(a);
   }
+  friend void TestConsumTermTemplate();
 
   template <int (*Condition)(int)>
-  LexErr &ConsumTerm(char a, LexErr &err, int &errCnt, const int errAdd){
+  LexErr &ConsumTerm(char a, LexErr &err, int &errCnt, const int errAdd = 1){
     if(st.peek() == a){
       READ;
       return err;
@@ -82,7 +83,7 @@ class Lex{
     //error
     return err.ConsumedWrong(a);
   }
-  friend void TestConsumTermTemplate();
+  friend void TestConsumTermTemplateWithNum();
 
     /*Furture use
     template<char C>
