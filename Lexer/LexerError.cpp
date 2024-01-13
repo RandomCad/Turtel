@@ -21,6 +21,12 @@ LexErr &LexErr::ConsumedWrong(char corr){
   state = (state == Status::OK) ? Status::WARN : state;
   return *this;
 }
+LexErr &LexErr::ConsumedWrong(){
+  Error::S zwi = {nullptr};
+  error.push(Error(Error::errorNum::WrongConsum,zwi, sb.length() - 1));
+  state = (state == Status::OK) ? Status::WARN : state;
+  return *this;
+}
 
 std::ostream &LexErr::PrintError(std::ostream &a, LexErr::Error &err){
   std::cerr << "test" << std::endl;

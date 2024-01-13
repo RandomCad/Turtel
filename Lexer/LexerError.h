@@ -67,6 +67,7 @@ class LexErr: public std::exception{
     LexErr &TryConsumedWrong(char corr);
     void AddWalkLexingError();
     LexErr &ConsumedWrong(char corr);
+    LexErr &ConsumedWrong();
 
 
     void EOFReached() noexcept{

@@ -53,6 +53,8 @@ class Lex{
     LexErr &ConsumTerm(char a, LexErr &err);
     friend void TestConsumTerm();
 
+    LexErr &ConsumTerm(int (*Con) (int), LexErr &err);
+
     LexErr &TryConsumTerm(char a, LexErr &err);
     friend void TestTryConsumTerm();
 

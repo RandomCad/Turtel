@@ -72,7 +72,7 @@ Token *Lex::RWalk(LexErr &err){
 
 Token *Lex::RInt(){
   //int ret;
-  //bool neg = false;
+ //bool neg = false;
   if(st.peek() == '-'){
     sb += st.get();
   }
@@ -93,6 +93,15 @@ LexErr &Lex::ConsumTerm(char a, LexErr &err){
   READ;
   //error
   return err.ConsumedWrong(a);
+}
+
+LexErr &Lex::ConsumTerm(int (*Con)(int), LexErr &err){
+  if (Con(st.peek())){
+    READ;
+    return err;
+  }
+  READ;
+  return err.ConsumedWrong();
 }
 
 LexErr &Lex::TryConsumTerm(char a, LexErr &err){
