@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 
-project("Antlr-cpp-tutorial")
+project("Turtel")
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -26,7 +26,6 @@ find_package(ANTLR REQUIRED)
 # CMake commands copied by the CMake file for CImg
 
 # To use PKG_CHECK_MODULES to find some optional packages
-find_package(PkgConfig)
 
 if(NOT WIN32)
   FIND_PACKAGE(Threads REQUIRED)
@@ -35,45 +34,6 @@ endif()
 # #### End of additional libraries search ##########
 
 
-### Configure Paths according to detected packages
-if (ZLIB_FOUND)
-  SET(CIMG_CFLAGS "${CIMG_CFLAGS} ${CIMG_ZLIB_CCFLAGS}")
-  link_directories(${ZLIB_LIB_DIRS})
-  include_directories(${ZLIB_INCLUDE_DIR})
-  SET(SYSTEM_LIBS ${SYSTEM_LIBS} ${ZLIB_LIBRARIES})
-
-  # PNG requires ZLIB
-endif()
-
-if(OPENEXR_FOUND)
-  SET(CIMG_CFLAGS "${CIMG_CFLAGS} ${CIMG_OPENEXR_CCFLAGS}")
-  link_directories( ${OPENEXR_LIBRARY_DIRS} )
-  include_directories( ${OPENEXR_INCLUDE_DIRS} )
-  SET( SYSTEM_LIBS ${SYSTEM_LIBS} ${OPENEXR_LIBRARIES} )
-endif()
-
-if(MAGICK_FOUND)
-  SET(CIMG_CFLAGS "${CIMG_CFLAGS} ${CIMG_MAGICK_CCFLAGS}")
-  link_directories( ${MAGICK_LIBRARY_DIRS} )
-  include_directories( ${MAGICK_INCLUDE_DIRS} )
-  SET( SYSTEM_LIBS ${SYSTEM_LIBS} ${MAGICK_LIBRARIES} )
-endif()
-
-if( LIBAVCODEC_FOUND  AND LIBAVFORMAT_FOUND AND LIBSWSCALE_FOUND AND LIBAVUTIL_FOUND )
-  SET(CIMG_CFLAGS "${CIMG_CFLAGS} ${CIMG_FFMPEG_CCFLAGS}")
-  link_directories( ${LIBAVFORMAT_LIBRARY_DIRS} )
-  link_directories( ${LIBAVCODEC_LIBRARY_DIRS} )
-  link_directories( ${LIBSWSCALE_LIBRARY_DIRS} )
-  link_directories( ${LIBAVUTIL_LIBRARY_DIRS} )
-  include_directories( ${LIBAVFORMAT_INCLUDE_DIRS} ${LIBAVFORMAT_INCLUDE_DIRS}/libavformat)
-  include_directories( ${LIBAVCODEC_INCLUDE_DIRS} ${LIBAVCODEC_INCLUDE_DIRS}/libavcodec )
-  include_directories( ${LIBSWSCALE_INCLUDE_DIRS} ${LIBSWSCALE_INCLUDE_DIRS}/libswscale)
-  include_directories( ${LIBAVUTIL_INCLUDE_DIRS} ${LIBAVUTIL_INCLUDE_DIRS}/libavutil )
-  SET( SYSTEM_LIBS ${SYSTEM_LIBS} ${LIBAVFORMAT_LIBRARIES} )
-  SET( SYSTEM_LIBS ${SYSTEM_LIBS} ${LIBAVCODEC_LIBRARIES} )
-  SET( SYSTEM_LIBS ${SYSTEM_LIBS} ${LIBSWSCALE_LIBRARIES} )
-  SET( SYSTEM_LIBS ${SYSTEM_LIBS} ${LIBAVUTIL_LIBRARIES} )
-endif()
 
 if (NOT WIN32)
   SET( SYSTEM_LIBS ${SYSTEM_LIBS} ${CMAKE_THREAD_LIBS_INIT} )
@@ -81,20 +41,6 @@ endif()
 
 if( WIN32)
   SET( SYSTEM_LIBS  ${SYSTEM_LIBS}  gdi32 )
-endif()
-
-if(LAPACK_FOUND)
-  SET(CIMG_CFLAGS "${CIMG_CFLAGS} ${CIMG_LAPACK_CCFLAGS}")
-  link_directories( ${LAPACK_LIBRARY_DIRS} )
-  include_directories( ${LAPACK_INCLUDE_DIRS} )
-  SET( SYSTEM_LIBS ${SYSTEM_LIBS} ${LAPACK_LIBRARIES} )
-endif()
-
-if(BLAS_FOUND)
-  SET(CIMG_CFLAGS "${CIMG_CFLAGS} ${CIMG_BLAS_CCFLAGS}")
-  link_directories( ${BLAS_LIBRARY_DIRS} )
-  include_directories( ${BLAS_INCLUDE_DIRS} )
-  SET( SYSTEM_LIBS ${SYSTEM_LIBS} ${BLAS_LIBRARIES} )
 endif()
 
 # Add CIMG Flags to Compilation Flags
@@ -125,8 +71,8 @@ include_directories(${PROJECT_SOURCE_DIR}
   )
   
 
-add_executable(antlr4-tutorial antlr.cpp               
-               ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+add_executable(antlr4-tutorial antlr.cpp  ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+
 
 # link required libraries
 target_link_libraries(antlr4-tutorial antlr4_static ${SYSTEM_LIBS})
@@ -151,11 +97,9 @@ endif()
 
 #Testing
 include(CTest)
-add_test(UnitTest ${CMAKE_CTEST_COMMAND}
-   --build-and-test "${CMAKE_SOURCE_DIR}/UnitTest/"
-                    "${CMAKE_BINARY_DIR}/UnitTest/"
-   --build-generator ${CMAKE_GENERATOR}
-   --build-makeprogram ${CMAKE_MAKE_PROGRAM}
-   --build-project Simple
-   --test-command simple)
 
+# Compilation and linking
+add_executable(tests UnitTest.cpp ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+target_link_libraries(tests antlr4_static ${SYSTEM_LIBS})
+
+add_test(UnitTest tests COMMAND tests)
