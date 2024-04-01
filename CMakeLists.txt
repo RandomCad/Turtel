@@ -149,3 +149,13 @@ add_custom_command(TARGET antlr4-tutorial POST_BUILD
   $<TARGET_FILE_DIR:antlr4-tutorial>/../)
 endif()
 
+#Testing
+include(CTest)
+add_test(UnitTest ${CMAKE_CTEST_COMMAND}
+   --build-and-test "${CMAKE_SOURCE_DIR}/UnitTest/"
+                    "${CMAKE_BINARY_DIR}/UnitTest/"
+   --build-generator ${CMAKE_GENERATOR}
+   --build-makeprogram ${CMAKE_MAKE_PROGRAM}
+   --build-project Simple
+   --test-command simple)
+
