@@ -18,11 +18,26 @@ struct TestError {
 
 bool TestNumberParsing(TestError*&);
 
-int main(void){
+int main(int argc, const char *argv[]){
   std::forward_list<TestError*> colector;
 
   TestError *next = nullptr;
-  if(TestNumberParsing(next)) colector.push_front(next);
+  if(argc <=2){
+    std::cerr << "No argument was given. Test wasn't correctly set up";
+    return 1;
+  }
+  
+  std::cout << argv[1];
+  
+  switch (atoi(argv[2])) {
+    case 0:
+      if(TestNumberParsing(next)) colector.push_front(next);
+      break;
+
+    default:
+      std::cerr << "Tryed to run non existing test. Test wasn't correctly set up";
+      return -1;
+  }
 
   int maxErr = 0;
 
@@ -105,9 +120,6 @@ bool TestNumberParsing(TestError *&ret){
   testToken = test->Float()->getSymbol();
   STRING_ASSERT(testToken->getText(),std::string(".876541132"), ret) 
   
-
-  
-
   return false;
 } 
 

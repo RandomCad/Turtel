@@ -102,4 +102,5 @@ include(CTest)
 add_executable(tests UnitTest.cpp ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 target_link_libraries(tests antlr4_static ${SYSTEM_LIBS})
 
-add_test(UnitTest tests COMMAND run)
+add_test(TestNumberParsing tests COMMAND 0)
+add_test(TestVariableParsing tests COMMAND 1)
