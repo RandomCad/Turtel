@@ -64,8 +64,46 @@ bool TestNumberParsing(TestError *&ret){
   NOT_NULL_ASSERT(test->Num()->getSymbol(),ret)
   Token *testToken = test->Num()->getSymbol();
   STRING_ASSERT(testToken->getText(),std::string("794651"), ret)
+
+  test = parser.number();
+  NOT_NULL_ASSERT(test, ret);
+  NOT_NULL_ASSERT(test->Num(), ret);
+  NULL_ASSERT(test->Float(), ret)
+  NOT_NULL_ASSERT(test->Num()->getSymbol(),ret)
+  testToken = test->Num()->getSymbol();
+  STRING_ASSERT(testToken->getText(),std::string("-91231"), ret)
+ 
+  test = parser.number();
+  NOT_NULL_ASSERT(test, ret);
+  NULL_ASSERT(test->Num(), ret);
+  NOT_NULL_ASSERT(test->Float(), ret)
+  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret)
+  testToken = test->Float()->getSymbol();
+  STRING_ASSERT(testToken->getText(),std::string("6541.89645"), ret) 
+ 
+  test = parser.number();
+  NOT_NULL_ASSERT(test, ret);
+  NULL_ASSERT(test->Num(), ret);
+  NOT_NULL_ASSERT(test->Float(), ret)
+  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret)
+  testToken = test->Float()->getSymbol();
+  STRING_ASSERT(testToken->getText(),std::string("-786451.168754"), ret) 
+   
+  test = parser.number();
+  NOT_NULL_ASSERT(test, ret);
+  NULL_ASSERT(test->Num(), ret);
+  NOT_NULL_ASSERT(test->Float(), ret)
+  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret)
+  testToken = test->Float()->getSymbol();
+  STRING_ASSERT(testToken->getText(),std::string("-.8765413"), ret) 
   
-  
+  test = parser.number();
+  NOT_NULL_ASSERT(test, ret);
+  NULL_ASSERT(test->Num(), ret);
+  NOT_NULL_ASSERT(test->Float(), ret)
+  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret)
+  testToken = test->Float()->getSymbol();
+  STRING_ASSERT(testToken->getText(),std::string(".876541132"), ret) 
   
 
   
