@@ -16,7 +16,7 @@ struct TestError {
   TestError(std::string &&name, std::string &&err, int severity): testName(name), errName(err), sev(severity) {}
 };
 
-bool TestNumberParsing(TestError*);
+bool TestNumberParsing(TestError*&);
 
 int main(void){
   std::forward_list<TestError*> colector;
@@ -24,10 +24,9 @@ int main(void){
   TestError *next = nullptr;
   if(TestNumberParsing(next)) colector.push_front(next);
 
-
   int maxErr = 0;
 
-  for(auto var : colector) {
+  for(TestError *var : colector) {
     maxErr = (maxErr > var->sev) ? maxErr : var->sev;
     std::cout << "Error in function" << var->testName << std::endl << var->errName << std::endl;
   }
@@ -35,8 +34,21 @@ int main(void){
   return maxErr;
 }
 
+#define NOT_NULL_ASSERT(ptr, ret) if( ptr == nullptr){ \
+                              ret = new TestError(std::string(__func__), "not nullptr assert fail.", 1);  \
+                              return true; \
+                              } 
 
-bool TestNumberParsing(TestError *ret){
+#define NULL_ASSERT(ptr, ret) if( ptr != nullptr){ \
+                              ret = new TestError(std::string(__func__), "nullptr assert fail.", 1);  \
+                              return true; \
+                              } 
+
+#define STRING_ASSERT(str1, str2, ret) \
+  if(str1.compare(str2) != 0){ \
+  ret = new TestError(std::string(__func__), "String assert fail.", 1); return true; }
+
+bool TestNumberParsing(TestError *&ret){
   std::ifstream stream;
   stream.open("../UnitTest/TestData/Numbers.test");
   
@@ -46,10 +58,15 @@ bool TestNumberParsing(TestError *ret){
   SceneParser parser(&tokens);    
   
   auto test = parser.number();
-  if(test == nullptr){
-    ret = new TestError(std::string(__func__), "returned a nullptr", 1); 
-    return true;
-  }
+  NOT_NULL_ASSERT(test, ret);
+  NOT_NULL_ASSERT(test->Num(), ret);
+  NULL_ASSERT(test->Float(), ret)
+  NOT_NULL_ASSERT(test->Num()->getSymbol(),ret)
+  Token *testToken = test->Num()->getSymbol();
+  STRING_ASSERT(testToken->getText(),std::string("794651"), ret)
+  
+  
+  
 
   
 
