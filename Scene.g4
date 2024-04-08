@@ -2,8 +2,8 @@ grammar Scene;
 
 // Parser rules
 expr  : ( klamKon | number) '^' (klamKon | number) #Exp
-      | expr '*' expr #Mult
-      | expr '/' expr #Dife
+      | ( klamKon | number) '*' (klamKon | number) #Mult
+      | ( klamKon | number) '/' (klamKon | number) #Dife
       | expr '+' expr #Add
       | expr '-' expr #Dim
       | '|' expr '|'  #ABS

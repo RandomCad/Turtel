@@ -132,11 +132,72 @@ bool TestExprParsing(TestError *&ret){
       NOT_NULL_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1]), ret, testNumber);
       NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(testVec[2]), ret, testNumber);
       STRING_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1])->getSymbol()->getText(), "^", ret, testNumber);
-      
-
     }
   }
-
+  { //test Multiplikation
+    //creat test TestData
+    int cor[TestAmount][2];
+    for (int i = 0; i < TestAmount; ++i) {
+      cor[i][0] = rand();
+      cor[i][1] = rand();
+      stream << cor[i][0] << '*' << cor[i][1] << std::endl;
+    }
+    ANTLRInputStream input(stream);
+    SceneLexer lexer(&input);
+    CommonTokenStream tokens(&lexer);
+    SceneParser parser(&tokens);    
+  
+    for (size_t i = 0; i < TestAmount; i++) {
+      std::cout << "test " << testNumber++ << std::endl;
+      auto test = parser.expr();
+    
+      NOT_NULL_ASSERT(test, ret, testNumber);
+      auto *testVar = dynamic_cast<SceneParser::MultContext*>(test); 
+      NOT_NULL_ASSERT(testVar, ret, testNumber)
+      NULL_ASSERT(testVar->exception, ret, testNumber);
+      auto testVec = testVar->children;
+      INT_ASSERT(testVec.size(), 3, ret, testNumber);
+      NOT_NULL_ASSERT(testVec[0], ret, testNumber);
+      NOT_NULL_ASSERT(testVec[1], ret, testNumber);
+      NOT_NULL_ASSERT(testVec[2], ret, testNumber);
+      NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(testVec[0]), ret, testNumber);
+      NOT_NULL_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1]), ret, testNumber);
+      NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(testVec[2]), ret, testNumber);
+      STRING_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1])->getSymbol()->getText(), "*", ret, testNumber);
+    }
+  }
+  { //test Difide
+    //creat test TestData
+    int cor[TestAmount][2];
+    for (int i = 0; i < TestAmount; ++i) {
+      cor[i][0] = rand();
+      cor[i][1] = rand();
+      stream << cor[i][0] << '/' << cor[i][1] << std::endl;
+    }
+    ANTLRInputStream input(stream);
+    SceneLexer lexer(&input);
+    CommonTokenStream tokens(&lexer);
+    SceneParser parser(&tokens);    
+  
+    for (size_t i = 0; i < TestAmount; i++) {
+      std::cout << "test " << testNumber++ << std::endl;
+      auto test = parser.expr();
+    
+      NOT_NULL_ASSERT(test, ret, testNumber);
+      auto *testVar = dynamic_cast<SceneParser::DifeContext*>(test); 
+      NOT_NULL_ASSERT(testVar, ret, testNumber)
+      NULL_ASSERT(testVar->exception, ret, testNumber);
+      auto testVec = testVar->children;
+      INT_ASSERT(testVec.size(), 3, ret, testNumber);
+      NOT_NULL_ASSERT(testVec[0], ret, testNumber);
+      NOT_NULL_ASSERT(testVec[1], ret, testNumber);
+      NOT_NULL_ASSERT(testVec[2], ret, testNumber);
+      NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(testVec[0]), ret, testNumber);
+      NOT_NULL_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1]), ret, testNumber);
+      NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(testVec[2]), ret, testNumber);
+      STRING_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1])->getSymbol()->getText(), "/", ret, testNumber);
+    }
+  }
   return false;
 }
 
