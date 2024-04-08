@@ -87,7 +87,7 @@ bool TestVariableParsing(TestError *&ret){
 
     stream << cor[i] << std::endl;
   }
-  
+  {  
   ANTLRInputStream input(stream);
   SceneLexer lexer(&input);
   CommonTokenStream tokens(&lexer);
@@ -106,6 +106,35 @@ bool TestVariableParsing(TestError *&ret){
     NOT_NULL_ASSERT(testVar->ID()->getSymbol(), ret, i)
     STRING_ASSERT(testVar->ID()->getSymbol()->getText(), cor[i], ret, i)
   }
+  }
+
+  stream.clear();
+
+  for (size_t i = 0; i < TestAmount; i++) {
+    cor[i] = "@";
+    cor[i] += RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@", rand() % (TestAmount)); 
+
+    stream << cor[i] << std::endl;
+  }
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);    
+  
+  for (size_t i = 0; i < TestAmount; i++) {
+    std::cout << "test" << i << std::endl;
+    auto test = parser.var();
+    
+    NOT_NULL_ASSERT(test, ret, i);
+    SceneParser::GlobalVariableContext *testVar = dynamic_cast<SceneParser::GlobalVariableContext*>(test); 
+    NOT_NULL_ASSERT(testVar, ret, i)
+    NULL_ASSERT(testVar->exception, ret, i);
+    NOT_NULL_ASSERT(testVar->IncID(), ret, i);
+    NOT_NULL_ASSERT(testVar->IncID()->getSymbol(), ret, i)
+    STRING_ASSERT(testVar->IncID()->getSymbol()->getText(), cor[i], ret, i)
+  }
+
 
   
   return false;
