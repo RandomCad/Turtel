@@ -82,10 +82,10 @@ bool TestVariableParsing(TestError *&ret){
   std::string cor[TestAmount];
 
   for (size_t i = 0; i < TestAmount; i++) {
-    cor[i] = RandomString("abcdefghijklmnopqrstuvwxyz", 26,2); //ABCDEFGHIJKLMNOPQRSTUVWXYZ_", 33, 1);
-    //cor[i] += RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@", 13 + 10 + 1, rand() % (TestAmount )); 
+    cor[i] = RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", 33, 1);
+    cor[i] += RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@", 13 + 10 + 1, rand() % (TestAmount )); 
 
-    stream << cor << std::endl;
+    stream << cor[i] << std::endl;
   }
   
   ANTLRInputStream input(stream);
