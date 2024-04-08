@@ -1,6 +1,16 @@
 grammar Scene;
 
 // Parser rules
+expr  : expr '^' expr #Exp
+      | expr '*' expr #Mult
+      | expr '/' expr #Dife
+      | expr '+' expr				#Add
+      | expr '-' expr				#Dim
+      | '|' expr '|'				#ABS
+      | '(' expr ')'				#Klam
+      | number					#Num	
+      | var					#VarExp
+      ;
 number: Num     
       | Float   #Float
       ; 
