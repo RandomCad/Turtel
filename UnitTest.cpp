@@ -35,7 +35,7 @@ struct TestError {
 
 bool TestNumberParsing(TestError*&);
 bool TestVariableParsing(TestError *&ret);
-std::string RandomString(const char val[], const size_t valLen, const size_t len);
+std::string RandomString(const char val[], const size_t len);
 
 int main(int argc, const char *argv[]){
   srand(0);
@@ -77,13 +77,13 @@ int main(int argc, const char *argv[]){
 }
 
 bool TestVariableParsing(TestError *&ret){
-  const size_t TestAmount = 1;
+  const size_t TestAmount = 1000;
   std::stringstream stream;
   std::string cor[TestAmount];
 
   for (size_t i = 0; i < TestAmount; i++) {
-    cor[i] = RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", 33, 1);
-    cor[i] += RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@", 13 + 10 + 1, rand() % (TestAmount )); 
+    cor[i] = RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", 1);
+    cor[i] += RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@", rand() % (TestAmount)); 
 
     stream << cor[i] << std::endl;
   }
@@ -94,6 +94,7 @@ bool TestVariableParsing(TestError *&ret){
   SceneParser parser(&tokens);    
   
   for (size_t i = 0; i < TestAmount; i++) {
+    std::cout << "test" << i << std::endl;
     auto test = parser.var();
     
     NOT_NULL_ASSERT(test, ret, i);
@@ -170,11 +171,11 @@ bool TestNumberParsing(TestError *&ret){
   return false;
 } 
 
-std::string RandomString(const char val[], const size_t valLen, const size_t len){
+std::string RandomString(const char val[], const size_t len){
   std::string ret;
   //ret.reserve(len);
   for (int i = 0; i < len; ++i) {
-    ret += val[rand() % (valLen)];
+    ret += val[rand() % strlen(val)];
   }
   return ret;
 }
