@@ -1,6 +1,11 @@
+#include <algorithm>
+#include <cstddef>
+#include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <forward_list>
+#include <tree/TerminalNode.h>
 
 #include "antlr4-runtime.h"
 #include "libs/SceneLexer.h"
@@ -21,6 +26,9 @@ using namespace antlr4;
 #define STRING_ASSERT(str1, str2, ret, num) \
   if(str1.compare(str2) != 0){ \
   ret = new TestError(std::string(__func__), "String assert fail.", 1, num); return true; }
+#define INT_ASSERT(int1, int2, ret, num) \
+  if(int1 != int2){\
+    ret = new TestError(std::string(__func__), "Int equal assert fail.", 1, num); return true; }
 
 
 struct TestError {
@@ -35,6 +43,7 @@ struct TestError {
 
 bool TestNumberParsing(TestError*&);
 bool TestVariableParsing(TestError *&ret);
+bool TestExprParsing(TestError *&ret);
 std::string RandomString(const char val[], const size_t len);
 
 int main(int argc, const char *argv[]){
@@ -58,6 +67,18 @@ int main(int argc, const char *argv[]){
       if(TestVariableParsing(next)) colector.push_front(next);
       break;
     
+    case 2:
+      if( TestExprParsing(next)) colector.push_front(next);
+      break;
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
 
     default:
       std::cerr << "Tryed to run non existing test. Test wasn't correctly set up";
@@ -74,6 +95,49 @@ int main(int argc, const char *argv[]){
 
   return maxErr;
 
+}
+
+bool TestExprParsing(TestError *&ret){
+  const size_t TestAmount = 1000;
+  std::stringstream stream;
+  size_t testNumber = 0;
+  
+  { //test Exponent
+    //creat test TestData
+    int cor[TestAmount][2];
+    for (int i = 0; i < TestAmount; ++i) {
+      cor[i][0] = rand();
+      cor[i][1] = rand();
+      stream << cor[i][0] << '^' << cor[i][1] << std::endl;
+    }
+    ANTLRInputStream input(stream);
+    SceneLexer lexer(&input);
+    CommonTokenStream tokens(&lexer);
+    SceneParser parser(&tokens);    
+  
+    for (size_t i = 0; i < TestAmount; i++) {
+      std::cout << "test " << testNumber++ << std::endl;
+      auto test = parser.expr();
+    
+      NOT_NULL_ASSERT(test, ret, testNumber);
+      auto *testVar = dynamic_cast<SceneParser::ExpContext*>(test); 
+      NOT_NULL_ASSERT(testVar, ret, testNumber)
+      NULL_ASSERT(testVar->exception, ret, testNumber);
+      auto testVec = testVar->children;
+      INT_ASSERT(testVec.size(), 3, ret, testNumber);
+      NOT_NULL_ASSERT(testVec[0], ret, testNumber);
+      NOT_NULL_ASSERT(testVec[1], ret, testNumber);
+      NOT_NULL_ASSERT(testVec[2], ret, testNumber);
+      NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(testVec[0]), ret, testNumber);
+      NOT_NULL_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1]), ret, testNumber);
+      NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(testVec[2]), ret, testNumber);
+      STRING_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1])->getSymbol()->getText(), "^", ret, testNumber);
+      
+
+    }
+  }
+
+  return false;
 }
 
 bool TestVariableParsing(TestError *&ret){
@@ -110,7 +174,11 @@ bool TestVariableParsing(TestError *&ret){
 
   stream.clear();
 
-  for (size_t i = 0; i < TestAmount; i++) {
+  //explisitly test the case of only @
+  cor[0] = "@";
+  stream << cor[0] << std::endl;
+
+  for (size_t i = 1; i < TestAmount; i++) {
     cor[i] = "@";
     cor[i] += RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@", rand() % (TestAmount)); 
 
