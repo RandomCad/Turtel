@@ -7,7 +7,7 @@ expr  : ( klamKon | number) '^' (klamKon | number) #Exp
       | expr '+' expr #Add
       | expr '-' expr #Dim
       | '|' expr '|'  #ABS
-      | number	      #Num	
+      | number	      #NumExpr	
       | var	      #VarExp
       ;
 klamKon	: '(' expr ')' ;

@@ -196,8 +196,41 @@ bool TestExprParsing(TestError *&ret){
       NOT_NULL_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1]), ret, testNumber);
       NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(testVec[2]), ret, testNumber);
       STRING_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1])->getSymbol()->getText(), "/", ret, testNumber);
-    }
+    }       
   }
+  for (size_t i = 0; i < TestAmount; i++) { //Test Add
+    //Setup test data
+    int a = rand();
+    int b = rand();
+      
+    stream.clear();
+    stream << a << '+' << b << std::endl;
+      
+    //run test
+    ANTLRInputStream input(stream);
+    SceneLexer lexer(&input);
+    CommonTokenStream tokens(&lexer);
+    SceneParser parser(&tokens);
+      
+    std::cout << "test " << testNumber++ << std::endl;
+    auto test = parser.expr();
+    
+    //check data
+    NOT_NULL_ASSERT(test, ret, testNumber);
+    auto *testVar = dynamic_cast<SceneParser::AddContext*>(test); 
+    NOT_NULL_ASSERT(testVar, ret, testNumber)
+    NULL_ASSERT(testVar->exception, ret, testNumber);
+    auto testVec = testVar->children;
+    INT_ASSERT(testVec.size(), 3, ret, testNumber);
+    NOT_NULL_ASSERT(testVec[0], ret, testNumber);
+    NOT_NULL_ASSERT(testVec[1], ret, testNumber);
+    NOT_NULL_ASSERT(testVec[2], ret, testNumber);
+    NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumExprContext*>(testVec[0]), ret, testNumber);
+    NOT_NULL_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1]), ret, testNumber);
+    NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumExprContext*>(testVec[2]), ret, testNumber);
+    STRING_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1])->getSymbol()->getText(), "+", ret, testNumber);
+  }
+  
   return false;
 }
 
