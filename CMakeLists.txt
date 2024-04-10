@@ -72,7 +72,7 @@ include_directories(${PROJECT_SOURCE_DIR}
   )
   
 
-add_executable(antlr4-tutorial antlr.cpp  ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+add_executable(antlr4-tutorial antlr.cpp MyVisitor.cpp  ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 
 
 # link required libraries
@@ -100,7 +100,7 @@ endif()
 include(CTest)
 
 # Compilation and linking
-add_executable(tests UnitTest.cpp ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+add_executable(tests UnitTest.cpp MyVisitor.cpp ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 target_link_libraries(tests antlr4_static ${SYSTEM_LIBS})
 
 add_test(TestNumberParsing tests COMMAND 0)
