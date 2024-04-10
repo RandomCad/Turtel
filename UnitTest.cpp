@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <forward_list>
+#include <tree/ParseTreeType.h>
 #include <tree/TerminalNode.h>
 
 #include "antlr4-runtime.h"
@@ -230,7 +231,45 @@ bool TestExprParsing(TestError *&ret){
     NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumExprContext*>(testVec[2]), ret, testNumber);
     STRING_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1])->getSymbol()->getText(), "+", ret, testNumber);
   }
-  
+  for (size_t i = 0; i < TestAmount; i++) { //Test Add
+    std::cout << "test " << testNumber++ << std::endl;// continue;
+    //Setup test data
+    int a = rand();
+    int b = rand();
+      
+    stream.clear();
+    std::string cor;
+    cor += std::to_string(a);
+    cor += '-';
+    cor += std::to_string(b);
+    stream << cor << std::endl;
+      
+    //run test
+    ANTLRInputStream input(stream);
+    SceneLexer lexer(&input);
+    CommonTokenStream tokens(&lexer);
+    SceneParser parser(&tokens);
+      
+    auto test = parser.expr();
+    
+    //check data
+    NOT_NULL_ASSERT(test, ret, testNumber);
+    NOT_NULL_ASSERT(dynamic_cast<SceneParser::DimContext*>(test), ret, testNumber);
+    NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(test), ret, testNumber);
+    NULL_ASSERT(dynamic_cast<SceneParser::NumExprContext*>(test), ret, testNumber);
+    auto *testVar = dynamic_cast<SceneParser::DimContext*>(test); 
+    NOT_NULL_ASSERT(testVar, ret, testNumber)
+    NULL_ASSERT(testVar->exception, ret, testNumber);
+    auto testVec = testVar->children;
+    INT_ASSERT(testVec.size(), 3, ret, testNumber);
+    NOT_NULL_ASSERT(testVec[0], ret, testNumber);
+    NOT_NULL_ASSERT(testVec[1], ret, testNumber);
+    NOT_NULL_ASSERT(testVec[2], ret, testNumber);
+    NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumExprContext*>(testVec[0]), ret, testNumber);
+    NOT_NULL_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1]), ret, testNumber);
+    NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumExprContext*>(testVec[2]), ret, testNumber);
+    STRING_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[1])->getSymbol()->getText(), "-", ret, testNumber);
+  }
   return false;
 }
 
@@ -320,44 +359,44 @@ bool TestNumberParsing(TestError *&ret){
   STRING_ASSERT(testToken->getText(),std::string("794651"), ret, 1)
 
   test = parser.number();
-  NOT_NULL_ASSERT(test, ret, 1);
-  NOT_NULL_ASSERT(test->Num(), ret, 1);
-  NULL_ASSERT(test->Float(), ret, 1)
-  NOT_NULL_ASSERT(test->Num()->getSymbol(),ret, 1)
+  NOT_NULL_ASSERT(test, ret, 2);
+  NOT_NULL_ASSERT(test->Num(), ret, 2);
+  NULL_ASSERT(test->Float(), ret, 2)
+  NOT_NULL_ASSERT(test->Num()->getSymbol(),ret, 2)
   testToken = test->Num()->getSymbol();
-  STRING_ASSERT(testToken->getText(),std::string("-91231"), ret, 1)
+  STRING_ASSERT(testToken->getText(),std::string("91231"), ret, 2)
  
   test = parser.number();
-  NOT_NULL_ASSERT(test, ret, 1);
-  NULL_ASSERT(test->Num(), ret, 1);
-  NOT_NULL_ASSERT(test->Float(), ret, 1)
-  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret, 1)
+  NOT_NULL_ASSERT(test, ret, 3);
+  NULL_ASSERT(test->Num(), ret, 3);
+  NOT_NULL_ASSERT(test->Float(), ret, 3)
+  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret, 3)
   testToken = test->Float()->getSymbol();
-  STRING_ASSERT(testToken->getText(),std::string("6541.89645"), ret, 1) 
+  STRING_ASSERT(testToken->getText(),std::string("6541.89645"), ret, 3) 
  
   test = parser.number();
-  NOT_NULL_ASSERT(test, ret, 1);
-  NULL_ASSERT(test->Num(), ret, 1);
-  NOT_NULL_ASSERT(test->Float(), ret, 1)
-  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret, 1)
+  NOT_NULL_ASSERT(test, ret, 4);
+  NULL_ASSERT(test->Num(), ret, 4);
+  NOT_NULL_ASSERT(test->Float(), ret, 4)
+  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret, 4)
   testToken = test->Float()->getSymbol();
-  STRING_ASSERT(testToken->getText(),std::string("-786451.168754"), ret, 1) 
+  STRING_ASSERT(testToken->getText(),std::string("786451.168754"), ret, 4) 
    
   test = parser.number();
-  NOT_NULL_ASSERT(test, ret, 1);
-  NULL_ASSERT(test->Num(), ret, 1);
-  NOT_NULL_ASSERT(test->Float(), ret, 1)
-  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret, 1)
+  NOT_NULL_ASSERT(test, ret, 5);
+  NULL_ASSERT(test->Num(), ret, 5);
+  NOT_NULL_ASSERT(test->Float(), ret, 5)
+  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret, 5)
   testToken = test->Float()->getSymbol();
-  STRING_ASSERT(testToken->getText(),std::string("-.8765413"), ret, 1) 
+  STRING_ASSERT(testToken->getText(),std::string(".8765413"), ret, 5) 
   
   test = parser.number();
-  NOT_NULL_ASSERT(test, ret, 1);
-  NULL_ASSERT(test->Num(), ret, 1);
-  NOT_NULL_ASSERT(test->Float(), ret, 1)
-  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret, 1)
+  NOT_NULL_ASSERT(test, ret, 6);
+  NULL_ASSERT(test->Num(), ret, 6);
+  NOT_NULL_ASSERT(test->Float(), ret, 6)
+  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret, 6)
   testToken = test->Float()->getSymbol();
-  STRING_ASSERT(testToken->getText(),std::string(".876541132"), ret, 1) 
+  STRING_ASSERT(testToken->getText(),std::string(".876541132"), ret, 6) 
   
   return false;
 } 

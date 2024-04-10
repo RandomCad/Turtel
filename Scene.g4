@@ -19,7 +19,7 @@ var   : ID      # Variable
       ;
 
 // Lexer rules
-Num   : '-'? [0-9]+ ;
+Num   : [0-9]+ ;
 Float : '-'? [0-9]+ '.' [0-9]+
       | '-'? '.' [0-9]+ ;
 
