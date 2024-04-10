@@ -9,7 +9,7 @@ expr  : ( klamKon | number) '^' (klamKon | number) #Exp
       | '|' expr '|'  #ABS
       | '-' number    #Negate
       | number	      #NumExpr	
-      | var	      #VarExp
+      | var	      #VarExpr
       ;
 klamKon	: '(' expr ')' ;
 number: Num     

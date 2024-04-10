@@ -330,6 +330,7 @@ bool TestExprParsing(TestError *&ret){
     auto *testVar = dynamic_cast<SceneParser::NegateContext*>(test); 
     NOT_NULL_ASSERT(testVar, ret, testNumber)
     NULL_ASSERT(testVar->exception, ret, testNumber);
+    NOT_NULL_ASSERT(testVar->number(), ret, testNumber)
     auto testVec = testVar->children;
     INT_ASSERT(testVec.size(), 2, ret, testNumber);
     NOT_NULL_ASSERT(testVec[0], ret, testNumber);
@@ -337,6 +338,63 @@ bool TestExprParsing(TestError *&ret){
     NOT_NULL_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[0]), ret, testNumber);
     NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(testVec[1]), ret, testNumber);
     STRING_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[0])->getSymbol()->getText(), "-", ret, testNumber);
+  }
+  for (size_t i = 0; i < TestAmount; i++) { //Test Add
+    std::cout << "test " << testNumber++ << std::endl;// continue;
+    //Setup test data
+    int a = rand();
+      
+    stream.clear();
+    stream << std::abs(a) << std::endl;
+      
+    //run test
+    ANTLRInputStream input(stream);
+    SceneLexer lexer(&input);
+    CommonTokenStream tokens(&lexer);
+    SceneParser parser(&tokens);
+      
+    auto test = parser.expr();
+    
+    //check data
+    NOT_NULL_ASSERT(test, ret, testNumber);
+    NULL_ASSERT(dynamic_cast<SceneParser::DimContext*>(test), ret, testNumber);
+    NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(test), ret, testNumber);
+    auto *testVar = dynamic_cast<SceneParser::NumExprContext*>(test); 
+    NOT_NULL_ASSERT(testVar, ret, testNumber);
+    NULL_ASSERT(testVar->exception, ret, testNumber);
+    NOT_NULL_ASSERT(testVar->number(), ret, testNumber)
+    auto testVec = testVar->children;
+    INT_ASSERT(testVec.size(), 1, ret, testNumber);
+    NOT_NULL_ASSERT(testVec[0], ret, testNumber);
+    NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(testVec[0]), ret, testNumber);
+  }
+  for (size_t i = 0; i < TestAmount; i++) { //Test Add
+    std::cout << "test " << testNumber++ << std::endl;// continue;
+    //Setup test data
+    int a = rand();
+      
+    stream.clear();
+    stream << RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", TestAmount) << std::endl;
+      
+    //run test
+    ANTLRInputStream input(stream);
+    SceneLexer lexer(&input);
+    CommonTokenStream tokens(&lexer);
+    SceneParser parser(&tokens);
+      
+    auto test = parser.expr();
+    
+    //check data
+    NOT_NULL_ASSERT(test, ret, testNumber);
+    NULL_ASSERT(dynamic_cast<SceneParser::DimContext*>(test), ret, testNumber);
+    NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(test), ret, testNumber);
+    auto *testVar = dynamic_cast<SceneParser::VarExprContext*>(test); 
+    NOT_NULL_ASSERT(testVar, ret, testNumber);
+    NULL_ASSERT(testVar->exception, ret, testNumber);
+    NOT_NULL_ASSERT(testVar->var(), ret, testNumber);
+    auto testVec = testVar->children;
+    INT_ASSERT(testVec.size(), 1, ret, testNumber);
+    NOT_NULL_ASSERT(testVec[0], ret, testNumber);
   }
   return false;
 }
