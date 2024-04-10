@@ -513,51 +513,51 @@ bool TestNumberParsing(TestError *&ret){
   
   auto test = parser.number();
   NOT_NULL_ASSERT(test, ret, 1);
-  NOT_NULL_ASSERT(test->Num(), ret, 1);
-  NULL_ASSERT(test->Float(), ret, 1)
-  NOT_NULL_ASSERT(test->Num()->getSymbol(),ret, 1)
-  Token *testToken = test->Num()->getSymbol();
+  auto testVar = dynamic_cast<SceneParser::IntContext*>(test);
+  NOT_NULL_ASSERT(testVar, ret, 1);
+  NOT_NULL_ASSERT(testVar->Num()->getSymbol(),ret, 1)
+  Token *testToken = testVar->Num()->getSymbol();
   STRING_ASSERT(testToken->getText(),std::string("794651"), ret, 1)
 
   test = parser.number();
-  NOT_NULL_ASSERT(test, ret, 2);
-  NOT_NULL_ASSERT(test->Num(), ret, 2);
-  NULL_ASSERT(test->Float(), ret, 2)
-  NOT_NULL_ASSERT(test->Num()->getSymbol(),ret, 2)
-  testToken = test->Num()->getSymbol();
-  STRING_ASSERT(testToken->getText(),std::string("91231"), ret, 2)
- 
-  test = parser.number();
-  NOT_NULL_ASSERT(test, ret, 3);
-  NULL_ASSERT(test->Num(), ret, 3);
-  NOT_NULL_ASSERT(test->Float(), ret, 3)
-  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret, 3)
-  testToken = test->Float()->getSymbol();
-  STRING_ASSERT(testToken->getText(),std::string("6541.89645"), ret, 3) 
- 
-  test = parser.number();
-  NOT_NULL_ASSERT(test, ret, 4);
-  NULL_ASSERT(test->Num(), ret, 4);
-  NOT_NULL_ASSERT(test->Float(), ret, 4)
-  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret, 4)
-  testToken = test->Float()->getSymbol();
-  STRING_ASSERT(testToken->getText(),std::string("786451.168754"), ret, 4) 
-   
-  test = parser.number();
-  NOT_NULL_ASSERT(test, ret, 5);
-  NULL_ASSERT(test->Num(), ret, 5);
-  NOT_NULL_ASSERT(test->Float(), ret, 5)
-  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret, 5)
-  testToken = test->Float()->getSymbol();
-  STRING_ASSERT(testToken->getText(),std::string(".8765413"), ret, 5) 
+  NOT_NULL_ASSERT(test, ret, 1);
+  testVar = dynamic_cast<SceneParser::IntContext*>(test);
+  NOT_NULL_ASSERT(testVar, ret, 1);
+  NOT_NULL_ASSERT(testVar->Num()->getSymbol(),ret, 1)
+  testToken = testVar->Num()->getSymbol();
+  STRING_ASSERT(testToken->getText(),std::string("91231"), ret, 1)
   
   test = parser.number();
-  NOT_NULL_ASSERT(test, ret, 6);
-  NULL_ASSERT(test->Num(), ret, 6);
-  NOT_NULL_ASSERT(test->Float(), ret, 6)
-  NOT_NULL_ASSERT(test->Float()->getSymbol(),ret, 6)
-  testToken = test->Float()->getSymbol();
-  STRING_ASSERT(testToken->getText(),std::string(".876541132"), ret, 6) 
+  NOT_NULL_ASSERT(test, ret, 1);
+  auto testFloat = dynamic_cast<SceneParser::FloatContext*>(test);
+  NOT_NULL_ASSERT(testFloat, ret, 1);
+  NOT_NULL_ASSERT(testFloat->Float()->getSymbol(),ret, 1)
+  testToken = testFloat->Float()->getSymbol();
+  STRING_ASSERT(testToken->getText(),std::string("6541.89645"), ret, 1)
+ 
+  test = parser.number();
+  NOT_NULL_ASSERT(test, ret, 1);
+  testFloat = dynamic_cast<SceneParser::FloatContext*>(test);
+  NOT_NULL_ASSERT(testFloat, ret, 1);
+  NOT_NULL_ASSERT(testFloat->Float()->getSymbol(),ret, 1)
+  testToken = testFloat->Float()->getSymbol();
+  STRING_ASSERT(testToken->getText(),std::string("786451.168754"), ret, 1)
+   
+  test = parser.number();
+  NOT_NULL_ASSERT(test, ret, 1);
+  testFloat = dynamic_cast<SceneParser::FloatContext*>(test);
+  NOT_NULL_ASSERT(testFloat, ret, 1);
+  NOT_NULL_ASSERT(testFloat->Float()->getSymbol(),ret, 1)
+  testToken = testFloat->Float()->getSymbol();
+  STRING_ASSERT(testToken->getText(),std::string(".8765413"), ret, 1)
+    
+  test = parser.number();
+  NOT_NULL_ASSERT(test, ret, 1);
+  testFloat = dynamic_cast<SceneParser::FloatContext*>(test);
+  NOT_NULL_ASSERT(testFloat, ret, 1);
+  NOT_NULL_ASSERT(testFloat->Float()->getSymbol(),ret, 1)
+  testToken = testFloat->Float()->getSymbol();
+  STRING_ASSERT(testToken->getText(),std::string(".876541132"), ret, 1)
   
   return false;
 } 

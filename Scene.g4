@@ -14,11 +14,11 @@ expr  : ( klamKon | number) '^' (klamKon | number) #Exp
       | var	      #VarExpr
       ;
 klamKon	: '(' expr ')' ;
-number: Num     
+number: Num     #Int
       | Float   #Float
       ; 
-var   : ID      # Variable
-      | IncID   # GlobalVariable
+var   : ID      #Variable
+      | IncID   #GlobalVariable
       ;
 
 // Lexer rules
