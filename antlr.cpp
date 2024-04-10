@@ -16,7 +16,6 @@ int main(int argc, const char* argv[]) {
     CommonTokenStream tokens(&lexer);
     SceneParser parser(&tokens);    
     
-    auto tree = parser.t();
 
     return 0;
 }

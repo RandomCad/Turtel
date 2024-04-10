@@ -43,10 +43,11 @@ struct TestError {
     errName(err), sev(severity), num(Num) {}
 };
 
+std::string RandomString(const char val[], const size_t len);
 bool TestNumberParsing(TestError*&);
 bool TestVariableParsing(TestError *&ret);
 bool TestExprParsing(TestError *&ret);
-std::string RandomString(const char val[], const size_t len);
+bool TestWalkParsing(TestError *&ret);
 
 int main(int argc, const char *argv[]){
   srand(0);
@@ -73,6 +74,8 @@ int main(int argc, const char *argv[]){
       if( TestExprParsing(next)) colector.push_front(next);
       break;
     case 3:
+      if( TestWalkParsing(next)) colector.push_front(next);
+      break;
     case 4:
     case 5:
     case 6:
@@ -97,6 +100,38 @@ int main(int argc, const char *argv[]){
 
   return maxErr;
 
+}
+
+bool TestWalkParsing(TestError *&ret){
+  std::stringstream stream;
+  size_t testNumber = 0;
+
+  //add data
+  stream << "walk 5" << std::endl;
+  stream << "walk -5walk 20 + 5" << std::endl;
+  
+  //Test preperation
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  //test
+  auto test = parser.walk();
+  NOT_NULL_ASSERT(test, ret, testNumber);
+  NOT_NULL_ASSERT(test->expr(), ret, testNumber);
+
+  test = parser.walk();
+  NOT_NULL_ASSERT(test, ret, ++testNumber);
+  NOT_NULL_ASSERT(test->expr(), ret, testNumber);
+  NOT_NULL_ASSERT(dynamic_cast<SceneParser::NegateContext*>(test->expr()), ret, testNumber)
+
+  test = parser.walk();
+  NOT_NULL_ASSERT(test, ret, ++testNumber);
+  NOT_NULL_ASSERT(test->expr(), ret, testNumber);
+  NOT_NULL_ASSERT(dynamic_cast<SceneParser::AddContext*>(test->expr()), ret, testNumber)
+
+  return false;
 }
 
 bool TestExprParsing(TestError *&ret){
