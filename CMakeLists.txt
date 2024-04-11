@@ -7,6 +7,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # compiler must be at least 17
 set(CMAKE_CXX_STANDARD 17)
 
+#emit clangd data
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
 # required if linking to static library
 add_definitions(-DANTLR4CPP_STATIC)
 
@@ -71,18 +74,19 @@ include_directories(${PROJECT_SOURCE_DIR}
 					 ${PROJECT_SOURCE_DIR}/libs/
   )
   
+set(VISITOR MyVisitor.cpp)
 
-add_executable(antlr4-tutorial antlr.cpp MyVisitor.cpp  ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+add_executable(Turtel antlr.cpp ${VISITOR}  ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 
 
 # link required libraries
-target_link_libraries(antlr4-tutorial antlr4_static ${SYSTEM_LIBS})
+target_link_libraries(Turtel antlr4_static ${SYSTEM_LIBS})
 
 # copy the input file next to the generated executable
-add_custom_command(TARGET antlr4-tutorial POST_BUILD
+add_custom_command(TARGET Turtel POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${PROJECT_SOURCE_DIR}/input.scene"
-  $<TARGET_FILE_DIR:antlr4-tutorial>)
+  $<TARGET_FILE_DIR:Turtel>)
 
 # necessary because the default working directory of Visual Studio
 # is not the same as the one in which the binary is created
@@ -90,17 +94,18 @@ add_custom_command(TARGET antlr4-tutorial POST_BUILD
 # one for when you launch the executale in Visual Studio (CTRL+F5)
 # one for when you launch it normally
 if (WIN32)
-add_custom_command(TARGET antlr4-tutorial POST_BUILD
+add_custom_command(TARGET Turtel POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${PROJECT_SOURCE_DIR}/input.scene"
-  $<TARGET_FILE_DIR:antlr4-tutorial>/../)
+  $<TARGET_FILE_DIR:Turtel>/../)
 endif()
 
 #Testing
 include(CTest)
 
+set(UnitTest UnitTest/TestExpr.cpp )
 # Compilation and linking
-add_executable(tests UnitTest.cpp MyVisitor.cpp ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+add_executable(tests UnitTest.cpp MyVisitor.cpp ${UnitTest} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 target_link_libraries(tests antlr4_static ${SYSTEM_LIBS})
 
 add_test(TestNumberParsing tests COMMAND 0)
