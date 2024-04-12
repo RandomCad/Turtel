@@ -1,7 +1,13 @@
 #include "../libs/SceneLexer.h"
 #include "../libs/SceneParser.h"
+#include "MyVisitor.h"
+#include "UnitTest.h"
 #include "antlr4-runtime.h"
 #include "TestExpr.h"
+#include <any>
+#include <cstdlib>
+#include <iostream>
+#include <string>
 
 using namespace antlr4;
 
@@ -245,34 +251,28 @@ bool TestExprExec(TestError *&ret){
     NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(testVec[1]), ret, testNumber);
     STRING_ASSERT(dynamic_cast<antlr4::tree::TerminalNode*>(testVec[0])->getSymbol()->getText(), "-", ret, testNumber);
   }
-  for (size_t i = 0; i < TestAmount; i++) { //Test Add
+  for (size_t i = 0; i < TestAmount; i++) { //Test Number
     std::cout << "test " << testNumber++ << std::endl;// continue;
     //Setup test data
-    int a = rand();
+    double a = rand() / (double)rand();
       
     stream.clear();
-    stream << std::abs(a) << std::endl;
+    stream << std::to_string(std::abs(a)) << std::endl;
       
     //run test
     ANTLRInputStream input(stream);
     SceneLexer lexer(&input);
     CommonTokenStream tokens(&lexer);
     SceneParser parser(&tokens);
+    MyVisitor vis;
       
     auto test = parser.expr();
     
     //check data
-    NOT_NULL_ASSERT(test, ret, testNumber);
-    NULL_ASSERT(dynamic_cast<SceneParser::DimContext*>(test), ret, testNumber);
-    NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(test), ret, testNumber);
-    auto *testVar = dynamic_cast<SceneParser::NumExprContext*>(test); 
-    NOT_NULL_ASSERT(testVar, ret, testNumber);
-    NULL_ASSERT(testVar->exception, ret, testNumber);
-    NOT_NULL_ASSERT(testVar->number(), ret, testNumber)
-    auto testVec = testVar->children;
-    INT_ASSERT(testVec.size(), 1, ret, testNumber);
-    NOT_NULL_ASSERT(testVec[0], ret, testNumber);
-    NOT_NULL_ASSERT(dynamic_cast<SceneParser::NumberContext*>(testVec[0]), ret, testNumber);
+    std::any testVar = test->accept(&vis);
+    INT_ASSERT(testVar.type(), typeid(std::string), ret, testNumber);
+    std::cout << std::any_cast<std::string>(testVar) << std::endl << std::abs(a) << std::endl;
+    STRING_ASSERT(std::any_cast<std::string>(testVar), std::to_string(std::abs(a)), ret, testNumber)
   }
   for (size_t i = 0; i < TestAmount; i++) { //Test Add
     std::cout << "test " << testNumber++ << std::endl;// continue;
@@ -548,7 +548,7 @@ bool TestExprParsing(TestError *&ret){
   for (size_t i = 0; i < TestAmount; i++) { //Test Add
     std::cout << "test " << testNumber++ << std::endl;// continue;
     //Setup test data
-    int a = rand();
+    double a = rand() / (double)rand();
       
     stream.clear();
     stream << std::abs(a) << std::endl;
