@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <ostream>
@@ -93,13 +94,13 @@ bool TestNumberExec(TestError*&ret){
   CommonTokenStream tokens(&lexer);
   SceneParser parser(&tokens);
   MyVisitor visitor;
-  
+
   auto test = parser.number();
-  int testNum = std::any_cast<int>(test->accept(&visitor));
+  int testNum = std::any_cast<int64_t>(test->accept(&visitor));
   INT_ASSERT(testNum, 794651, ret, testNumber++)
 
   test = parser.number();
-  testNum = std::any_cast<int>(test->accept(&visitor));
+  testNum = std::any_cast<int64_t>(test->accept(&visitor));
   INT_ASSERT(testNum, 91231, ret, testNumber++)
 
   test = parser.number();
