@@ -3,15 +3,18 @@
 #include <any>
 #include <cmath>
 #include <cstdint>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
 std::any MyVisitor::visitInt(SceneParser::IntContext *ctx){
+  std::cout << __func__ << std::endl;
   int64_t ret = std::stoi(ctx->Num()->getSymbol()->getText());
   return ret;
 }
 
 std::any MyVisitor::visitFloat(SceneParser::FloatContext *ctx){
+  std::cout << __func__ << std::endl;
   double ret = std::stod(ctx->Float()->getSymbol()->getText());
   return ret;
 }
@@ -42,6 +45,7 @@ std::any MyVisitor::visitNegate(SceneParser::NegateContext *ctx){
 }
 
 std::any MyVisitor::visitNumExpr(SceneParser::NumExprContext *ctx){
+  std::cout << __func__ << std::endl;
   std::any number = ctx->number()->accept(this);
   if (number.type() == typeid(int64_t)){
     return std::any_cast<int64_t>(number);
@@ -82,8 +86,10 @@ std::any MyVisitor::visitAdd(SceneParser::AddContext *ctx){
 }
 
 std::any MyVisitor::visitExp(SceneParser::ExpContext *ctx){
+  std::cout << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
   std::any reigth = ctx->children[2]->accept(this);
+  std::cout << "fisited child" << std::endl; // << left.type().name() << " " << reigth.type().name() << " " << typeid(int64_t).name() << std::endl;
 
   if(left.type() == typeid(std::string) && reigth.type() == typeid(std::string))
     return "pow(" + std::any_cast<std::string>(left) + ',' + std::any_cast<std::string>(reigth) + ')';
@@ -95,12 +101,8 @@ std::any MyVisitor::visitExp(SceneParser::ExpContext *ctx){
     return std::to_string(std::any_cast<int64_t>(left)) + '+' + std::any_cast<std::string>(reigth) + ')';
   else if(left.type() == typeid(double) && reigth.type() == typeid(std::string))
     return std::to_string(std::any_cast<double>(left)) + '+' + std::any_cast<std::string>(reigth) + ')';
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(int64_t)){
-    int64_t ret = std::any_cast<int64_t>(left);
-    for(int64_t i = std::any_cast<int64_t>(reigth); i >= 0; ++i)
-      ret *= ret;
-    return ret;
-  }
+  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(int64_t))
+    return std::pow(std::any_cast<int64_t>(left), std::any_cast<int64_t>(reigth));
   else if(left.type() == typeid(double) && reigth.type() == typeid(int64_t))
     return std::pow(std::any_cast<double>(left), std::any_cast<int64_t>(reigth));
   else if(left.type() == typeid(int64_t) && reigth.type() == typeid(double))
