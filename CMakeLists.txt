@@ -74,7 +74,7 @@ include_directories(${PROJECT_SOURCE_DIR}
 					 ${PROJECT_SOURCE_DIR}/libs/
   )
   
-set(VISITOR CodeGenerator.cpp)
+set(VISITOR CodeGenerator.cpp CodeGenerator.Helper.cpp)
 
 add_executable(Turtel antlr.cpp ${VISITOR}  ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 
