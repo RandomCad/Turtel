@@ -15,7 +15,7 @@
 #include "tree/ParseTreeType.h"
 #include "tree/TerminalNode.h"
 
-#include "MyVisitor.h"
+#include "CodeGenerator.h"
 #include "UnitTest.h"
 #include "UnitTest/TestExpr.h"
 
@@ -93,7 +93,7 @@ bool TestNumberExec(TestError*&ret){
   SceneLexer lexer(&input);
   CommonTokenStream tokens(&lexer);
   SceneParser parser(&tokens);
-  MyVisitor visitor;
+  CodeGenerator visitor;
 
   auto test = parser.number();
   int testNum = std::any_cast<int64_t>(test->accept(&visitor));

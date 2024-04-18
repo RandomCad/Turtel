@@ -3,7 +3,7 @@
 
 #include "libs/SceneBaseVisitor.h"
 
-class MyVisitor : public SceneBaseVisitor{
+class CodeGenerator : public SceneBaseVisitor{
   
   //Number
   std::any visitInt(SceneParser::IntContext *ctx) override;
@@ -17,6 +17,7 @@ class MyVisitor : public SceneBaseVisitor{
   std::any visitMult(SceneParser::MultContext *ctx) override;
   std::any visitABS(SceneParser::ABSContext *ctx) override;
   std::any visitNegate(SceneParser::NegateContext *ctx) override;
+  std::any visitWalk(SceneParser::WalkContext *ctx) override;
 };
 
 #endif

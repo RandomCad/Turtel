@@ -1,6 +1,6 @@
 #include "../libs/SceneLexer.h"
 #include "../libs/SceneParser.h"
-#include "MyVisitor.h"
+#include "CodeGenerator.h"
 #include "UnitTest.h"
 #include "antlr4-runtime.h"
 #include "TestExpr.h"
@@ -17,7 +17,7 @@ bool TestExprExec(TestError *&ret){
   const size_t TestAmount = 1000;
   std::stringstream stream;
   size_t testNumber = 0;
-  MyVisitor vis;
+  CodeGenerator vis;
   
   { //test Exponent
     //creat test TestData
@@ -207,6 +207,7 @@ bool TestExprExec(TestError *&ret){
     INT_ASSERT(testVar.type(), typeid(double), ret, testNumber);
     INT_ASSERT(std::any_cast<double>(testVar), std::stod( std::to_string(std::abs(a))), ret, testNumber)
   }
+  std::cout << "Test for Variables is sciped" << std::endl;
   return false;
   //TODO: Test variabels
   for (size_t i = 0; i < TestAmount; i++) { //Test Add
