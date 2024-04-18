@@ -18,6 +18,7 @@
 #include "CodeGenerator.h"
 #include "UnitTest.h"
 #include "UnitTest/TestExpr.h"
+#include "UnitTest/TestCodeGenerator.Helper.h"
 
 using namespace antlr4;
 
@@ -56,7 +57,13 @@ int main(int argc, const char *argv[]){
       if( TestWalkParsing(next)) colector.push_front(next);
       break;
     case 4:
+      if(TestCodeGeneratorProgramBase(next)) colector.push_front(next);
+      if(TestCodeGeneratorEndMain(next)) colector.push_front(next);
+      break;
     case 5:
+      if(TestCodeGeneratorCTOR(next)) colector.push_front(next);
+      if(TestCodeGeneratorDTOr(next)) colector.push_front(next);
+      break;
     case 6:
     case 7:
     case 8:

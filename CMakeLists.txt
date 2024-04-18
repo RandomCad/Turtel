@@ -103,7 +103,7 @@ endif()
 #Testing
 include(CTest)
 
-set(UnitTest UnitTest/TestExpr.cpp )
+set(UnitTest UnitTest/TestExpr.cpp UnitTest/TestCodeGenerator.Helper.cpp)
 # Compilation and linking
 add_executable(tests UnitTest.cpp CodeGenerator.cpp ${UnitTest} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 target_link_libraries(tests antlr4_static ${SYSTEM_LIBS})
@@ -112,3 +112,5 @@ add_test(TestNumberParsing tests COMMAND 0)
 add_test(TestVariableParsing tests COMMAND 1)
 add_test(TestExprParsing tests COMMAND 2)
 add_test(TestWalkParsing tests COMMAND 3)
+add_test(TestCodeGeneratorHelperMethodes tests COMMAND 4)
+add_test(TestCodeGeneratorCDTor tests COMMAND 5)

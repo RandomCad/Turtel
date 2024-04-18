@@ -14,7 +14,7 @@ void CodeGenerator::ProgrammBase(){
     << "#include \"math.h\"\n";
   
   //Prototype generation
-  output
+output
     << "//Prototypes\n";
   //main
   output
