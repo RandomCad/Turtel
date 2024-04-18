@@ -10,8 +10,8 @@ void CodeGenerator::ProgrammBase(){
   //Headers
   output 
     << "//Standart includes\n"
-    << "#include \"stdlib.h\"\n"
-    << "#include \"math.h\"\n";
+    << "#include <stdlib.h>\n"
+    << "#include <math.h>\n";
   
   //Prototype generation
 output
@@ -19,5 +19,5 @@ output
   //main
   output
     << "//Main\n"
-    << "int main(int argc, const char * argv[]){\n";
+    << "int main(int argc, const char *argv[]){\n";
 }

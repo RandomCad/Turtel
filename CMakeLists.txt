@@ -105,7 +105,7 @@ include(CTest)
 
 set(UnitTest UnitTest/TestExpr.cpp UnitTest/TestCodeGenerator.Helper.cpp)
 # Compilation and linking
-add_executable(tests UnitTest.cpp CodeGenerator.cpp ${UnitTest} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+add_executable(tests UnitTest.cpp CodeGenerator.cpp ${UnitTest} ${VISITOR} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 target_link_libraries(tests antlr4_static ${SYSTEM_LIBS})
 
 add_test(TestNumberParsing tests COMMAND 0)

@@ -36,6 +36,10 @@ class CodeGenerator : public SceneBaseVisitor{
 
     friend bool TestNumberExec(TestError*&ret);
     friend bool TestExprExec(TestError *&ret);
+    friend bool TestCodeGeneratorProgramBase(TestError *&);
+    friend bool TestCodeGeneratorEndMain(TestError *&);
+    friend bool TestCodeGeneratorCTOR(TestError *&);
+    friend bool TestCodeGeneratorDTOr(TestError *&);
 };
 
 #endif

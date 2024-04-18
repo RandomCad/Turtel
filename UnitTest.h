@@ -21,6 +21,12 @@
 #define INT_ASSERT(int1, int2, ret, num) \
   if(int1 != int2){\
     ret = new TestError(std::string(__func__), "Int equal assert fail.", 1, num); return true; }
+#define REGEX_ASSERT(str, regStr, ret, num) \
+  if(!std::regex_match(str, std::regex(regStr, std::regex_constants::ECMAScript))){\
+    ret = new TestError(__func__, "regex didn't match: " regStr, 1,num);\
+    return true;\
+  }
+    
 
 struct TestError {
   std::string testName;

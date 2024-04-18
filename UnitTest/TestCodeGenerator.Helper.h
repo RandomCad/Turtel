@@ -5,8 +5,8 @@
 
 bool TestCodeGeneratorProgramBase(TestError *&);
 bool TestCodeGeneratorEndMain(TestError *&);
-bool TestCodeGeneratorCTOR(TestError *&);
-bool TestCodeGeneratorDTOr(TestError *&);
+bool TestCodeGeneratorCTor(TestError *&);
+bool TestCodeGeneratorDTor(TestError *&);
 
 
 #endif

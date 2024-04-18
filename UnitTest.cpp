@@ -61,8 +61,8 @@ int main(int argc, const char *argv[]){
       if(TestCodeGeneratorEndMain(next)) colector.push_front(next);
       break;
     case 5:
-      if(TestCodeGeneratorCTOR(next)) colector.push_front(next);
-      if(TestCodeGeneratorDTOr(next)) colector.push_front(next);
+      if(TestCodeGeneratorCTor(next)) colector.push_front(next);
+      if(TestCodeGeneratorDTor(next)) colector.push_front(next);
       break;
     case 6:
     case 7:
