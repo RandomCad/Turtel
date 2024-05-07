@@ -6,12 +6,6 @@
 #include "UnitTest.h"
 #include <string>
 
-bool TestCodeGeneratorCreatTempFile(TestError *&ret){
-  char *name;
-  CodeGenerator::CreatTempFile(name);
-  
-}
-
 bool TestCodeGeneratorProgramBase(TestError *&ret){
   std::stringstream stream;
   CodeGenerator gen(stream);
