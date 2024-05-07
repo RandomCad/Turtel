@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <string>
 
-
 std::any CodeGenerator::visitWalk(SceneParser::WalkContext *ctx){
   std::any ret = ctx->expr()->accept(this);
   if( ret.type() == typeid(std::string)){

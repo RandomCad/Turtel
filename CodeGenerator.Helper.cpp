@@ -1,6 +1,5 @@
-
-
 #include "CodeGenerator.h"
+#include <fstream>
 
 CodeGenerator::CodeGenerator(std::ostream &outStream) : output(outStream){
   ProgrammBase();
@@ -21,3 +20,11 @@ output
     << "//Main\n"
     << "int main(int argc, const char *argv[]){\n";
 }
+
+void CodeGenerator::EndeMain(){
+  output 
+    << "//End of Main\n"
+    << "}\n//Implimentation start for funktions";
+}
+
+

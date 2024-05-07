@@ -19,6 +19,7 @@
 #include "UnitTest.h"
 #include "UnitTest/TestExpr.h"
 #include "UnitTest/TestCodeGenerator.Helper.h"
+#include "UnitTest/TestLLVMInterface.h"
 
 using namespace antlr4;
 
@@ -65,6 +66,8 @@ int main(int argc, const char *argv[]){
       if(TestCodeGeneratorDTor(next)) colector.push_front(next);
       break;
     case 6:
+      if(TestLLVMIntervace(next)) colector.push_front(next);
+      break;
     case 7:
     case 8:
     case 9:

@@ -1,10 +1,13 @@
 #ifndef MY_VISITOR_FILE
 #define MY_VISITOR_FILE
 
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <ostream>
+#include <stdlib.h>
 
+#include "UnitTest/TestCodeGenerator.Helper.h"
 #include "libs/SceneBaseVisitor.h"
 #include "UnitTest.h"
 
