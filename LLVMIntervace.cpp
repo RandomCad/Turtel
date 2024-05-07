@@ -1,15 +1,14 @@
 #include "LLVMInterface.h"
 #include <cstring>
 void LLVMInterface::CreatTempFile(){
-  const char *templateForFile ="/run/TurtelCOutXXXXXX";
+  const char *templateForFile ="/tmp/TurtelCOutXXXXXX";
   std::strcpy(llvmFileName, templateForFile);
-  int res = mkstemp(llvmFileName);
+  int fd = mkstemp(llvmFileName);
 
-  if (res == -1){
-    std::cerr << "Couldn't open output file for c intermidiate retrying" << std::endl;
+  if (fd == -1){
+    std::cerr << "Couldn't open output file for c intermidiate retrying" << errno << std::endl;
     return CreatTempFile();
   }
 
-  fclose((FILE *)res);
-
+  llvmFile.open(llvmFileName);
 }

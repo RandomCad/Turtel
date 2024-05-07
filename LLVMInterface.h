@@ -6,16 +6,17 @@
 class LLVMInterface{
   std::fstream llvmFile;
   char *llvmFileName;
+  int fileDescriptor;
 
   public:
     ~LLVMInterface(){
       llvmFile.close();
       std::remove(llvmFileName);
-      free(llvmFileName);
+      fileDescriptor = 0;
     }
 
     void CreatTempFile();
-    friend bool TestCodeGeneratorCreatTempFile(TestError *&);
+    friend bool TestCreatTempFile(TestError *&);
 };
 
 #endif
