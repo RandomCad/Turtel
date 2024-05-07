@@ -74,7 +74,7 @@ include_directories(${PROJECT_SOURCE_DIR}
 					 ${PROJECT_SOURCE_DIR}/libs/
   )
   
-set(VISITOR CodeGenerator.cpp CodeGenerator.Helper.cpp)
+set(VISITOR CodeGenerator.cpp CodeGenerator.Helper.cpp LLVMIntervace.cpp)
 
 add_executable(Turtel antlr.cpp ${VISITOR}  ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 
@@ -103,7 +103,7 @@ endif()
 #Testing
 include(CTest)
 
-set(UnitTest UnitTest/TestExpr.cpp UnitTest/TestCodeGenerator.Helper.cpp)
+set(UnitTest UnitTest/TestExpr.cpp UnitTest/TestCodeGenerator.Helper.cpp UnitTest/TestLLVMInterface.cpp)
 # Compilation and linking
 add_executable(tests UnitTest.cpp CodeGenerator.cpp ${UnitTest} ${VISITOR} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 target_link_libraries(tests antlr4_static ${SYSTEM_LIBS})
@@ -114,3 +114,4 @@ add_test(TestExprParsing tests COMMAND 2)
 add_test(TestWalkParsing tests COMMAND 3)
 add_test(TestCodeGeneratorHelperMethodes tests COMMAND 4)
 add_test(TestCodeGeneratorCDTor tests COMMAND 5)
+add_test(TestLLVMInterface tests COMMAND 6)
