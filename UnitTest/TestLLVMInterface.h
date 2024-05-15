@@ -2,8 +2,9 @@
 #define TEST_LLV_INTERVACE
 
 #include "../UnitTest.h"
+#include <forward_list>
 
-bool TestLLVMIntervace(TestError *&ret);
+bool TestLLVMInterface(std::forward_list<TestError*> &ret);
 
 
 #endif

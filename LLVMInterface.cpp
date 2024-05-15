@@ -3,6 +3,7 @@
 void LLVMInterface::CreatTempFile(){
   const char *templateForFile ="/tmp/TurtelCOutXXXXXX";
   std::strcpy(llvmFileName, templateForFile);
+  std::cerr << "OK" << std::endl;
   int fd = mkstemp(llvmFileName);
 
   if (fd == -1){
@@ -11,4 +12,14 @@ void LLVMInterface::CreatTempFile(){
   }
 
   llvmFile.open(llvmFileName);
+}
+
+LLVMInterface::~LLVMInterface(){
+  llvmFile.close();
+  std::remove(llvmFileName);
+  fileDescriptor = 0;
+}
+
+LLVMInterface::LLVMInterface(){
+  
 }

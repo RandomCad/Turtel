@@ -66,7 +66,7 @@ int main(int argc, const char *argv[]){
       if(TestCodeGeneratorDTor(next)) colector.push_front(next);
       break;
     case 6:
-      if(TestLLVMIntervace(next)) colector.push_front(next);
+      TestLLVMInterface(colector);
       break;
     case 7:
     case 8:

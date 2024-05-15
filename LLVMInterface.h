@@ -2,21 +2,22 @@
 #define LLVMINTERVACE_FILE
 
 #include <fstream>
+#include <forward_list>
+
 #include "UnitTest.h"
+
+#define NameLength 32
 class LLVMInterface{
   std::fstream llvmFile;
-  char *llvmFileName;
+  char llvmFileName[NameLength];
   int fileDescriptor;
 
   public:
-    ~LLVMInterface(){
-      llvmFile.close();
-      std::remove(llvmFileName);
-      fileDescriptor = 0;
-    }
+    ~LLVMInterface();
+    LLVMInterface();
 
     void CreatTempFile();
-    friend bool TestCreatTempFile(TestError *&);
+    friend bool TestCreatTempFile(std::forward_list<TestError*> &col);
 };
 
 #endif
