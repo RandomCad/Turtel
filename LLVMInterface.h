@@ -17,6 +17,7 @@ class LLVMInterface{
     LLVMInterface();
 
     void CreatTempFile();
+    void CallLLVM();
     friend bool TestCreatTempFile(std::forward_list<TestError*> &col);
 };
 

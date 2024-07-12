@@ -34,6 +34,32 @@ if(NOT WIN32)
   FIND_PACKAGE(Threads REQUIRED)
 endif()
 
+# LLVM
+
+# Find LLVM and Clang
+find_package(LLVM REQUIRED CONFIG)
+find_package(Clang REQUIRED CONFIG)
+
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+# Set your project compile flags.
+# E.g. if using the C++ header files
+# you will need to enable C++11 support
+# for your compiler.
+
+# Add the include directories
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${CLANG_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS_LIST})
+
+
+
+
+
 # #### End of additional libraries search ##########
 
 
@@ -77,6 +103,14 @@ include_directories(${PROJECT_SOURCE_DIR}
 set(VISITOR CodeGenerator.cpp CodeGenerator.Helper.cpp LLVMInterface.cpp)
 
 add_executable(Turtel antlr.cpp ${VISITOR}  ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+
+#LLVM libs
+# Find the libraries that correspond to the LLVM components
+# that we wish to use
+llvm_map_components_to_libnames(llvm_libs support core irreader)
+
+SET( SYSTEM_LIBS  ${SYSTEM_LIBS}  ${llvm_libs} clangTooling clangBasic clangAST clangDriver clangFrontend clangFrontendTool clangSerialization)
+
 
 
 # link required libraries
