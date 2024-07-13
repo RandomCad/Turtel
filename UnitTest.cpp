@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -8,11 +7,9 @@
 #include <sstream>
 #include <forward_list>
 
-#include "antlr4-runtime.h"
 
 #include "libs/SceneLexer.h"
 #include "libs/SceneParser.h"
-#include "tree/ParseTreeType.h"
 #include "tree/TerminalNode.h"
 
 #include "CodeGenerator.h"

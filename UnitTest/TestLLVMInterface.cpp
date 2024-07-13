@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <forward_list>
 #include <string>
+#include <iostream>
 
 #include "LLVMInterface.h"
 #include "UnitTest.h"
@@ -15,7 +16,6 @@ bool TestLLVMInterface(std::forward_list<TestError*> &ret){
 
   returnValue |= TestCreatTempFile(ret);
   returnValue |= TestCallLLVM(ret);
-
 
   return returnValue;
 }
@@ -40,7 +40,12 @@ bool TestCallLLVM(std::forward_list<TestError*> &col){
   com += interface.fileName;
   com += " > ";
   com += interface.llvmFileName;
-  auto ret = std::system(com.c_str());
+  std::system(com.c_str());
+  /*if(std::system(com.c_str())){
+    col.push_front(new TestError(
+    std::string(__func__), "The hello world programm didn't finish with the exitstatus 0.", 1, 0));
+    return true;
+  }*/
 
   interface.llvmFile.open(interface.llvmFileName);
 

@@ -1,6 +1,7 @@
 #include "LLVMInterface.h"
 #include <clang/Driver/Job.h>
 #include <cstring>
+#include <iostream>
 #include <llvm/ADT/SmallVector.h>
 #include <utility>
 #include <vector>
