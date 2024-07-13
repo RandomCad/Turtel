@@ -1,5 +1,8 @@
 #include "LLVMInterface.h"
+#include <clang/Driver/Job.h>
 #include <cstring>
+#include <llvm/ADT/SmallVector.h>
+#include <utility>
 #include <vector>
 
 #include <llvm/Support/VirtualFileSystem.h>
@@ -8,6 +11,7 @@
 #include <llvm/Support/Host.h>
 #include <llvm/Support/Program.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
+#include "clang/Driver/Compilation.h"
 
 void LLVMInterface::CreatTempFile(){
   const char *templateForFile ="/tmp/TurtelCOutXXXXXX";
@@ -39,44 +43,53 @@ void LLVMInterface::CallLLVM(){
 	//	clang getinmemory.c -lcurl -v
   std::vector<const char *> args;
 	args.push_back(clangPath->c_str());
+	args.push_back("-x");
+	args.push_back("c");
 	args.push_back(llvmFileName);
-	args.push_back("-l");
-	args.push_back("curl");
+	args.push_back("-o");
+	args.push_back(fileName);
+	//args.push_back("-l");
+	//args.push_back("curl");
 	args.push_back("-v");		// verbose
 	
 	// The clang driver needs a DiagnosticsEngine so it can report problems
-  clang::DiagnosticOptions *diagOpt = new clang::DiagnosticOptions();
-	clang::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpt(diagOpt);
-	clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(),diagOpt);
+	clang::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpt(new clang::DiagnosticOptions());
+	//clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(),&diagOpt);
 	clang::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
 	clang::DiagnosticsEngine Diags(DiagID, DiagOpt);
 	
+  std::cerr << "Create" << std::endl;
 	// Create the clang driver
 	clang::driver::Driver TheDriver(args[0], llvm::sys::getDefaultTargetTriple(), Diags);
 	
 	// If you want to build C++ instead of C
 	//	TheDriver.CCCIsCXX = true;
 	
-  /*
+  
+  std::cerr << "C" << std::endl;
 	// Create the set of actions to perform
-	clang::OwningPtr<clang::driver::Compilation> C(TheDriver.BuildCompilation(args));
+  std::unique_ptr<clang::driver::Compilation> C(TheDriver.BuildCompilation(args));
 	
+  std::cerr << "Print" << std::endl;
 	// Print the set of actions
 	TheDriver.PrintActions(*C);
 	
+  std::cerr << "PrepExecute" << std::endl;
 	// Carry out the actions
 	int Res = 0;
-	const clang::driver::Command *FailingCommand = 0;
-	if (C)
-		Res = TheDriver.ExecuteCompilation(*C, FailingCommand);
+  llvm::SmallVector<std::pair<int, const clang::driver::Command*>> t;
+
+	
+  std::cerr << "Execute" << std::endl;
+  if (C) Res = TheDriver.ExecuteCompilation(*C, t);
 	
 	// Report problems
-	if (Res < 0)
-		TheDriver.generateCompilationDiagnostics(*C, FailingCommand);
-*/
+  DiagID->Release();
+	if (Res < 0){
+	  clang::driver::Command *FailingCommand = 0;
+		TheDriver.generateCompilationDiagnostics(*C, *FailingCommand);
+  }
 
-}
+  DiagID->Release();
 
-LLVMInterface::LLVMInterface(){
-  
 }
