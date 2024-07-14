@@ -1,7 +1,13 @@
 #include "LLVMInterface.h"
 
+#include <alloca.h>
+#include <cstdlib>
 #include <cstring>
+#include <cwctype>
+#include <fstream>
 #include <iostream>
+#include <ostream>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -15,18 +21,27 @@
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Driver/Compilation.h>
 
+//std::vector<std::string> LLVMInterface::sdlArgs;
+
+bool CreatTempFile(char *templateStr, std::fstream &ret){
+  int fd = mkstemp(templateStr);
+
+  if (fd == -1){
+    return true;
+  }
+
+  ret.open(templateStr);
+  return false;
+
+}
+
 void LLVMInterface::CreatTempFile(){
   const char *templateForFile ="/tmp/TurtelCOutXXXXXX";
   std::strcpy(llvmFileName, templateForFile);
-  std::cerr << "OK" << std::endl;
-  int fd = mkstemp(llvmFileName);
-
-  if (fd == -1){
+  if(::CreatTempFile(llvmFileName, llvmFile)){
     std::cerr << "Couldn't open output file for c intermidiate retrying" << errno << std::endl;
     return CreatTempFile();
   }
-
-  llvmFile.open(llvmFileName);
 }
 
 LLVMInterface::~LLVMInterface(){
@@ -36,6 +51,7 @@ LLVMInterface::~LLVMInterface(){
 }
 
 void LLVMInterface::CallLLVM(){
+  LLVMInterface::getSdlArguments();
   
 	
 	// Path to clang (e.g. /usr/local/bin/clang)
@@ -45,12 +61,16 @@ void LLVMInterface::CallLLVM(){
 	//	clang getinmemory.c -lcurl -v
   std::vector<const char *> args;
 	args.push_back(clangPath->c_str());
+	args.push_back("-o");
+	args.push_back(fileName);
 	args.push_back("-x");
 	args.push_back("c");
 	args.push_back(llvmFileName);
-	args.push_back("-o");
-	args.push_back(fileName);
-	//args.push_back("-l");
+  for(int i = 0; i < sdlArgs.size(); ++i){
+    std::cerr << sdlArgs[i] << std::endl;
+    args.push_back(sdlArgs[i].c_str());
+  }//*/
+  //args.push_back("-l");
 	//args.push_back("curl");
 	args.push_back("-v");		// verbose
 	
@@ -95,3 +115,39 @@ void LLVMInterface::CallLLVM(){
   DiagID->Release();
 
 }
+
+static bool wasUsed = false;
+void LLVMInterface::getSdlArguments(){
+  if(wasUsed) return;
+  wasUsed = true;
+  char *templatFile = (char *)alloca(sizeof("/tmp/XXXXXX"));
+  memcpy(templatFile, "/tmp/XXXXXX", sizeof("/tmp/XXXXXX"));
+  std::fstream in;
+  ::CreatTempFile(templatFile, in);
+  std::string systemCommand("sdl2-config --cflags --libs >");
+  systemCommand += templatFile;
+
+  std::system(systemCommand.c_str());
+
+  std::cout << "SDL2 configs:" << std::endl;
+  for (std::string line;std::getline(in,line);){
+    std::cout << line << std::endl;
+    char * opt = (char *)alloca(line.length());
+    size_t j=0;
+    for(const char *i = line.c_str();*i;++i, ++j){
+      if(std::iswspace(*i)){
+        opt[j] = '\0';
+        sdlArgs.push_back(std::string(opt));
+        j= -1;
+      }
+      else opt[j] = *i;
+    }
+    opt[j] = '\0';
+    sdlArgs.push_back(std::string(opt));
+  }
+  
+  std::cout << "Parsed SDL Conf" << std::endl;
+  for(auto i : sdlArgs) std::cout << i << std::endl;
+}
+
+
