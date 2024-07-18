@@ -73,12 +73,14 @@ void LLVMInterface::CallLLVM(){
   //args.push_back("-l");
 	//args.push_back("curl");
 	args.push_back("-v");		// verbose
+
+  for(auto i: args){
+    std::cout << i << std::endl;
+  }
 	
 	// The clang driver needs a DiagnosticsEngine so it can report problems
-	clang::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpt(new clang::DiagnosticOptions());
 	//clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(),&diagOpt);
-	clang::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
-	clang::DiagnosticsEngine Diags(DiagID, DiagOpt);
+	clang::DiagnosticsEngine Diags(new clang::DiagnosticIDs(), new clang::DiagnosticOptions());
 	
   std::cerr << "Create" << std::endl;
 	// Create the clang driver
@@ -106,20 +108,16 @@ void LLVMInterface::CallLLVM(){
   if (C) Res = TheDriver.ExecuteCompilation(*C, t);
 	
 	// Report problems
-  DiagID->Release();
 	if (Res < 0){
 	  clang::driver::Command *FailingCommand = 0;
 		TheDriver.generateCompilationDiagnostics(*C, *FailingCommand);
   }
-
-  DiagID->Release();
-
 }
 
-static bool wasUsed = false;
+//static bool wasUsed = false;
 void LLVMInterface::getSdlArguments(){
-  if(wasUsed) return;
-  wasUsed = true;
+  //if(wasUsed) return;
+  //wasUsed = true;
   char *templatFile = (char *)alloca(sizeof("/tmp/XXXXXX"));
   memcpy(templatFile, "/tmp/XXXXXX", sizeof("/tmp/XXXXXX"));
   std::fstream in;
