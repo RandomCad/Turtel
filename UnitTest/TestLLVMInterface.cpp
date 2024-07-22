@@ -28,7 +28,6 @@ bool TestLLVMInterface(std::forward_list<TestError*> &ret){
 
 bool TestCallLLVM(std::forward_list<TestError*> &col){
   LLVMInterface interface("test.out");
-  interface.CreatTempFile();
 
   interface.llvmFile << "#include <stdio.h>\nint main(int argc, const char *argv[]){printf(\"Hello World\\n\");}" << std::endl;
 
@@ -85,7 +84,6 @@ bool TestCreatTempFile(std::forward_list<TestError*> &col){
 
 bool TestEmptySdl2App(std::forward_list<TestError*> &col){
   LLVMInterface interface("test.out");
-  interface.CreatTempFile();
 
   interface.llvmFile 
     << "#include <SDL2/SDL.h>" << std::endl 
