@@ -18,6 +18,9 @@ class CodeGenerator : public SceneBaseVisitor{
     CodeGenerator(): output(std::cout) {}
   public:
     CodeGenerator(std::ostream &outStream);
+
+    ///Main function of the classe
+    void GenerateCode();
   
     //Number
     std::any visitInt(SceneParser::IntContext *ctx) override;
@@ -34,6 +37,11 @@ class CodeGenerator : public SceneBaseVisitor{
     std::any visitWalk(SceneParser::WalkContext *ctx) override;
   
   private:
+    void AddIncludes();
+    void AddFunctionDeclaration();
+    void AddMain();
+    void AddTurtelMain();
+    void AddTurtelFunctions();
     void ProgrammBase();
     void EndeMain();
 
