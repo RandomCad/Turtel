@@ -11,7 +11,6 @@
 
 #define NameLength 32
 class LLVMInterface{
-  std::fstream llvmFile;
   char llvmFileName[NameLength];
   int fileDescriptor;
   const char * fileName;
@@ -21,13 +20,17 @@ class LLVMInterface{
   LLVMInterface() : fileName(nullptr) , fileNameLen(0) {}
 
   public:
+    std::fstream llvmFile;
+    
     ~LLVMInterface();
     LLVMInterface(const char *const FileName) : fileName(new char[std::strlen(FileName)]) , fileNameLen(std::strlen(FileName)){
       std::memcpy(const_cast<char*>(fileName), FileName, fileNameLen);
+      CreatTempFile();
     }
+    
+    void CallLLVM();
   private:
     void CreatTempFile();
-    void CallLLVM();
     void getSdlArguments();
     friend bool TestCreatTempFile(std::forward_list<TestError*> &col);
     friend bool TestCallLLVM(std::forward_list<TestError*> &col);

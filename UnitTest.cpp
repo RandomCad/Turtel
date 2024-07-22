@@ -66,6 +66,8 @@ int main(int argc, const char *argv[]){
       TestLLVMInterface(colector);
       break;
     case 7:
+      TestCodeGeneratorEmpty(next);
+      break;
     case 8:
     case 9:
     case 10:

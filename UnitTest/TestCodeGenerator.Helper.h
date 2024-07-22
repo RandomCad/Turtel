@@ -8,6 +8,7 @@ bool TestCodeGeneratorEndMain(TestError *&);
 bool TestCodeGeneratorCTor(TestError *&);
 bool TestCodeGeneratorDTor(TestError *&);
 bool TestCodeGeneratorCreatTempFile(TestError *&);
+bool TestCodeGeneratorEmpty(TestError *&);
 
 
 #endif

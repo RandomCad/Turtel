@@ -1,10 +1,30 @@
+#include <filesystem>
 #include <iostream>
+#include <string>
 #include <regex>
 
 #include "TestCodeGenerator.Helper.h"
 #include "../CodeGenerator.h"
+#include "LLVMInterface.h"
 #include "UnitTest.h"
-#include <string>
+
+bool TestCodeGeneratorEmpty(TestError *&col){
+  LLVMInterface interface("test.out");
+  CodeGenerator test(interface.llvmFile);
+  test.GenerateCode();
+
+  interface.CallLLVM();
+  if ( !std::filesystem::exists("test.out")){
+    col = new TestError(
+          std::string(__func__), "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
+    return true;
+  }
+
+  std::cout << "The correct working of the programm most be tested by hand." << std::endl;
+  
+  return false;
+  
+}
 
 bool TestCodeGeneratorProgramBase(TestError *&ret){
   std::stringstream stream;

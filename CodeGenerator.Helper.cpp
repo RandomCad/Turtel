@@ -1,8 +1,8 @@
 #include "CodeGenerator.h"
 #include <fstream>
 
-#define TURTLE_MAIN_FUNC_CALL TurtelMain()
-#define TURTLE_MAIN_FUNC_DEF void TURTLE_MAIN_FUNC_CALL
+#define TURTLE_MAIN_FUNC_CALL "TurtelMain()"
+#define TURTLE_MAIN_FUNC_DEF "void " TURTLE_MAIN_FUNC_CALL
 
 //formate of the C-File:
 //1. includes
@@ -30,7 +30,7 @@ void CodeGenerator::AddIncludes(){
 void CodeGenerator::AddFunctionDeclaration(){
   output
     << "//declaration of the Turtel Main:\n"
-    << "TURTLE_MAIN_FUNC_DEF;\n" //TODO add needed parameters
+    << TURTLE_MAIN_FUNC_DEF ";\n" //TODO add needed parameters
     << std::endl
   //add pathdef Functions:
     << "//declaration of the pathdefs\n"
@@ -51,10 +51,24 @@ void CodeGenerator::AddMain(){
     << "  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"
     << "  SDL_Window* window = SDL_CreateWindow( \"Main Window\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN );\n"
     << "  SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);\n"
+    << "  SDL_Event events;\n"
   //allocate stack
 
   //call TurtelMain
-    << "  TURTLE_MAIN_FUNC_CALL;\n" //TODO add the parameters
+    << "  " TURTLE_MAIN_FUNC_CALL ";\n" //TODO add the parameters
+  //Implicit wait
+    << "  do{\n"
+    #ifndef NDEBUG
+    << "    printf(\"Event Loop\\n\");\n"
+    #endif
+    << "    SDL_WaitEvent(&events);\n"
+    << "    switch (events.type){\n"
+    << "      case SDL_KEYDOWN:\n"
+    << "      case SDL_QUIT: goto SDL_DEINIT_LABLE;\n"
+    << "      default: break;\n"
+    << "    }\n"
+    << "  }while(1);\n"
+    << "  SDL_DEINIT_LABLE:\n"
   //sdl Deinit
     << "  SDL_DestroyRenderer(renderer);\n"
     << "  SDL_DestroyWindow(window);\n"
@@ -67,7 +81,7 @@ void CodeGenerator::AddMain(){
 void CodeGenerator::AddTurtelMain(){
   //Func def:
   output
-    << "TURTLE_MAIN_FUNC_DEF{\n"
+    << TURTLE_MAIN_FUNC_DEF "{\n"
   //TODO:
   //close func:
     << "}\n" 
