@@ -1,7 +1,12 @@
 #include "CodeGenerator.h"
+#include "SceneParser.h"
+#include "TypeVisitor.h"
+#include <any>
+#include <cstring>
 #include <fstream>
+#include <tree/ParseTreeType.h>
 
-#define TURTLE_MAIN_FUNC_CALL "TurtelMain()"
+#define TURTLE_MAIN_FUNC_CALL "TurtelMain(SDL_Renderer * RENDERER_NAME)"
 #define TURTLE_MAIN_FUNC_DEF "void " TURTLE_MAIN_FUNC_CALL
 
 //formate of the C-File:
@@ -82,6 +87,8 @@ void CodeGenerator::AddTurtelMain(){
   //Func def:
   output
     << TURTLE_MAIN_FUNC_DEF "{\n"
+    << "  double POSITION_X_NAME;\n"
+    << "  double POSITION_Y_NAME;\n"
   //TODO:
   //close func:
     << "}\n" 
@@ -91,7 +98,13 @@ void CodeGenerator::AddTurtelMain(){
 void CodeGenerator::AddTurtelFunctions(){
   //TODO:
 }
-CodeGenerator::CodeGenerator(std::ostream &outStream) : output(outStream){
+CodeGenerator::CodeGenerator(std::ostream &outStream)
+  : output(outStream), astBase(nullptr) {}
+
+CodeGenerator::CodeGenerator(std::ostream &outStream, SceneParser::FileContext* AstBase)
+  : output(outStream), astBase(AstBase), astMain(astBase->main()), 
+    astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()) {
+
   //ProgrammBase();
 }
 

@@ -6,22 +6,36 @@
 #include <iterator>
 #include <ostream>
 #include <stdlib.h>
+#include <vector>
 
+#include "SceneParser.h"
 #include "UnitTest/TestCodeGenerator.Helper.h"
 #include "libs/SceneBaseVisitor.h"
 #include "UnitTest.h"
 
+#define POSITION_X_NAME POS_X
+#define POSITION_Y_NAME POS_Y
+#define RENDERER_NAME rnd
+#define ROTATION_NAME Rotation
+#define CALC_POS_X(len) POSITION_X_NAME + len * cos(ROTATION_NAME)
+#define CALC_POS_Y(len) POSITION_Y_NAME + len * sin(ROTATION_NAME)
+
 class CodeGenerator : public SceneBaseVisitor{
   private:
     std::ostream &output;
+    SceneParser::FileContext *astBase;
+    SceneParser::MainContext *astMain;
+    std::vector<SceneParser::CalcdefContext *> astCalcdef;
+    std::vector<SceneParser::PathdefContext *> astPathdef;
     //Only used for Unittesting
     CodeGenerator(): output(std::cout) {}
-  public:
     CodeGenerator(std::ostream &outStream);
+  public:
+    CodeGenerator(std::ostream &outStream, SceneParser::FileContext *AstBase);
 
     ///Main function of the classe
     void GenerateCode();
-  
+    
     //Number
     std::any visitInt(SceneParser::IntContext *ctx) override;
     std::any visitFloat(SceneParser::FloatContext *ctx) override;
@@ -37,11 +51,23 @@ class CodeGenerator : public SceneBaseVisitor{
     std::any visitWalk(SceneParser::WalkContext *ctx) override;
   
   private:
+    std::any visitMain(SceneParser::MainContext *ctx) override;
+
+    template<typename T>
+    void inline CalcPosX(const T len){
+      output << "POSITION_X_NAME + " << len <<" * cos(ROTATION_NAME)";
+    }
+    template<typename T>
+    void inline CalcPosY(const T len){
+      output << "POSITION_Y_NAME + " << len <<" * sin(ROTATION_NAME)";
+    }
+    
     void AddIncludes();
     void AddFunctionDeclaration();
     void AddMain();
     void AddTurtelMain();
     void AddTurtelFunctions();
+
     void ProgrammBase();
     void EndeMain();
 
@@ -49,8 +75,9 @@ class CodeGenerator : public SceneBaseVisitor{
     friend bool TestExprExec(TestError *&ret);
     friend bool TestCodeGeneratorProgramBase(TestError *&);
     friend bool TestCodeGeneratorEndMain(TestError *&);
-    friend bool TestCodeGeneratorCTOR(TestError *&);
     friend bool TestCodeGeneratorDTOr(TestError *&);
+    friend bool TestCodeGeneratorEmpty(TestError *&);
+    friend bool TestCodeGeneratorCTor(TestError *&);
 };
 
 #endif

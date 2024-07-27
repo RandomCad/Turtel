@@ -6,20 +6,31 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
+  for(auto i : ctx->children) i->accept(this);
+}
 
 std::any CodeGenerator::visitWalk(SceneParser::WalkContext *ctx){
   std::any ret = ctx->expr()->accept(this);
-  if( ret.type() == typeid(std::string)){
-
+  output << "  SDL_RenderDrawLine(rnd, POSITION_X_NAME, POSITION_Y_NAME,";
+  if(ret.type() == typeid(std::string)){
+    CalcPosX(std::any_cast<std::string>(ret));
+    output << ", ";
+    CalcPosY(std::any_cast<std::string>(ret));
   }
   else if (ret.type() == typeid(int64_t)){
-
+    CalcPosX(std::any_cast<int64_t>(ret));
+    output << ", ";
+    CalcPosY(std::any_cast<int64_t>(ret));
   }
   else if (ret.type() == typeid(double)){
-
+    CalcPosX(std::any_cast<double>(ret));
+    output << ", ";
+    CalcPosY(std::any_cast<double>(ret));
   }
-  else 
-    throw std::runtime_error("todo"); 
+  output 
+    << ");"
+    << std::endl;
 }
 
 std::any CodeGenerator::visitInt(SceneParser::IntContext *ctx){

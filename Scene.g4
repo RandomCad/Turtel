@@ -1,5 +1,13 @@
 grammar Scene;
 
+file  : (pathdef | calcdef)* main (pathdef |calcdef)*; 
+
+main    : 'begin' stat* 'end';
+pathdef : 'a';
+calcdef : 'a';
+
+stat    : walk;
+
 walk  	: Walk expr ;
 
 // Parser rules

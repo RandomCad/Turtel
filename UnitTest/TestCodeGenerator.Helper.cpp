@@ -6,6 +6,7 @@
 #include "TestCodeGenerator.Helper.h"
 #include "../CodeGenerator.h"
 #include "LLVMInterface.h"
+#include "SceneParser.h"
 #include "UnitTest.h"
 
 bool TestCodeGeneratorEmpty(TestError *&col){
@@ -40,7 +41,7 @@ bool TestCodeGeneratorProgramBase(TestError *&ret){
 }
 bool TestCodeGeneratorCTor(TestError *& ret){
   std::stringstream stream;
-  CodeGenerator gen(stream);
+  //CodeGenerator gen(stream, new SceneParser::FileContext());
   std::string testRet;
   testRet = stream.str();
   std::cout << testRet << std::endl;
