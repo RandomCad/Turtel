@@ -6,6 +6,7 @@
 #include <ostream>
 #include <sstream>
 #include <forward_list>
+#include <stack>
 
 
 #include "libs/SceneLexer.h"
@@ -27,7 +28,7 @@ bool TestWalkParsing(TestError *&ret);
 
 int main(int argc, const char *argv[]){
   srand(0);
-  std::forward_list<TestError*> colector;
+  std::stack<TestError *> colector;
 
   TestError *next = nullptr;
   if(argc <=2){
@@ -39,36 +40,38 @@ int main(int argc, const char *argv[]){
   
   switch (atoi(argv[2])) {
     case 0:
-      if(TestNumberParsing(next)) colector.push_front(next);
-      if(TestNumberExec(next)) colector.push_front(next);
+      if(TestNumberParsing(next)) colector.push(next);
+      if(TestNumberExec(next)) colector.push(next);
       break;
 
     case 1:
-      if(TestVariableParsing(next)) colector.push_front(next);
+      if(TestVariableParsing(next)) colector.push(next);
       break;
     
     case 2:
-      if(TestExprParsing(next)) colector.push_front(next);
-      if(TestExprExec(next)) colector.push_front(next);
+      if(TestExprParsing(next)) colector.push(next);
+      if(TestExprExec(next)) colector.push(next);
       break;
     case 3:
-      if( TestWalkParsing(next)) colector.push_front(next);
+      if( TestWalkParsing(next)) colector.push(next);
       break;
     case 4:
-      if(TestCodeGeneratorProgramBase(next)) colector.push_front(next);
-      if(TestCodeGeneratorEndMain(next)) colector.push_front(next);
+      if(TestCodeGeneratorProgramBase(next)) colector.push(next);
+      if(TestCodeGeneratorEndMain(next)) colector.push(next);
       break;
     case 5:
-      if(TestCodeGeneratorCTor(next)) colector.push_front(next);
-      if(TestCodeGeneratorDTor(next)) colector.push_front(next);
+      if(TestCodeGeneratorCTor(next)) colector.push(next);
+      if(TestCodeGeneratorDTor(next)) colector.push(next);
       break;
     case 6:
       TestLLVMInterface(colector);
       break;
     case 7:
-      TestCodeGeneratorEmpty(next);
+      if(TestCodeGeneratorEmpty(next)) colector.push(next);
       break;
     case 8:
+      TestCodeGenerator(colector);
+      break;
     case 9:
     case 10:
     case 11:
@@ -79,11 +82,13 @@ int main(int argc, const char *argv[]){
   }
 
   int maxErr = 0;
+  if (colector.empty()) return 0;
 
-  for(TestError *var : colector) {
-    maxErr = (maxErr > var->sev) ? maxErr : var->sev;
-    std::cout << "Error in function" << var->testName << std::endl << var->errName << std::endl
-              << "Error in the " << var->num << " test." << std::endl;
+  for (TestError *i = colector.top();colector.empty();i = colector.top()){
+    colector.pop();
+    maxErr = (maxErr > i->sev) ? maxErr : i->sev;
+    std::cout << "Error in function" << i->testName << std::endl << i->errName << std::endl
+              << "Error in the " << i->num << " test." << std::endl;
   }
 
   return maxErr;

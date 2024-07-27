@@ -8,25 +8,36 @@
 
 #include "LLVMInterface.h"
 #include "UnitTest.h"
+#include "TestLLVMInterface.h"
 
-bool TestCreatTempFile(std::forward_list<TestError*> &col);
-bool TestCallLLVM(std::forward_list<TestError*> &col);
-bool TestEmptySdl2App(std::forward_list<TestError*> &col);
+bool TestCreatTempFile(TestError*);
+bool TestCallLLVM(TestError*);
+bool TestEmptySdl2App(TestError*);
 
-bool TestLLVMInterface(std::forward_list<TestError*> &ret){
+bool TestLLVMInterface(std::stack<TestError*> &ret){
   bool returnValue = false;
 
+  TestError * in;
   std::cerr << std::endl << "---------------------------------" << std::endl << "test1:" << std::endl;
-  returnValue |= TestCreatTempFile(ret);
+  if(TestCreatTempFile(in)){
+    ret.push(in);
+    returnValue = true;
+  }
   std::cerr << std::endl << "---------------------------------" << std::endl << "test2:" << std::endl;
-  returnValue |= TestCallLLVM(ret);
+  if(TestCallLLVM(in)){
+    ret.push(in);
+    returnValue = true;
+  }
   std::cerr << std::endl << "---------------------------------" << std::endl << "test3:" << std::endl;
-  returnValue |= TestEmptySdl2App(ret);
+  if(TestEmptySdl2App(in)){
+    ret.push(in);
+    returnValue = true;
+  }
 
   return returnValue;
 }
 
-bool TestCallLLVM(std::forward_list<TestError*> &col){
+bool TestCallLLVM(TestError* col){
   LLVMInterface interface("test.out");
 
   interface.llvmFile << "#include <stdio.h>\nint main(int argc, const char *argv[]){printf(\"Hello World\\n\");}" << std::endl;
@@ -34,8 +45,8 @@ bool TestCallLLVM(std::forward_list<TestError*> &col){
   interface.CallLLVM();
 
   if ( !std::filesystem::exists(interface.fileName)){
-    col.push_front(new TestError(
-          std::string(__func__), "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0));
+    col = new TestError(
+          std::string(__func__), "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
     return true;
   }
 
@@ -59,8 +70,8 @@ bool TestCallLLVM(std::forward_list<TestError*> &col){
   buffer << t.rdbuf();
 
   if(!buffer.str().compare("Hello World")){
-    col.push_front(new TestError(
-    std::string(__func__), "The hello world programm didn't seam to work.", 1, 0));
+    col = new TestError(
+    std::string(__func__), "The hello world programm didn't seam to work.", 1, 1);
     return true;
   }
   
@@ -69,20 +80,20 @@ bool TestCallLLVM(std::forward_list<TestError*> &col){
   return false;
 }
 
-bool TestCreatTempFile(std::forward_list<TestError*> &col){
+bool TestCreatTempFile(TestError* col){
   LLVMInterface interface;
   interface.CreatTempFile();
   std::cerr << interface.llvmFileName << std::endl;
 
   if ( !interface.llvmFile.good()){
-    col.push_front(new TestError(
-          std::string(__func__), "fstream wasn't opend therfor the file dosn't exist", 1, 0));
+    col = new TestError(
+          std::string(__func__), "fstream wasn't opend therfor the file dosn't exist", 1, 0);
     return true;
   }
   return false;
 }
 
-bool TestEmptySdl2App(std::forward_list<TestError*> &col){
+bool TestEmptySdl2App(TestError* col){
   LLVMInterface interface("test.out");
 
   interface.llvmFile 
@@ -100,8 +111,8 @@ bool TestEmptySdl2App(std::forward_list<TestError*> &col){
   interface.CallLLVM();
 
   if ( !std::filesystem::exists(interface.fileName)){
-    col.push_front(new TestError(
-          std::string(__func__), "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0));
+    col = new TestError(
+          std::string(__func__), "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
     return true;
   }
 
@@ -125,8 +136,8 @@ bool TestEmptySdl2App(std::forward_list<TestError*> &col){
   buffer << t.rdbuf();
 
   if(!buffer.str().compare("Hello World")){
-    col.push_front(new TestError(
-    std::string(__func__), "The hello world programm didn't seam to work.", 1, 0));
+    col = new TestError(
+    std::string(__func__), "The hello world programm didn't seam to work.", 1, 0);
     return true;
   }
   

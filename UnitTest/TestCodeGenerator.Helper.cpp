@@ -1,5 +1,7 @@
+#include <ANTLRInputStream.h>
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <regex>
 
@@ -7,7 +9,82 @@
 #include "../CodeGenerator.h"
 #include "LLVMInterface.h"
 #include "SceneParser.h"
+#include "SceneLexer.h"
 #include "UnitTest.h"
+
+using namespace antlr4;
+
+bool TestBasicEmptyMain(TestError *);
+bool TestBasicWalk(TestError *);
+
+bool TestCodeGenerator(std::stack<TestError *> col){
+  bool ret = false;
+
+  TestError *in;
+  
+  if (TestBasicEmptyMain(in)){
+    col.push(in);
+    ret = true;
+  }
+
+  if(TestBasicWalk(in)){
+    col.push(in);
+    ret = true;
+  }
+    
+  return ret;
+}
+
+bool TestBasicEmptyMain(TestError * in ){
+  LLVMInterface interface("TEST_OUTPUT_DIR" "EmptyMainTest.out");
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  CodeGenerator test(interface.llvmFile, astStart);
+  test.GenerateCode();
+
+  interface.CallLLVM();
+  if ( !std::filesystem::exists("TEST_OUTPUT_DIR" "EmptyMainTest.out")){
+    in = new TestError(
+          std::string(__func__), "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
+    return true;
+  }
+  return false;
+}
+
+bool TestBasicWalk(TestError * in ){
+  LLVMInterface interface("TEST_OUTPUT_DIR" "BasicWalkTest.out");
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  walk 5\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  CodeGenerator test(interface.llvmFile, astStart);
+  test.GenerateCode();
+
+  interface.CallLLVM();
+  if ( !std::filesystem::exists("TEST_OUTPUT_DIR" "BasicWalkTest.out")){
+    in = new TestError(
+          std::string(__func__), "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
+    return true;
+  }
+  return false;
+}
 
 bool TestCodeGeneratorEmpty(TestError *&col){
   LLVMInterface interface("test.out");

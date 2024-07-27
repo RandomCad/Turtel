@@ -3,8 +3,9 @@
 
 #include "../UnitTest.h"
 #include <forward_list>
+#include <stack>
 
-bool TestLLVMInterface(std::forward_list<TestError*> &ret);
+bool TestLLVMInterface(std::stack<TestError*> &ret);
 
 
 #endif

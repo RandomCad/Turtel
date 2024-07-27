@@ -1,5 +1,7 @@
 #ifndef UNIT_TEST
-#define UNIT_TEST
+#pragma once
+
+#define TEST_OUTPUT_DIR ./Testing/Temporary/
 
 #include <string>
 
