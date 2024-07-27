@@ -73,6 +73,8 @@ int main(int argc, const char *argv[]){
       TestCodeGenerator(colector);
       break;
     case 9:
+      colector.push(new TestError("Check that errors are created","Check that errors are created",1));
+      break;
     case 10:
     case 11:
 
@@ -83,13 +85,13 @@ int main(int argc, const char *argv[]){
 
   int maxErr = 0;
   if (colector.empty()) return 0;
-
-  for (TestError *i = colector.top();colector.empty();i = colector.top()){
-    colector.pop();
+  std::cout << colector.size();
+  do {
+    TestError *i = colector.top();
     maxErr = (maxErr > i->sev) ? maxErr : i->sev;
     std::cout << "Error in function" << i->testName << std::endl << i->errName << std::endl
               << "Error in the " << i->num << " test." << std::endl;
-  }
+  }while (colector.empty());
 
   return maxErr;
 
