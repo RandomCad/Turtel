@@ -142,6 +142,7 @@ set(UnitTest UnitTest/TestExpr.cpp UnitTest/TestCodeGenerator.Helper.cpp UnitTes
 add_executable(tests UnitTest.cpp CodeGenerator.cpp ${UnitTest} ${VISITOR} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 target_link_libraries(tests antlr4_static ${SYSTEM_LIBS})
 
+add_test(TestUnitTestEngin ${CMAKE_CURRENT_SOURCE_DIR}/UnitTest/TestErrorCreatin.sh)
 add_test(TestNumberParsing tests COMMAND 0)
 add_test(TestVariableParsing tests COMMAND 1)
 add_test(TestExprParsing tests COMMAND 2)
@@ -150,3 +151,4 @@ add_test(TestWalkParsing tests COMMAND 3)
 #add_test(TestCodeGeneratorCDTor tests COMMAND 5)
 add_test(TestLLVMInterface tests COMMAND 6)
 add_test(TestEmptyCodeGenerator tests COMMAND 7)
+add_test(TestBasicTurtelProgramms tests COMMAND 8)
