@@ -1,3 +1,4 @@
+#include <ostream>
 #ifndef UNIT_TEST
 #pragma once
 
@@ -33,10 +34,11 @@ struct TestError {
   std::string errName;
   int sev;
   int num;
-  TestError(std::string &name, std::string &err, int severity): testName(name), errName(err), sev(severity) {}
-  TestError(std::string &&name, std::string &&err, int severity, int Num = -1): testName(name),
-    errName(err), sev(severity), num(Num) {}
+  TestError(std::string name, std::string err, int severity, int Num = 1): 
+    testName(name), errName(err), sev(severity), num(Num) {}
 };
+
+std::ostream &operator<<(std::ostream &a, TestError &b);
 
 std::string RandomString(const char val[], const size_t len);
 

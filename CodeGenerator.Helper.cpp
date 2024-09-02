@@ -4,9 +4,10 @@
 #include <any>
 #include <cstring>
 #include <fstream>
+#include <string>
 #include <tree/ParseTreeType.h>
 
-#define TURTLE_MAIN_FUNC_CALL "TurtelMain(SDL_Renderer * RENDERER_NAME)"
+#define TURTLE_MAIN_FUNC_CALL "TurtelMain(" << Variables["RENDERER"] << ")"
 #define TURTLE_MAIN_FUNC_DEF "void " TURTLE_MAIN_FUNC_CALL
 
 //formate of the C-File:
@@ -55,7 +56,7 @@ void CodeGenerator::AddMain(){
   //sdl init
     << "  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"
     << "  SDL_Window* window = SDL_CreateWindow( \"Main Window\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN );\n"
-    << "  SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);\n"
+    << "  " << Variables["RENDERER"] << " = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);\n"
     << "  SDL_Event events;\n"
   //allocate stack
 
@@ -104,6 +105,7 @@ CodeGenerator::CodeGenerator(std::ostream &outStream)
 CodeGenerator::CodeGenerator(std::ostream &outStream, SceneParser::FileContext* AstBase)
   : output(outStream), astBase(AstBase), astMain(astBase->main()), 
     astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()) {
+  Variables.insert({"RENDERER",Variabl(VarType::RENDERER,"rnd",false)});
 
   //ProgrammBase();
 }
@@ -113,13 +115,11 @@ void CodeGenerator::ProgrammBase(){
   output 
     << "//Standart includes\n"
     << "#include <stdlib.h>\n"
-    << "#include <math.h>\n";
-  
+    << "#include <math.h>\n"
+    << "#include <SDL/SDL.h>\n"
   //Prototype generation
-output
-    << "//Prototypes\n";
+    << "//Prototypes\n"
   //main
-  output
     << "//Main\n"
     << "int main(int argc, const char *argv[]){\n";
 }
@@ -130,4 +130,25 @@ void CodeGenerator::EndeMain(){
     << "}\n//Implimentation start for funktions";
 }
 
+std::ostream &operator<< (std::ostream &a, const VarType b){
+  switch (b) {
+    case RENDERER:
+      a << "SDL_Renderer *";
+      break;
+  }
+  return a;
+}
 
+std::ostream &operator<< (std::ostream &a, Variabl &b){
+  if(!b.isUnique){
+    b.name += "_" + std::to_string(GetUniquNumber());
+    b.isUnique = true;
+  }
+  a << b.type << " " << b.name;
+  return a;
+}
+
+size_t GetUniquNumber(){
+  static size_t num = 0;
+  return num++;
+}

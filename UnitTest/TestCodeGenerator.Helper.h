@@ -10,7 +10,7 @@ bool TestCodeGeneratorCTor(TestError *&);
 bool TestCodeGeneratorDTor(TestError *&);
 bool TestCodeGeneratorCreatTempFile(TestError *&);
 bool TestCodeGeneratorEmpty(TestError *&);
-bool TestCodeGenerator(std::stack<TestError*>);
+bool TestCodeGenerator(std::stack<TestError*>&);
 
 
 #endif

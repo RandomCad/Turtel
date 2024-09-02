@@ -1,4 +1,5 @@
 #include <ANTLRInputStream.h>
+#include <cstdio>
 #include <filesystem>
 #include <iostream>
 #include <sstream>
@@ -17,7 +18,7 @@ using namespace antlr4;
 bool TestBasicEmptyMain(TestError *);
 bool TestBasicWalk(TestError *);
 
-bool TestCodeGenerator(std::stack<TestError *> col){
+bool TestCodeGenerator(std::stack<TestError *>& col){
   bool ret = false;
 
   TestError *in;
@@ -54,7 +55,7 @@ bool TestBasicEmptyMain(TestError * in ){
   interface.CallLLVM();
   if ( !std::filesystem::exists("TEST_OUTPUT_DIR" "EmptyMainTest.out")){
     in = new TestError(
-          std::string(__func__), "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
+      "__func__", "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
     return true;
   }
   return false;
@@ -80,7 +81,7 @@ bool TestBasicWalk(TestError * in ){
   interface.CallLLVM();
   if ( !std::filesystem::exists("TEST_OUTPUT_DIR" "BasicWalkTest.out")){
     in = new TestError(
-          std::string(__func__), "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
+          "__func__", "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
     return true;
   }
   return false;

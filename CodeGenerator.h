@@ -6,6 +6,7 @@
 #include <iterator>
 #include <ostream>
 #include <stdlib.h>
+#include <unordered_map>
 #include <vector>
 
 #include "SceneParser.h"
@@ -20,6 +21,24 @@
 #define CALC_POS_X(len) POSITION_X_NAME + len * cos(ROTATION_NAME)
 #define CALC_POS_Y(len) POSITION_Y_NAME + len * sin(ROTATION_NAME)
 
+size_t GetUniquNumber();
+
+enum VarType{
+  RENDERER
+};
+
+std::ostream &operator<< (std::ostream &a, const VarType b);
+
+struct Variabl{
+  VarType type;
+  std::string name;
+  bool isUnique;
+  Variabl(VarType Type, std::string nm, bool is = false) : type(Type), name(nm), isUnique(is){}
+  Variabl(){}
+};
+
+std::ostream &operator<< (std::ostream &a, Variabl &b);
+
 class CodeGenerator : public SceneBaseVisitor{
   private:
     std::ostream &output;
@@ -27,6 +46,7 @@ class CodeGenerator : public SceneBaseVisitor{
     SceneParser::MainContext *astMain;
     std::vector<SceneParser::CalcdefContext *> astCalcdef;
     std::vector<SceneParser::PathdefContext *> astPathdef;
+    std::unordered_map<const char *, Variabl> Variables;
     //Only used for Unittesting
     CodeGenerator(): output(std::cout) {}
     CodeGenerator(std::ostream &outStream);

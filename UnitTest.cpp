@@ -89,12 +89,19 @@ int main(int argc, const char *argv[]){
   do {
     TestError *i = colector.top();
     maxErr = (maxErr > i->sev) ? maxErr : i->sev;
-    std::cout << "Error in function" << i->testName << std::endl << i->errName << std::endl
-              << "Error in the " << i->num << " test." << std::endl;
+    std::cout << *i << std::endl;
   }while (colector.empty());
 
   return maxErr;
 
+}
+
+std::ostream &operator<<(std::ostream &a, TestError &b){
+  a <<   "The test " << b.testName << " created a report of the severaty " << b.sev
+    << "\nThe report name is:\n"
+    << b.errName
+    << "\nThe report was created on line " << b.num << std::endl;
+  return a;
 }
 
 bool TestNumberExec(TestError*&ret){

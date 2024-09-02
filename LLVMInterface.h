@@ -32,9 +32,9 @@ class LLVMInterface{
   private:
     void CreatTempFile();
     void getSdlArguments();
-    friend bool TestCreatTempFile(std::forward_list<TestError*> &col);
-    friend bool TestCallLLVM(std::forward_list<TestError*> &col);
-    friend bool TestEmptySdl2App(std::forward_list<TestError*> &col);
+    friend bool TestCreatTempFile(TestError*);
+    friend bool TestCallLLVM(TestError*);
+    friend bool TestEmptySdl2App(TestError*);
 };
 
 #endif
