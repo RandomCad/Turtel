@@ -1,3 +1,5 @@
+#include <cstdlib>
+#include <cstring>
 #include <ostream>
 #ifndef UNIT_TEST
 #pragma once
@@ -29,13 +31,22 @@
   }
     
 
+enum TestErrorSeveraty{
+  INFO = 0,
+  WARNING = 1,
+  ERROR = 2,
+};
+
+#define  declareError(name, description, severity)
 struct TestError {
-  std::string testName;
-  std::string errName;
-  int sev;
-  int num;
-  TestError(std::string name, std::string err, int severity, int Num = 1): 
-    testName(name), errName(err), sev(severity), num(Num) {}
+  char *testName;
+  char *errName;
+  char *errDescription;
+  TestErrorSeveraty severity;
+  int lineNum;
+  TestError(const char *name,const char *errorName, const char * desc, TestErrorSeveraty sev, int line);
+  TestError(std::string name, std::string err, int severity, int Num = 1){}
+  TestError(const char * name, const char * err, int severity, int testNum){}
 };
 
 std::ostream &operator<<(std::ostream &a, TestError &b);

@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <ostream>
 #include <sstream>
@@ -88,7 +89,7 @@ int main(int argc, const char *argv[]){
   std::cout << colector.size();
   do {
     TestError *i = colector.top();
-    maxErr = (maxErr > i->sev) ? maxErr : i->sev;
+    maxErr = (maxErr > i->severity) ? maxErr : i->severity;
     std::cout << *i << std::endl;
   }while (colector.empty());
 
@@ -96,11 +97,19 @@ int main(int argc, const char *argv[]){
 
 }
 
+TestError::TestError(const char *name,const char *errorName, const char * desc, TestErrorSeveraty sev, int line):
+    testName(new char[strlen(name) + 1]), errName(new char[strlen(errorName) + 1]), 
+    errDescription(new char[strlen(desc) + 1]), severity(sev), lineNum(line) {
+      strcpy(testName, name);
+      strcpy(errName, errorName);
+      strcpy(errDescription, desc);
+}
+
 std::ostream &operator<<(std::ostream &a, TestError &b){
-  a <<   "The test " << b.testName << " created a report of the severaty " << b.sev
-    << "\nThe report name is:\n"
-    << b.errName
-    << "\nThe report was created on line " << b.num << std::endl;
+  a << "The test " << b.testName << " created a " << b.severity << "\n"
+    << "The name is " << b.errName << ". With the text:\n"
+    << b.errDescription << "\n"
+    << "The " << b.severity << " was created on line " << b.lineNum << std::endl;
   return a;
 }
 
