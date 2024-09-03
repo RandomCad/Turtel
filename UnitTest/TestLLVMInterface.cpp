@@ -9,9 +9,9 @@
 #include "UnitTest.h"
 #include "TestLLVMInterface.h"
 
-bool TestCreatTempFile(TestError*);
-bool TestCallLLVM(TestError*);
-bool TestEmptySdl2App(TestError*);
+bool TestCreatTempFile(TestError*&);
+bool TestCallLLVM(TestError*&);
+bool TestEmptySdl2App(TestError*&);
 
 bool TestLLVMInterface(std::stack<TestError*> &ret){
   bool returnValue = false;
@@ -36,7 +36,7 @@ bool TestLLVMInterface(std::stack<TestError*> &ret){
   return returnValue;
 }
 
-bool TestCallLLVM(TestError* col){
+bool TestCallLLVM(TestError* &col){
   LLVMInterface interface("test.out");
 
   interface.llvmFile << "#include <stdio.h>\nint main(int argc, const char *argv[]){printf(\"Hello World\\n\");}" << std::endl;
@@ -52,11 +52,6 @@ bool TestCallLLVM(TestError* col){
   com += " > ";
   com += interface.llvmFileName;
   std::system(com.c_str());
-  /*if(std::system(com.c_str())){
-    col.push_front(new TestError(
-    std::string(__func__), "The hello world programm didn't finish with the exitstatus 0.", 1, 0));
-    return true;
-  }*/
 
   interface.llvmFile.open(interface.llvmFileName);
 
@@ -71,7 +66,7 @@ bool TestCallLLVM(TestError* col){
   return false;
 }
 
-bool TestCreatTempFile(TestError* col){
+bool TestCreatTempFile(TestError* &col){
   LLVMInterface interface;
   interface.CreatTempFile();
   std::cerr << interface.llvmFileName << std::endl;
@@ -80,7 +75,7 @@ bool TestCreatTempFile(TestError* col){
   return false;
 }
 
-bool TestEmptySdl2App(TestError* col){
+bool TestEmptySdl2App(TestError* &col){
   LLVMInterface interface("test.out");
 
   interface.llvmFile 
@@ -106,11 +101,6 @@ bool TestEmptySdl2App(TestError* col){
   com += " > ";
   com += interface.llvmFileName;
   std::system(com.c_str());
-  /*if(std::system(com.c_str())){
-    col.push_front(new TestError(
-    std::string(__func__), "The hello world programm didn't finish with the exitstatus 0.", 1, 0));
-    return true;
-  }*/
 
   interface.llvmFile.open(interface.llvmFileName);
 
@@ -120,7 +110,7 @@ bool TestEmptySdl2App(TestError* col){
 
   STRING_ASSERT(buffer.str(), "Hello World", col, 1);
   
-  //std::remove(interface.fileName);
+  std::remove(interface.fileName);
 
   return false;
 }

@@ -47,7 +47,7 @@ enum TestErrorSeveraty{
   ERROR = 3,
 };
 
-#define  declareError(name, description, severity) new TestError("__func__", name, description, severity, __LINE__)
+#define  declareError(name, description, severity) new TestError(__func__, name, description, severity, __LINE__)
 struct TestError {
   const char *testName;
   const char *errName;

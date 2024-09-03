@@ -7,8 +7,8 @@
 #include <string>
 #include <tree/ParseTreeType.h>
 
-#define TURTLE_MAIN_FUNC_CALL "TurtelMain(" << Variables["RENDERER"] << ")"
-#define TURTLE_MAIN_FUNC_DEF "void " TURTLE_MAIN_FUNC_CALL
+#define TURTLE_MAIN_FUNC_CALL "TurtelMain(" << Variables["RENDERER"].getName() << ")"
+#define TURTLE_MAIN_FUNC_DEF "void " "TurtelMain(" << Variables["RENDERER"] << ")"
 
 //formate of the C-File:
 //1. includes
@@ -76,7 +76,7 @@ void CodeGenerator::AddMain(){
     << "  }while(1);\n"
     << "  SDL_DEINIT_LABLE:\n"
   //sdl Deinit
-    << "  SDL_DestroyRenderer(renderer);\n"
+    << "  SDL_DestroyRenderer(" << Variables["RENDERER"].getName() << ");\n"
     << "  SDL_DestroyWindow(window);\n"
     << "  SDL_Quit();\n"
   //main end

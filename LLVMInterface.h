@@ -32,9 +32,9 @@ class LLVMInterface{
   private:
     void CreatTempFile();
     void getSdlArguments();
-    friend bool TestCreatTempFile(TestError*);
-    friend bool TestCallLLVM(TestError*);
-    friend bool TestEmptySdl2App(TestError*);
+    friend bool TestCreatTempFile(TestError*&);
+    friend bool TestCallLLVM(TestError*&);
+    friend bool TestEmptySdl2App(TestError*&);
 };
 
 #endif

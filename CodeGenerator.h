@@ -6,6 +6,7 @@
 #include <iterator>
 #include <ostream>
 #include <stdlib.h>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -16,7 +17,7 @@
 
 #define POSITION_X_NAME POS_X
 #define POSITION_Y_NAME POS_Y
-#define RENDERER_NAME rnd
+#define RENDERER_NAME \n
 #define ROTATION_NAME Rotation
 #define CALC_POS_X(len) POSITION_X_NAME + len * cos(ROTATION_NAME)
 #define CALC_POS_Y(len) POSITION_Y_NAME + len * sin(ROTATION_NAME)
@@ -35,6 +36,7 @@ struct Variabl{
   bool isUnique;
   Variabl(VarType Type, std::string nm, bool is = false) : type(Type), name(nm), isUnique(is){}
   Variabl(){}
+  std::string &getName(){ return name;}
 };
 
 std::ostream &operator<< (std::ostream &a, Variabl &b);

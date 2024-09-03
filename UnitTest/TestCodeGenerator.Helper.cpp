@@ -15,8 +15,8 @@
 
 using namespace antlr4;
 
-bool TestBasicEmptyMain(TestError *);
-bool TestBasicWalk(TestError *);
+bool TestBasicEmptyMain(TestError *&);
+bool TestBasicWalk(TestError *&);
 
 bool TestCodeGenerator(std::stack<TestError *>& col){
   bool ret = false;
@@ -36,8 +36,8 @@ bool TestCodeGenerator(std::stack<TestError *>& col){
   return ret;
 }
 
-bool TestBasicEmptyMain(TestError * in ){
-  LLVMInterface interface("TEST_OUTPUT_DIR" "EmptyMainTest.out");
+bool TestBasicEmptyMain(TestError *& in ){
+  LLVMInterface interface("EmptyMainTest.out");
   std::stringstream stream;
   stream 
     << "begin\n"
@@ -53,14 +53,13 @@ bool TestBasicEmptyMain(TestError * in ){
   test.GenerateCode();
 
   interface.CallLLVM();
-  if ( !std::filesystem::exists("TEST_OUTPUT_DIR" "EmptyMainTest.out")){
-    in = declareError("FileDosNotExist", "The output file doesn't exist. Some thing in the compilation went wrong.", TestErrorSeveraty::ERROR);
-    return true;
-  }
+  
+  TRUE_ASSERT(std::filesystem::exists("EmptyMainTest.out"), in, TestErrorSeveraty::ERROR);
+  
   return false;
 }
 
-bool TestBasicWalk(TestError * in ){
+bool TestBasicWalk(TestError *& in ){
   LLVMInterface interface("TEST_OUTPUT_DIR" "BasicWalkTest.out");
   std::stringstream stream;
   stream 
@@ -78,10 +77,8 @@ bool TestBasicWalk(TestError * in ){
   test.GenerateCode();
 
   interface.CallLLVM();
-  if ( !std::filesystem::exists("TEST_OUTPUT_DIR" "BasicWalkTest.out")){
-    in = declareError("FileDosnotExist", "The output file doesn't exist", TestErrorSeveraty::ERROR); 
-    return true;
-  }
+  TRUE_ASSERT(std::filesystem::exists("TEST_OUTPUT_DIR" "BasicWalkTest.out"), in, TestErrorSeveraty::ERROR);
+
   return false;
 }
 
@@ -91,10 +88,7 @@ bool TestCodeGeneratorEmpty(TestError *&col){
   test.GenerateCode();
 
   interface.CallLLVM();
-  if ( !std::filesystem::exists("test.out")){
-    col = declareError("FileDosnotExist", "The output file doesn't exist", TestErrorSeveraty::ERROR); 
-    return true;
-  }
+  TRUE_ASSERT(std::filesystem::exists("test.out"), col, TestErrorSeveraty::ERROR);
 
   std::cout << "The correct working of the programm most be tested by hand." << std::endl;
   

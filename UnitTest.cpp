@@ -74,7 +74,7 @@ int main(int argc, const char *argv[]){
       TestCodeGenerator(colector);
       break;
     case 9:
-      colector.push(new TestError("__func__", "ErrorCheck","Check that errors are created", TestErrorSeveraty::INFO, __LINE__));
+      colector.push(new TestError(__func__, "ErrorCheck", "Check that errors are created", TestErrorSeveraty::INFO, __LINE__));
       break;
     case 10:
     case 11:
@@ -93,7 +93,7 @@ int main(int argc, const char *argv[]){
     std::cout << *i << std::endl;
   }while (colector.empty());
 
-  return maxErr;
+  return (maxErr) ? 1: 0;
 
 }
 
