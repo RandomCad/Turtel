@@ -1,7 +1,6 @@
 #include <cassert>
 #include <cstdlib>
 #include <filesystem>
-#include <forward_list>
 #include <ostream>
 #include <string>
 #include <iostream>
@@ -44,11 +43,7 @@ bool TestCallLLVM(TestError* col){
 
   interface.CallLLVM();
 
-  if ( !std::filesystem::exists(interface.fileName)){
-    col = new TestError(
-          std::string(__func__), "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
-    return true;
-  }
+  TRUE_ASSERT(!std::filesystem::exists(interface.fileName), col, TestErrorSeveraty::ERROR);
 
   interface.llvmFile.close();
 
@@ -69,11 +64,7 @@ bool TestCallLLVM(TestError* col){
   std::stringstream buffer;
   buffer << t.rdbuf();
 
-  if(!buffer.str().compare("Hello World")){
-    col = new TestError(
-    std::string(__func__), "The hello world programm didn't seam to work.", 1, 1);
-    return true;
-  }
+  STRING_ASSERT(buffer.str(), "Hello World", col, 0);
   
   std::remove(interface.fileName);
 
@@ -85,11 +76,7 @@ bool TestCreatTempFile(TestError* col){
   interface.CreatTempFile();
   std::cerr << interface.llvmFileName << std::endl;
 
-  if ( !interface.llvmFile.good()){
-    col = new TestError(
-          std::string(__func__), "fstream wasn't opend therfor the file dosn't exist", 1, 0);
-    return true;
-  }
+  TRUE_ASSERT(interface.llvmFile.good(), col, TestErrorSeveraty::ERROR)
   return false;
 }
 
@@ -110,11 +97,7 @@ bool TestEmptySdl2App(TestError* col){
 
   interface.CallLLVM();
 
-  if ( !std::filesystem::exists(interface.fileName)){
-    col = new TestError(
-          std::string(__func__), "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
-    return true;
-  }
+  TRUE_ASSERT(std::filesystem::exists(interface.fileName), col, TestErrorSeveraty::ERROR);
 
   interface.llvmFile.close();
 
@@ -135,11 +118,7 @@ bool TestEmptySdl2App(TestError* col){
   std::stringstream buffer;
   buffer << t.rdbuf();
 
-  if(!buffer.str().compare("Hello World")){
-    col = new TestError(
-    std::string(__func__), "The hello world programm didn't seam to work.", 1, 0);
-    return true;
-  }
+  STRING_ASSERT(buffer.str(), "Hello World", col, 1);
   
   //std::remove(interface.fileName);
 

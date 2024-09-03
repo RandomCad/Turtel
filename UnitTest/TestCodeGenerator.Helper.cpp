@@ -54,8 +54,7 @@ bool TestBasicEmptyMain(TestError * in ){
 
   interface.CallLLVM();
   if ( !std::filesystem::exists("TEST_OUTPUT_DIR" "EmptyMainTest.out")){
-    in = new TestError(
-      "__func__", "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
+    in = declareError("FileDosNotExist", "The output file doesn't exist. Some thing in the compilation went wrong.", TestErrorSeveraty::ERROR);
     return true;
   }
   return false;
@@ -80,8 +79,7 @@ bool TestBasicWalk(TestError * in ){
 
   interface.CallLLVM();
   if ( !std::filesystem::exists("TEST_OUTPUT_DIR" "BasicWalkTest.out")){
-    in = new TestError(
-          "__func__", "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
+    in = declareError("FileDosnotExist", "The output file doesn't exist", TestErrorSeveraty::ERROR); 
     return true;
   }
   return false;
@@ -94,8 +92,7 @@ bool TestCodeGeneratorEmpty(TestError *&col){
 
   interface.CallLLVM();
   if ( !std::filesystem::exists("test.out")){
-    col = new TestError(
-          std::string(__func__), "The output file doesn't exist. Some thing in the compilation went wrong.", 1, 0);
+    col = declareError("FileDosnotExist", "The output file doesn't exist", TestErrorSeveraty::ERROR); 
     return true;
   }
 

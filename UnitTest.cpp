@@ -74,7 +74,7 @@ int main(int argc, const char *argv[]){
       TestCodeGenerator(colector);
       break;
     case 9:
-      colector.push(new TestError("Check that errors are created","Check that errors are created",1));
+      colector.push(new TestError("__func__", "ErrorCheck","Check that errors are created", TestErrorSeveraty::INFO, __LINE__));
       break;
     case 10:
     case 11:
@@ -98,11 +98,8 @@ int main(int argc, const char *argv[]){
 }
 
 TestError::TestError(const char *name,const char *errorName, const char * desc, TestErrorSeveraty sev, int line):
-    testName(new char[strlen(name) + 1]), errName(new char[strlen(errorName) + 1]), 
-    errDescription(new char[strlen(desc) + 1]), severity(sev), lineNum(line) {
-      strcpy(testName, name);
-      strcpy(errName, errorName);
-      strcpy(errDescription, desc);
+    testName(name), errName(errorName), 
+    errDescription(desc), severity(sev), lineNum(line) {
 }
 
 std::ostream &operator<<(std::ostream &a, TestError &b){
