@@ -43,7 +43,7 @@ bool TestCallLLVM(TestError* &col){
 
   interface.CallLLVM();
 
-  TRUE_ASSERT(!std::filesystem::exists(interface.fileName), col, TestErrorSeveraty::ERROR);
+  TRUE_ASSERT(std::filesystem::exists(interface.fileName), col, TestErrorSeveraty::ERROR);
 
   interface.llvmFile.close();
 
@@ -55,11 +55,11 @@ bool TestCallLLVM(TestError* &col){
 
   interface.llvmFile.open(interface.llvmFileName);
 
-  std::ifstream t("file.txt");
+  std::ifstream t(interface.llvmFileName);
   std::stringstream buffer;
   buffer << t.rdbuf();
 
-  STRING_ASSERT(buffer.str(), "Hello World", col, 0);
+  STRING_ASSERT(buffer.str(), "Hello World\n", col, 0);
   
   std::remove(interface.fileName);
 
@@ -100,15 +100,7 @@ bool TestEmptySdl2App(TestError* &col){
   com += interface.fileName;
   com += " > ";
   com += interface.llvmFileName;
-  std::system(com.c_str());
-
-  interface.llvmFile.open(interface.llvmFileName);
-
-  std::ifstream t("file.txt");
-  std::stringstream buffer;
-  buffer << t.rdbuf();
-
-  STRING_ASSERT(buffer.str(), "Hello World", col, 1);
+  FALSE_ASSERT(std::system(com.c_str()), col, TestErrorSeveraty::ERROR);
   
   std::remove(interface.fileName);
 

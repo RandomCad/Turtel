@@ -39,6 +39,11 @@
     col = declareError("TrueAssert", "the expresion wasn't true", sev); \
     return true;\
   }
+#define FALSE_ASSERT(exp, col, sev) \
+  if(exp){\
+    col = declareError("FasleAssert", "the expresion wasn't false", sev); \
+    return true;\
+  }
     
 
 enum TestErrorSeveraty{
