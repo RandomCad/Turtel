@@ -29,59 +29,20 @@ bool TestWalkParsing(TestError *&ret);
 int main(int argc, const char *argv[]){
   srand(0);
   std::stack<TestError *> colector;
-
-  TestError *next = nullptr;
-  if(argc <=2){
-    std::cerr << "No argument was given. Test wasn't correctly set up";
-    return 1;
-  }
-  
-  std::cout << "running test number: " << argv[2] << std::endl;
-  
-  switch (atoi(argv[2])) {
-    case 0:
-      if(TestNumberParsing(next)) colector.push(next);
-      if(TestNumberExec(next)) colector.push(next);
-      break;
-
-    case 1:
-      if(TestVariableParsing(next)) colector.push(next);
-      break;
-    
-    case 2:
-      if(TestExprParsing(next)) colector.push(next);
-      if(TestExprExec(next)) colector.push(next);
-      break;
-    case 3:
-      if( TestWalkParsing(next)) colector.push(next);
-      break;
-    case 4:
-      if(TestCodeGeneratorProgramBase(next)) colector.push(next);
-      if(TestCodeGeneratorEndMain(next)) colector.push(next);
-      break;
-    case 5:
-      if(TestCodeGeneratorCTor(next)) colector.push(next);
-      if(TestCodeGeneratorDTor(next)) colector.push(next);
-      break;
-    case 6:
-      TestLLVMInterface(colector);
-      break;
-    case 7:
-      if(TestCodeGeneratorEmpty(next)) colector.push(next);
-      break;
-    case 8:
-      TestCodeGenerator(colector);
-      break;
-    case 9:
-      colector.push(new TestError(__func__, "ErrorCheck", "Check that errors are created", TestErrorSeveraty::INFO, __LINE__));
-      break;
-    case 10:
-    case 11:
-
-    default:
-      std::cerr << "Tryed to run non existing test. Test wasn't correctly set up";
-      return -1;
-  }
+  TestError * next;
+  if(TestNumberParsing(next)) colector.push(next);
+  if(TestNumberExec(next)) colector.push(next);
+  if(TestVariableParsing(next)) colector.push(next);
+  if(TestExprParsing(next)) colector.push(next);
+  if(TestExprExec(next)) colector.push(next);
+  if(TestWalkParsing(next)) colector.push(next);
+  if(TestCodeGeneratorProgramBase(next)) colector.push(next);
+  if(TestCodeGeneratorEndMain(next)) colector.push(next);
+  if(TestCodeGeneratorCTor(next)) colector.push(next);
+  if(TestCodeGeneratorDTor(next)) colector.push(next);
+  TestLLVMInterface(colector);
+  if(TestCodeGeneratorEmpty(next)) colector.push(next);
+  TestCodeGenerator(colector);
 
   int maxErr = 0;
   if (colector.empty()) return 0;

@@ -83,7 +83,6 @@ SET( SYSTEM_LIBS  ${SYSTEM_LIBS}  ${llvm_libs} clangTooling clangBasic clangAST 
 
 
 #Testing
-include(CTest)
 add_definitions(-DUNIT_TEST)
 
 set(UnitTest TestExpr.cpp TestCodeGenerator.Helper.cpp TestLLVMInterface.cpp)
@@ -91,14 +90,3 @@ set(UnitTest TestExpr.cpp TestCodeGenerator.Helper.cpp TestLLVMInterface.cpp)
 add_executable(tests UnitTest.cpp ${UnitTest} ${ANTLER_GEN} ${VISITOR} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 
 target_link_libraries(tests antlr4_static ${SYSTEM_LIBS})
-
-add_test(TestUnitTestEngin ${CMAKE_CURRENT_SOURCE_DIR}/TestErrorCreatin.sh)
-add_test(TestNumberParsing tests COMMAND 0)
-add_test(TestVariableParsing tests COMMAND 1)
-add_test(TestExprParsing tests COMMAND 2)
-add_test(TestWalkParsing tests COMMAND 3)
-#add_test(TestCodeGeneratorHelperMethodes tests COMMAND 4)
-#add_test(TestCodeGeneratorCDTor tests COMMAND 5)
-add_test(TestLLVMInterface tests COMMAND 6)
-add_test(TestEmptyCodeGenerator tests COMMAND 7)
-add_test(TestBasicTurtelProgramms tests COMMAND 8)
