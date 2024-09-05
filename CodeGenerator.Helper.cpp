@@ -63,8 +63,9 @@ void CodeGenerator::AddMain(){
   //call TurtelMain
     << "  " TURTLE_MAIN_FUNC_CALL ";\n" //TODO add the parameters
   //Implicit wait
+    #ifndef UNIT_TEST
     << "  do{\n"
-    #ifndef NDEBUG
+    #ifdef NDEBUG
     << "    printf(\"Event Loop\\n\");\n"
     #endif
     << "    SDL_WaitEvent(&events);\n"
@@ -74,6 +75,7 @@ void CodeGenerator::AddMain(){
     << "      default: break;\n"
     << "    }\n"
     << "  }while(1);\n"
+    #endif
     << "  SDL_DEINIT_LABLE:\n"
   //sdl Deinit
     << "  SDL_DestroyRenderer(" << Variables["RENDERER"].getName() << ");\n"

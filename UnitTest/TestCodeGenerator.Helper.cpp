@@ -4,7 +4,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <regex>
 
 #include "TestCodeGenerator.Helper.h"
 #include "../CodeGenerator.h"
@@ -37,7 +36,8 @@ bool TestCodeGenerator(std::stack<TestError *>& col){
 }
 
 bool TestBasicEmptyMain(TestError *& in ){
-  LLVMInterface interface("EmptyMainTest.out");
+  const char * testFile = TEST_OUTPUT_DIR "/EmptyMainTest.out";
+  LLVMInterface interface(testFile);
   std::stringstream stream;
   stream 
     << "begin\n"
@@ -54,13 +54,14 @@ bool TestBasicEmptyMain(TestError *& in ){
 
   interface.CallLLVM();
   
-  TRUE_ASSERT(std::filesystem::exists("EmptyMainTest.out"), in, TestErrorSeveraty::ERROR);
+  TRUE_ASSERT(std::filesystem::exists(testFile), in, TestErrorSeveraty::ERROR);
   
   return false;
 }
 
 bool TestBasicWalk(TestError *& in ){
-  LLVMInterface interface("TEST_OUTPUT_DIR" "BasicWalkTest.out");
+  const char *testFile = TEST_OUTPUT_DIR "/BasicWalkTest.out";
+  LLVMInterface interface(testFile);
   std::stringstream stream;
   stream 
     << "begin\n"
@@ -77,18 +78,19 @@ bool TestBasicWalk(TestError *& in ){
   test.GenerateCode();
 
   interface.CallLLVM();
-  TRUE_ASSERT(std::filesystem::exists("TEST_OUTPUT_DIR" "BasicWalkTest.out"), in, TestErrorSeveraty::ERROR);
+  TRUE_ASSERT(std::filesystem::exists(testFile), in, TestErrorSeveraty::ERROR);
 
   return false;
 }
 
 bool TestCodeGeneratorEmpty(TestError *&col){
-  LLVMInterface interface("test.out");
+  const char *testFile = TEST_OUTPUT_DIR "/EmptyCodeGenerator.out";
+  LLVMInterface interface(testFile);
   CodeGenerator test(interface.llvmFile);
   test.GenerateCode();
 
   interface.CallLLVM();
-  TRUE_ASSERT(std::filesystem::exists("test.out"), col, TestErrorSeveraty::ERROR);
+  TRUE_ASSERT(std::filesystem::exists(testFile), col, TestErrorSeveraty::ERROR);
 
   std::cout << "The correct working of the programm most be tested by hand." << std::endl;
   
