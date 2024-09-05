@@ -1,10 +1,11 @@
 #include <cstdlib>
 #include <cstring>
 #include <ostream>
+#include <regex>
 #ifndef UNIT_TEST
 #pragma once
 
-#define TEST_OUTPUT_DIR ./Testing/Temporary/
+#define TEST_OUTPUT_DIR ./Testing
 
 #include <string>
 

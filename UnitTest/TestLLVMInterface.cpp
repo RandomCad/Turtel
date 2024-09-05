@@ -37,7 +37,7 @@ bool TestLLVMInterface(std::stack<TestError*> &ret){
 }
 
 bool TestCallLLVM(TestError* &col){
-  LLVMInterface interface("test.out");
+  LLVMInterface interface("TEST_OUTPUT_DIR" "/TestCallLLVM.out");
 
   interface.llvmFile << "#include <stdio.h>\nint main(int argc, const char *argv[]){printf(\"Hello World\\n\");}" << std::endl;
 
@@ -76,7 +76,7 @@ bool TestCreatTempFile(TestError* &col){
 }
 
 bool TestEmptySdl2App(TestError* &col){
-  LLVMInterface interface("test.out");
+  LLVMInterface interface("TEST_OUTPUT_DIR" "TestEmptySdl2App.out");
 
   interface.llvmFile 
     << "#include <SDL2/SDL.h>" << std::endl 
