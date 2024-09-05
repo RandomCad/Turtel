@@ -10,10 +10,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "SceneParser.h"
-#include "UnitTest/TestCodeGenerator.Helper.h"
+#include "libs/SceneParser.h"
 #include "libs/SceneBaseVisitor.h"
-#include "UnitTest.h"
+#include "../UnitTest/UnitTest.h"
 
 #define POSITION_X_NAME POS_X
 #define POSITION_Y_NAME POS_Y
@@ -21,6 +20,7 @@
 #define ROTATION_NAME Rotation
 #define CALC_POS_X(len) POSITION_X_NAME + len * cos(ROTATION_NAME)
 #define CALC_POS_Y(len) POSITION_Y_NAME + len * sin(ROTATION_NAME)
+
 
 size_t GetUniquNumber();
 
@@ -93,6 +93,7 @@ class CodeGenerator : public SceneBaseVisitor{
     void ProgrammBase();
     void EndeMain();
 
+#ifdef UNIT_TEST
     friend bool TestNumberExec(TestError*&ret);
     friend bool TestExprExec(TestError *&ret);
     friend bool TestCodeGeneratorProgramBase(TestError *&);
@@ -100,6 +101,7 @@ class CodeGenerator : public SceneBaseVisitor{
     friend bool TestCodeGeneratorDTOr(TestError *&);
     friend bool TestCodeGeneratorEmpty(TestError *&);
     friend bool TestCodeGeneratorCTor(TestError *&);
+#endif
 };
 
 #endif

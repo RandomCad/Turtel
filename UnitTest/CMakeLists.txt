@@ -63,16 +63,14 @@ if (MSVC)
   set(CMAKE_CXX_FLAGS "/EHsc /wd4127 /wd4311 /wd4312 /wd4512 /wd4571 /wd4640 /wd4706 /wd4710 /wd4800 /wd4804 /wd4820 /wd4996")
 endif()
 
-
-# Call macro to add lexer and grammar to your build dependencies.
-antlr_target(SceneGrammarParser ../src/Scene.g4 VISITOR OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/libs/)
-
 # add our project source directories
 include_directories(${PROJECT_SOURCE_DIR}
 					 ${PROJECT_SOURCE_DIR}/libs/
   )
   
 set(VISITOR ../src/CodeGenerator.cpp ../src/CodeGenerator.Helper.cpp ../src/LLVMInterface.cpp)
+set(ANTLER_GEN ../src/libs/SceneBaseVisitor.cpp  ../src/libs/Scene.interp    ../src/libs/SceneLexer.h       ../src/libs/SceneLexer.tokens  ../src/libs/SceneParser.h  ../src/libs/SceneVisitor.cpp ../src/libs/SceneBaseVisitor.h    ../src/libs/SceneLexer.cpp  ../src/libs/SceneLexer.interp  ../src/libs/SceneParser.cpp    ../src/libs/Scene.tokens   ../src/libs/SceneVisitor.h)
+
 
 
 #LLVM libs
@@ -86,10 +84,12 @@ SET( SYSTEM_LIBS  ${SYSTEM_LIBS}  ${llvm_libs} clangTooling clangBasic clangAST 
 
 #Testing
 include(CTest)
+add_definitions(-DUNIT_TEST)
 
 set(UnitTest TestExpr.cpp TestCodeGenerator.Helper.cpp TestLLVMInterface.cpp)
 # Compilation and linking
-add_executable(tests UnitTest.cpp ${UnitTest} ${VISITOR} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+add_executable(tests UnitTest.cpp ${UnitTest} ${ANTLER_GEN} ${VISITOR} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+
 target_link_libraries(tests antlr4_static ${SYSTEM_LIBS})
 
 add_test(TestUnitTestEngin ${CMAKE_CURRENT_SOURCE_DIR}/TestErrorCreatin.sh)

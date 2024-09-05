@@ -1,7 +1,7 @@
 #ifndef TEST_EXPR
 #define TEST_EXPR
 
-#include "../UnitTest.h"
+#include "UnitTest.h"
 
 bool TestExprParsing(TestError *&ret);
 bool TestExprExec(TestError *&ret);

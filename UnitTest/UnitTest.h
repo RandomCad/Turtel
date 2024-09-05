@@ -3,6 +3,8 @@
 #include <ostream>
 #include <regex>
 #ifndef UNIT_TEST
+#warning "UNIT_TEST NOT DEFINED" 
+#else
 #pragma once
 
 #define TEST_OUTPUT_DIR "./Testing"

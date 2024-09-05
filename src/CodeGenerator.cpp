@@ -1,5 +1,5 @@
 #include "CodeGenerator.h"
-#include "SceneParser.h"
+#include "libs/SceneParser.h"
 #include <any>
 #include <cmath>
 #include <cstdint>

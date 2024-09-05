@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 
-#include "LLVMInterface.h"
+#include "../src/LLVMInterface.h"
 #include "UnitTest.h"
 #include "TestLLVMInterface.h"
 

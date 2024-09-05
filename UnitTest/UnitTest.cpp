@@ -6,19 +6,18 @@
 #include <iostream>
 #include <ostream>
 #include <sstream>
-#include <forward_list>
 #include <stack>
 
 
-#include "libs/SceneLexer.h"
-#include "libs/SceneParser.h"
+#include "../src/libs/SceneLexer.h"
+#include "../src/libs/SceneParser.h"
 #include "tree/TerminalNode.h"
 
-#include "CodeGenerator.h"
+#include "../src/CodeGenerator.h"
 #include "UnitTest.h"
-#include "UnitTest/TestExpr.h"
-#include "UnitTest/TestCodeGenerator.Helper.h"
-#include "UnitTest/TestLLVMInterface.h"
+#include "TestExpr.h"
+#include "TestCodeGenerator.Helper.h"
+#include "TestLLVMInterface.h"
 
 using namespace antlr4;
 

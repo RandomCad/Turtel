@@ -1,7 +1,7 @@
 #ifndef TEST_CODEGEN_HELPER
 #define TEST_CODEGEN_HELPER
 
-#include "../UnitTest.h"
+#include "UnitTest.h"
 #include <stack>
 
 bool TestCodeGeneratorProgramBase(TestError *&);

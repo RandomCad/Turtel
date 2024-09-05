@@ -7,7 +7,7 @@
 #include <forward_list>
 #include <vector>
 
-#include "UnitTest.h"
+#include "../UnitTest/UnitTest.h"
 
 #define NameLength 32
 class LLVMInterface{
@@ -32,9 +32,12 @@ class LLVMInterface{
   private:
     void CreatTempFile();
     void getSdlArguments();
+
+#ifdef UNIT_TEST
     friend bool TestCreatTempFile(TestError*&);
     friend bool TestCallLLVM(TestError*&);
     friend bool TestEmptySdl2App(TestError*&);
+#endif
 };
 
 #endif

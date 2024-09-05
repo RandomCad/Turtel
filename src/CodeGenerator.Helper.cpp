@@ -1,9 +1,6 @@
 #include "CodeGenerator.h"
-#include "SceneParser.h"
-#include "TypeVisitor.h"
-#include <any>
+#include "libs/SceneParser.h"
 #include <cstring>
-#include <fstream>
 #include <string>
 #include <tree/ParseTreeType.h>
 
