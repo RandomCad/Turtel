@@ -51,7 +51,7 @@ LLVMInterface::~LLVMInterface(){
 }
 
 void LLVMInterface::CallLLVM(){
-  LLVMInterface::getSdlArguments();
+  auto sdlArgs = LLVMInterface::getSdlArguments();
   
 	
 	// Path to clang (e.g. /usr/local/bin/clang)
@@ -115,7 +115,12 @@ void LLVMInterface::CallLLVM(){
 }
 
 //static bool wasUsed = false;
-void LLVMInterface::getSdlArguments(){
+std::vector<std::string> LLVMInterface::getSdlArguments(){
+  static std::vector<std::string> sdlArgs;
+  static bool gotArgs = 0;
+  if(gotArgs){
+    return sdlArgs;
+  }
   //if(wasUsed) return;
   //wasUsed = true;
   char *templatFile = (char *)alloca(sizeof("/tmp/XXXXXX"));
@@ -143,7 +148,8 @@ void LLVMInterface::getSdlArguments(){
     opt[j] = '\0';
     sdlArgs.push_back(std::string(opt));
   }
-  
+  gotArgs = true;
+  return sdlArgs;
   std::cout << "Parsed SDL Conf" << std::endl;
   for(auto i : sdlArgs) std::cout << i << std::endl;
 }

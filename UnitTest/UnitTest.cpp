@@ -3,14 +3,15 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <iostream>
 #include <ostream>
 #include <sstream>
 #include <stack>
 
-
 #include "../src/libs/SceneLexer.h"
 #include "../src/libs/SceneParser.h"
+#include "TestVariable.h"
 #include "tree/TerminalNode.h"
 
 #include "../src/CodeGenerator.h"
@@ -18,6 +19,7 @@
 #include "TestExpr.h"
 #include "TestCodeGenerator.Helper.h"
 #include "TestLLVMInterface.h"
+#include "TestVariable.h"
 
 using namespace antlr4;
 
@@ -28,6 +30,8 @@ bool TestWalkParsing(TestError *&ret);
 
 int main(int argc, const char *argv[]){
   srand(0);
+  std::filesystem::create_directory(TEST_OUTPUT_DIR);
+
   std::stack<TestError *> colector;
   TestError * next;
   if(TestNumberParsing(next)) colector.push(next);
@@ -40,6 +44,7 @@ int main(int argc, const char *argv[]){
   if(TestCodeGeneratorEndMain(next)) colector.push(next);
   if(TestCodeGeneratorCTor(next)) colector.push(next);
   if(TestCodeGeneratorDTor(next)) colector.push(next);
+  TestVariable(colector);
   TestLLVMInterface(colector);
   if(TestCodeGeneratorEmpty(next)) colector.push(next);
   TestCodeGenerator(colector);

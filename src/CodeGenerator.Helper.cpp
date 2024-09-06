@@ -4,8 +4,8 @@
 #include <string>
 #include <tree/ParseTreeType.h>
 
-#define TURTLE_MAIN_FUNC_CALL "TurtelMain(" << Variables["RENDERER"].getName() << ")"
-#define TURTLE_MAIN_FUNC_DEF "void " "TurtelMain(" << Variables["RENDERER"] << ")"
+#define TURTLE_MAIN_FUNC_CALL "TurtelMain(" RENDERER_NAME " )"
+#define TURTLE_MAIN_FUNC_DEF "void " "TurtelMain(SDL_Renderer * " RENDERER_NAME ")"
 
 //formate of the C-File:
 //1. includes
@@ -53,7 +53,7 @@ void CodeGenerator::AddMain(){
   //sdl init
     << "  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"
     << "  SDL_Window* window = SDL_CreateWindow( \"Main Window\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN );\n"
-    << "  " << Variables["RENDERER"] << " = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);\n"
+    << "  SDL_Renderer *" RENDERER_NAME " = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);\n"
     << "  SDL_Event events;\n"
   //allocate stack
 
@@ -75,7 +75,7 @@ void CodeGenerator::AddMain(){
     #endif
     << "  SDL_DEINIT_LABLE:\n"
   //sdl Deinit
-    << "  SDL_DestroyRenderer(" << Variables["RENDERER"].getName() << ");\n"
+    << "  SDL_DestroyRenderer(" RENDERER_NAME ");\n"
     << "  SDL_DestroyWindow(window);\n"
     << "  SDL_Quit();\n"
   //main end
@@ -104,7 +104,7 @@ CodeGenerator::CodeGenerator(std::ostream &outStream)
 CodeGenerator::CodeGenerator(std::ostream &outStream, SceneParser::FileContext* AstBase)
   : output(outStream), astBase(AstBase), astMain(astBase->main()), 
     astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()) {
-  Variables.insert({"RENDERER",Variabl(VarType::RENDERER,"rnd",false)});
+  Variables.insert({RENDERER_NAME,Variable(VarType::RENDERER,"rnd",false)});
 
   //ProgrammBase();
 }
@@ -127,24 +127,6 @@ void CodeGenerator::EndeMain(){
   output 
     << "//End of Main\n"
     << "}\n//Implimentation start for funktions";
-}
-
-std::ostream &operator<< (std::ostream &a, const VarType b){
-  switch (b) {
-    case RENDERER:
-      a << "SDL_Renderer *";
-      break;
-  }
-  return a;
-}
-
-std::ostream &operator<< (std::ostream &a, Variabl &b){
-  if(!b.isUnique){
-    b.name += "_" + std::to_string(GetUniquNumber());
-    b.isUnique = true;
-  }
-  a << b.type << " " << b.name;
-  return a;
 }
 
 size_t GetUniquNumber(){

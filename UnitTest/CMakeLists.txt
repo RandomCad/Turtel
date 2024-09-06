@@ -28,14 +28,6 @@ add_definitions(${LLVM_DEFINITIONS})
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 
-
-
-
-
-# #### End of additional libraries search ##########
-
-
-
 if (NOT WIN32)
   SET( SYSTEM_LIBS ${SYSTEM_LIBS} ${CMAKE_THREAD_LIBS_INIT} )
 endif()
@@ -68,10 +60,8 @@ include_directories(${PROJECT_SOURCE_DIR}
 					 ${PROJECT_SOURCE_DIR}/libs/
   )
   
-set(VISITOR ../src/CodeGenerator.cpp ../src/CodeGenerator.Helper.cpp ../src/LLVMInterface.cpp)
-set(ANTLER_GEN ../src/libs/SceneBaseVisitor.cpp  ../src/libs/Scene.interp    ../src/libs/SceneLexer.h       ../src/libs/SceneLexer.tokens  ../src/libs/SceneParser.h  ../src/libs/SceneVisitor.cpp ../src/libs/SceneBaseVisitor.h    ../src/libs/SceneLexer.cpp  ../src/libs/SceneLexer.interp  ../src/libs/SceneParser.cpp    ../src/libs/Scene.tokens   ../src/libs/SceneVisitor.h)
-
-
+set(VISITOR ../src/CodeGenerator.cpp ../src/CodeGenerator.Helper.cpp ../src/LLVMInterface.cpp ../src/Variable.cpp)
+set(ANTLER_GEN ../src/libs/SceneBaseVisitor.cpp ../src/libs/Scene.interp ../src/libs/SceneLexer.tokens ../src/libs/SceneVisitor.cpp ../src/libs/SceneLexer.cpp  ../src/libs/SceneLexer.interp  ../src/libs/SceneParser.cpp    ../src/libs/Scene.tokens)
 
 #LLVM libs
 # Find the libraries that correspond to the LLVM components
@@ -80,12 +70,9 @@ llvm_map_components_to_libnames(llvm_libs support core irreader)
 
 SET( SYSTEM_LIBS  ${SYSTEM_LIBS}  ${llvm_libs} clangTooling clangBasic clangAST clangDriver clangFrontend clangFrontendTool clangSerialization)
 
-
-
-#Testing
 add_definitions(-DUNIT_TEST)
 
-set(UnitTest TestExpr.cpp TestCodeGenerator.Helper.cpp TestLLVMInterface.cpp)
+set(UnitTest TestExpr.cpp TestCodeGenerator.Helper.cpp TestLLVMInterface.cpp TestVariable.cpp)
 # Compilation and linking
 add_executable(tests UnitTest.cpp ${UnitTest} ${ANTLER_GEN} ${VISITOR} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 
