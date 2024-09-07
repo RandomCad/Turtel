@@ -7,7 +7,23 @@
 #include <stdexcept>
 #include <string>
 std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
+  output
+    << "void " "TurtelMain(SDL_Renderer * " RENDERER_NAME "){\n"
+    << "  " << variables.getVariableDefinition("@x") << "\n"
+    << "  " << variables.getVariableDefinition("@y") << "\n";
+
+  //visit all the contained statments(stat)
   for(auto i : ctx->children) i->accept(this);
+
+  output
+    << "}\n" 
+    <<std::endl;
+  return nullptr;
+}
+
+std::any CodeGenerator::visitStat(SceneParser::StatContext *ctx){
+  ctx->children[0]->accept(this);
+  return nullptr;
 }
 
 std::any CodeGenerator::visitWalk(SceneParser::WalkContext *ctx){

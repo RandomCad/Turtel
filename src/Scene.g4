@@ -9,6 +9,7 @@ calcdef : 'a';
 stat    : walk;
 
 walk  	: Walk expr ;
+save    : Save;
 
 // Parser rules
 expr  : ( klamKon | number) '^' (klamKon | number) #Exp

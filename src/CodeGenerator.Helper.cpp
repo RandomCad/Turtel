@@ -1,5 +1,6 @@
 #include "CodeGenerator.h"
 #include "libs/SceneParser.h"
+#include <any>
 #include <cstring>
 #include <string>
 #include <tree/ParseTreeType.h>
@@ -85,14 +86,7 @@ void CodeGenerator::AddMain(){
 
 void CodeGenerator::AddTurtelMain(){
   //Func def:
-  output
-    << TURTLE_MAIN_FUNC_DEF "{\n"
-    << "  double POSITION_X_NAME;\n"
-    << "  double POSITION_Y_NAME;\n"
-  //TODO:
-  //close func:
-    << "}\n" 
-    <<std::endl;
+  astMain->accept(this);
 }
 
 void CodeGenerator::AddTurtelFunctions(){
@@ -104,8 +98,6 @@ CodeGenerator::CodeGenerator(std::ostream &outStream)
 CodeGenerator::CodeGenerator(std::ostream &outStream, SceneParser::FileContext* AstBase)
   : output(outStream), astBase(AstBase), astMain(astBase->main()), 
     astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()) {
-  Variables.insert({RENDERER_NAME,Variable(VarType::RENDERER,"rnd",false)});
-
   //ProgrammBase();
 }
 

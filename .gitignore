@@ -368,17 +368,17 @@ CTestTestfile.cmake
 # Project-specific
 build/
 antlr4-runtime/Scene*
-libs/Scene.interp
-libs/Scene.tokens
-libs/SceneBaseVisitor.cpp
-libs/SceneBaseVisitor.h
-libs/SceneLexer.cpp
-libs/SceneLexer.h
-libs/SceneLexer.interp
-libs/SceneLexer.tokens
-libs/SceneParser.cpp
-libs/SceneParser.h
-libs/SceneVisitor.cpp
-libs/SceneVisitor.h
+src/libs/Scene.interp
+src/libs/Scene.tokens
+src/libs/SceneBaseVisitor.cpp
+src/libs/SceneBaseVisitor.h
+src/libs/SceneLexer.cpp
+src/libs/SceneLexer.h
+src/libs/SceneLexer.interp
+src/libs/SceneLexer.tokens
+src/libs/SceneParser.cpp
+src/libs/SceneParser.h
+src/libs/SceneVisitor.cpp
+src/libs/SceneVisitor.h
 # Ignore Chach
 .cache

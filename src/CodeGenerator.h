@@ -8,13 +8,14 @@
 #include <vector>
 
 #include "Variable.h"
+#include "VariableHeandler.h"
 #include "libs/SceneParser.h"
 #include "libs/SceneBaseVisitor.h"
 #include "../UnitTest/UnitTest.h"
 
 #define POSITION_X_NAME POS_X
 #define POSITION_Y_NAME POS_Y
-#define RENDERER_NAME "__rnd__rnd"
+#define RENDERER_NAME "__env_rnd"
 #define ROTATION_NAME Rotation
 #define CALC_POS_X(len) POSITION_X_NAME + len * cos(ROTATION_NAME)
 #define CALC_POS_Y(len) POSITION_Y_NAME + len * sin(ROTATION_NAME)
@@ -28,7 +29,7 @@ class CodeGenerator : public SceneBaseVisitor{
     SceneParser::MainContext *astMain;
     std::vector<SceneParser::CalcdefContext *> astCalcdef;
     std::vector<SceneParser::PathdefContext *> astPathdef;
-    std::unordered_map<const char *, Variable> Variables;
+    VariableHeandler variables;
     //Only used for Unittesting
     CodeGenerator(): output(std::cout) {}
     CodeGenerator(std::ostream &outStream);
@@ -50,6 +51,8 @@ class CodeGenerator : public SceneBaseVisitor{
     std::any visitMult(SceneParser::MultContext *ctx) override;
     std::any visitABS(SceneParser::ABSContext *ctx) override;
     std::any visitNegate(SceneParser::NegateContext *ctx) override;
+
+    std::any visitStat(SceneParser::StatContext *ctx) override;
     std::any visitWalk(SceneParser::WalkContext *ctx) override;
   
   private:
