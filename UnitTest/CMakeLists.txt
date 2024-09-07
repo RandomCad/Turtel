@@ -60,7 +60,7 @@ include_directories(${PROJECT_SOURCE_DIR}
 					 ${PROJECT_SOURCE_DIR}/libs/
   )
   
-set(VISITOR ../src/CodeGenerator.cpp ../src/CodeGenerator.Helper.cpp ../src/LLVMInterface.cpp ../src/Variable.cpp)
+set(VISITOR ../src/CodeGenerator.cpp ../src/CodeGenerator.Helper.cpp ../src/LLVMInterface.cpp ../src/Variable.cpp ../src/VariableHeandler.cpp)
 set(ANTLER_GEN ../src/libs/SceneBaseVisitor.cpp ../src/libs/Scene.interp ../src/libs/SceneLexer.tokens ../src/libs/SceneVisitor.cpp ../src/libs/SceneLexer.cpp  ../src/libs/SceneLexer.interp  ../src/libs/SceneParser.cpp    ../src/libs/Scene.tokens)
 
 #LLVM libs
