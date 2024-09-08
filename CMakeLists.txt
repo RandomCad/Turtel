@@ -32,6 +32,14 @@ if(NOT WIN32)
   FIND_PACKAGE(Threads REQUIRED)
 endif()
 
-add_subdirectory(src/)
-add_subdirectory(UnitTest/)
+# Call macro to add lexer and grammar to your build dependencies.
+antlr_target(SceneGrammarParser Scene.g4 VISITOR OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/libs)
+
+# add our project source directories
+include_directories(${PROJECT_SOURCE_DIR}
+					 ${PROJECT_SOURCE_DIR}/libs/
+  )
+add_executable(${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+#add_subdirectory(src/)
+#add_subdirectory(UnitTest/)
 
