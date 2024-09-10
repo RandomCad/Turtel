@@ -61,16 +61,18 @@ endif()
 
 
 # Call macro to add lexer and grammar to your build dependencies.
-antlr_target(SceneGrammarParser Scene.g4 VISITOR OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/libs/)
+antlr_target(SceneGrammarParser Scene.g4 VISITOR OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/libs/)
 
 # add our project source directories
 include_directories(${PROJECT_SOURCE_DIR}
-					 ${PROJECT_SOURCE_DIR}/libs/
+					 ${CMAKE_SOURCE_DIR}/libs/
   )
   
 set(VISITOR CodeGenerator.cpp CodeGenerator.Helper.cpp LLVMInterface.cpp)
 
 add_executable(Turtel antlr.cpp ${VISITOR}  ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+
+message(Antler src="${ANTLR_SceneGrammarParser_CXX_OUTPUTS}")
 
 #LLVM libs
 # Find the libraries that correspond to the LLVM components

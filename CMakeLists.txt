@@ -26,12 +26,6 @@ set(ANTLR_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/tools/antlr-4.13.1-complete.jar
 # add macros to generate ANTLR Cpp code from grammar
 find_package(ANTLR REQUIRED)
 
-# Call macro to add lexer and grammar to your build dependencies.
-antlr_target(SceneGrammarParser Scene.g4 VISITOR OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/libs/)
-
-# add our project source directories
-include_directories(${PROJECT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libs/)
- 
 # To use PKG_CHECK_MODULES to find some optional packages
 
 if(NOT WIN32)
