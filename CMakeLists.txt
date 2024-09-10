@@ -10,6 +10,24 @@ set(CMAKE_CXX_STANDARD 17)
 #emit clangd data
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+if(NOT WIN32)
+  FIND_PACKAGE(Threads REQUIRED)
+endif()
+
+if (NOT WIN32)
+  SET( SYSTEM_LIBS ${SYSTEM_LIBS} ${CMAKE_THREAD_LIBS_INIT} )
+endif()
+
+if( WIN32)
+  SET( SYSTEM_LIBS  ${SYSTEM_LIBS}  gdi32 )
+endif()
+
+# Add CIMG Flags to Compilation Flags
+SET(CMAKE_CXX_FLAGS "-Wall -O3")
+
+#---------------------------------------#
+#                 ANTLR                 #
+#---------------------------------------#
 # required if linking to static library
 add_definitions(-DANTLR4CPP_STATIC)
 
@@ -26,20 +44,74 @@ set(ANTLR_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/tools/antlr-4.13.1-complete.jar
 # add macros to generate ANTLR Cpp code from grammar
 find_package(ANTLR REQUIRED)
 
-# To use PKG_CHECK_MODULES to find some optional packages
-
-if(NOT WIN32)
-  FIND_PACKAGE(Threads REQUIRED)
-endif()
-
 # Call macro to add lexer and grammar to your build dependencies.
-antlr_target(SceneGrammarParser Scene.g4 VISITOR OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/libs)
+antlr_target(SceneGrammarParser Scene.g4 VISITOR OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/libs)
 
 # add our project source directories
-include_directories(${PROJECT_SOURCE_DIR}
-					 ${PROJECT_SOURCE_DIR}/libs/
-  )
-add_executable(${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
-#add_subdirectory(src/)
-#add_subdirectory(UnitTest/)
+include_directories(${PROJECT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libs )
 
+#---------------------------------------#
+#             LLVM - CLANG              #
+#---------------------------------------#
+# Find LLVM and Clang
+find_package(LLVM REQUIRED CONFIG)
+find_package(Clang REQUIRED CONFIG)
+
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+# Add the include directories
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${CLANG_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS_LIST})
+
+#LLVM libs
+# Find the libraries that correspond to the LLVM components
+# that we wish to use
+llvm_map_components_to_libnames(llvm_libs support core irreader)
+
+# Creat llvm-libs
+SET(LLVM_LIBS 
+  ${llvm_libs} 
+  clangTooling 
+  clangBasic 
+  clangAST 
+  clangDriver 
+  clangFrontend 
+  clangFrontendTool 
+  clangSerialization
+  ) 
+
+#---------------------------------------#
+#            Turtel Programm            #
+#---------------------------------------#
+# Creat CodeGenerator variable 
+set(CodeGeneration src/CodeGenerator.cpp src/CodeGenerator.Helper.cpp)
+# Creat LLVM Interface variable
+set(LLVM_Interface src/LLVMInterface.cpp)
+
+add_executable(Turtel 
+  src/antlr.cpp 
+  ${ANTLR_SceneGrammarParser_CXX_OUTPUTS} 
+  ${CodeGeneration} 
+  ${LLVM_Interface}
+  )
+
+SET( SYSTEM_LIBS  ${SYSTEM_LIBS} ${LLVM_LIBS})
+
+# link required libraries
+target_link_libraries(Turtel antlr4_static ${SYSTEM_LIBS})
+
+#---------------------------------------#
+#           UnitTest Programm           #
+#---------------------------------------#
+# Creat UnitTest variable
+set(UnitTest UnitTest/TestExpr.cpp UnitTest/TestCodeGenerator.Helper.cpp UnitTest/TestLLVMInterface.cpp)
+
+add_executable(UnitTest UnitTest/UnitTest.cpp ${UnitTest} ${CodeGeneration} ${LLVM_Interface} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+target_compile_definitions(UnitTest PUBLIC UNIT_TEST)
+
+target_link_libraries(UnitTest antlr4_static ${SYSTEM_LIBS})

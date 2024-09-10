@@ -10,8 +10,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "libs/SceneParser.h"
-#include "libs/SceneBaseVisitor.h"
+#include "../libs/SceneParser.h"
+#include "../libs/SceneBaseVisitor.h"
 #include "../UnitTest/UnitTest.h"
 
 #define POSITION_X_NAME POS_X

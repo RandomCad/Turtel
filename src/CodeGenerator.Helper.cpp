@@ -1,5 +1,5 @@
 #include "CodeGenerator.h"
-#include "libs/SceneParser.h"
+#include "../libs/SceneParser.h"
 #include <cstring>
 #include <string>
 #include <tree/ParseTreeType.h>
