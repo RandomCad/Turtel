@@ -33,5 +33,5 @@ if(NOT WIN32)
 endif()
 
 add_subdirectory(src/)
-#add_subdirectory(UnitTest/)
+add_subdirectory(UnitTest/)
 

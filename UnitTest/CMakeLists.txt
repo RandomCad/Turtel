@@ -62,14 +62,8 @@ endif()
 if (MSVC)
   set(CMAKE_CXX_FLAGS "/EHsc /wd4127 /wd4311 /wd4312 /wd4512 /wd4571 /wd4640 /wd4706 /wd4710 /wd4800 /wd4804 /wd4820 /wd4996")
 endif()
-
-# add our project source directories
-include_directories(${PROJECT_SOURCE_DIR}
-					 ${PROJECT_SOURCE_DIR}/libs/
-  )
   
 set(VISITOR ../src/CodeGenerator.cpp ../src/CodeGenerator.Helper.cpp ../src/LLVMInterface.cpp)
-set(ANTLER_GEN ../src/libs/SceneBaseVisitor.cpp  ../src/libs/Scene.interp    ../src/libs/SceneLexer.h       ../src/libs/SceneLexer.tokens  ../src/libs/SceneParser.h  ../src/libs/SceneVisitor.cpp ../src/libs/SceneBaseVisitor.h    ../src/libs/SceneLexer.cpp  ../src/libs/SceneLexer.interp  ../src/libs/SceneParser.cpp    ../src/libs/Scene.tokens   ../src/libs/SceneVisitor.h)
 
 
 
@@ -89,6 +83,7 @@ add_definitions(-DUNIT_TEST)
 set(UnitTest TestExpr.cpp TestCodeGenerator.Helper.cpp TestLLVMInterface.cpp)
 # Compilation and linking
 add_executable(tests UnitTest.cpp ${UnitTest} ${ANTLER_GEN} ${VISITOR} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+message(Antler Unit="${ANTLR_SceneGrammarParser_CXX_OUTPUTS}")
 
 target_link_libraries(tests antlr4_static ${SYSTEM_LIBS})
 
