@@ -112,5 +112,6 @@ target_link_libraries(Turtel antlr4_static ${SYSTEM_LIBS})
 set(UnitTest UnitTest/TestExpr.cpp UnitTest/TestCodeGenerator.Helper.cpp UnitTest/TestLLVMInterface.cpp)
 
 add_executable(UnitTest UnitTest/UnitTest.cpp ${UnitTest} ${CodeGeneration} ${LLVM_Interface} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+target_compile_definitions(UnitTest PUBLIC UNIT_TEST)
 
 target_link_libraries(UnitTest antlr4_static ${SYSTEM_LIBS})
