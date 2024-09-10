@@ -1,5 +1,5 @@
-#include "../src/libs/SceneLexer.h"
-#include "../src/libs/SceneParser.h"
+#include "../libs/SceneLexer.h"
+#include "../libs/SceneParser.h"
 #include "../src/CodeGenerator.h"
 #include "UnitTest.h"
 #include "antlr4-runtime.h"

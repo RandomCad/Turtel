@@ -9,8 +9,8 @@
 #include <stack>
 
 
-#include "../src/libs/SceneLexer.h"
-#include "../src/libs/SceneParser.h"
+#include "../libs/SceneLexer.h"
+#include "../libs/SceneParser.h"
 #include "tree/TerminalNode.h"
 
 #include "../src/CodeGenerator.h"

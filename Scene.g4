@@ -1,0 +1,42 @@
+grammar Scene;
+
+file  : (pathdef | calcdef)* main (pathdef |calcdef)*; 
+
+main    : 'begin' stat* 'end';
+pathdef : 'a';
+calcdef : 'a';
+
+stat    : walk;
+
+walk  	: Walk expr ;
+
+// Parser rules
+expr  : ( klamKon | number) '^' (klamKon | number) #Exp
+      | ( klamKon | number) '*' (klamKon | number) #Mult
+      | ( klamKon | number) '/' (klamKon | number) #Dife
+      | expr '+' expr #Add
+      | expr '-' expr #Dim
+      | '|' expr '|'  #ABS
+      | '-' number    #Negate
+      | number	      #NumExpr	
+      | var	      #VarExpr
+      ;
+klamKon	: '(' expr ')' ;
+number: Num     #Int
+      | Float   #Float
+      ; 
+var   : ID      #Variable
+      | IncID   #GlobalVariable
+      ;
+
+// Lexer rules
+Walk	: 'walk';
+
+Num   : [0-9]+ ;
+Float : [0-9]+ '.' [0-9]+
+      | '.' [0-9]+ ;
+
+ID    : [_a-zA-Z] [_@a-zA-Z0-9]* ;
+IncID : '@' [_@a-zA-Z0-9]* ;
+
+WS : [ \t\r\n]+ -> skip ;

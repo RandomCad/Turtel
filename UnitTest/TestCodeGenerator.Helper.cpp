@@ -8,8 +8,8 @@
 #include "TestCodeGenerator.Helper.h"
 #include "../src/CodeGenerator.h"
 #include "../src/LLVMInterface.h"
-#include "../src/libs/SceneParser.h"
-#include "../src/libs/SceneLexer.h"
+#include "../libs/SceneParser.h"
+#include "../libs/SceneLexer.h"
 #include "UnitTest.h"
 
 using namespace antlr4;
