@@ -6,18 +6,22 @@
 #include <iostream>
 #include <ostream>
 #include <sstream>
+#include <filesystem>
 #include <stack>
 
 
 #include "../libs/SceneLexer.h"
 #include "../libs/SceneParser.h"
-#include "tree/TerminalNode.h"
 
 #include "../src/CodeGenerator.h"
+
+#include "TestVariable.h"
 #include "UnitTest.h"
 #include "TestExpr.h"
 #include "TestCodeGenerator.Helper.h"
 #include "TestLLVMInterface.h"
+
+#include "tree/TerminalNode.h"
 
 using namespace antlr4;
 
@@ -28,6 +32,8 @@ bool TestWalkParsing(TestError *&ret);
 
 int main(int argc, const char *argv[]){
   srand(0);
+  std::filesystem::create_directory(TEST_OUTPUT_DIR);
+
   std::stack<TestError *> colector;
   TestError * next;
   if(TestNumberParsing(next)) colector.push(next);
@@ -40,6 +46,7 @@ int main(int argc, const char *argv[]){
   if(TestCodeGeneratorEndMain(next)) colector.push(next);
   if(TestCodeGeneratorCTor(next)) colector.push(next);
   if(TestCodeGeneratorDTor(next)) colector.push(next);
+  TestVariable(colector);
   TestLLVMInterface(colector);
   if(TestCodeGeneratorEmpty(next)) colector.push(next);
   TestCodeGenerator(colector);

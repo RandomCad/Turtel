@@ -109,7 +109,7 @@ target_link_libraries(Turtel antlr4_static ${SYSTEM_LIBS})
 #           UnitTest Programm           #
 #---------------------------------------#
 # Creat UnitTest variable
-set(UnitTest UnitTest/TestExpr.cpp UnitTest/TestCodeGenerator.Helper.cpp UnitTest/TestLLVMInterface.cpp)
+set(UnitTest UnitTest/TestExpr.cpp UnitTest/TestCodeGenerator.Helper.cpp UnitTest/TestLLVMInterface.cpp UnitTest/TestVariable.cpp)
 
 add_executable(UnitTest UnitTest/UnitTest.cpp ${UnitTest} ${CodeGeneration} ${LLVM_Interface} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
 target_compile_definitions(UnitTest PUBLIC UNIT_TEST)
