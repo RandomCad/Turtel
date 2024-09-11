@@ -89,7 +89,7 @@ SET(LLVM_LIBS
 #            Turtel Programm            #
 #---------------------------------------#
 # Creat CodeGenerator variable 
-set(CodeGeneration src/CodeGenerator.cpp src/CodeGenerator.Helper.cpp)
+set(CodeGeneration src/CodeGenerator.cpp src/CodeGenerator.Helper.cpp src/Variable.cpp)
 # Creat LLVM Interface variable
 set(LLVM_Interface src/LLVMInterface.cpp)
 
