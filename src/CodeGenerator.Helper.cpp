@@ -1,6 +1,7 @@
 #include "CodeGenerator.h"
 #include "../libs/SceneParser.h"
 #include <cstring>
+#include <stdexcept>
 #include <tree/ParseTreeType.h>
 
 //formate of the C-File:
@@ -80,6 +81,9 @@ void CodeGenerator::AddMain(){
 }
 
 void CodeGenerator::AddTurtelMain(){
+  if(astMain == nullptr){
+    throw std::invalid_argument("astMain is null");
+  }
   astMain->accept(this);
 }
 

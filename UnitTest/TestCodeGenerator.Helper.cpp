@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 #include "TestCodeGenerator.Helper.h"
@@ -87,15 +88,14 @@ bool TestCodeGeneratorEmpty(TestError *&col){
   const char *testFile = TEST_OUTPUT_DIR "/EmptyCodeGenerator.out";
   LLVMInterface interface(testFile);
   CodeGenerator test(interface.llvmFile);
-  test.GenerateCode();
+  try {
+    test.GenerateCode();
+  } catch (std::invalid_argument) {
+    return false;   
+  }
 
-  interface.CallLLVM();
-  TRUE_ASSERT(std::filesystem::exists(testFile), col, TestErrorSeveraty::ERROR);
-
-  std::cout << "The correct working of the programm most be tested by hand." << std::endl;
-  
-  return false;
-  
+  col = declareError("NoNullPointer", "A astMain was generated without any ast given to the CodeGenerator Ctor", TestErrorSeveraty::ERROR);
+  return true;
 }
 
 bool TestCodeGeneratorProgramBase(TestError *&ret){
