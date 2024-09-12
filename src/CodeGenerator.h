@@ -9,7 +9,6 @@
 #include "../libs/SceneParser.h"
 #include "../libs/SceneBaseVisitor.h"
 #include "../UnitTest/UnitTest.h"
-#include "Variable.h"
 #include "src/VariableHeandler.h"
 
 #define POSITION_X_NAME POS_X
@@ -39,22 +38,9 @@ class CodeGenerator : public SceneBaseVisitor{
     ///Main function of the classe
     void GenerateCode();
     
-    //Number
-    std::any visitInt(SceneParser::IntContext *ctx) override;
-    std::any visitFloat(SceneParser::FloatContext *ctx) override;
-    //Expr
-    std::any visitNumExpr(SceneParser::NumExprContext *ctx) override;
-    std::any visitExp(SceneParser::ExpContext *ctx) override;
-    std::any visitAdd(SceneParser::AddContext *ctx) override;
-    std::any visitDim(SceneParser::DimContext *ctx) override;
-    std::any visitDife(SceneParser::DifeContext *ctx) override;
-    std::any visitMult(SceneParser::MultContext *ctx) override;
-    std::any visitABS(SceneParser::ABSContext *ctx) override;
-    std::any visitNegate(SceneParser::NegateContext *ctx) override;
-    std::any visitWalk(SceneParser::WalkContext *ctx) override;
-  
   private:
     std::any visitMain(SceneParser::MainContext *ctx) override;
+    std::any visitWalk(SceneParser::WalkContext *ctx) override;
 
     template<typename T>
     void inline CalcPosX(const T len){
