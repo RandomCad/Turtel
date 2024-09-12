@@ -9,6 +9,7 @@
 #include "../libs/SceneParser.h"
 #include "../libs/SceneBaseVisitor.h"
 #include "../UnitTest/UnitTest.h"
+#include "src/MathVisitor.h"
 #include "src/VariableHeandler.h"
 
 #define POSITION_X_NAME POS_X
@@ -28,9 +29,11 @@ class CodeGenerator : public SceneBaseVisitor{
     SceneParser::MainContext *astMain;
     std::vector<SceneParser::CalcdefContext *> astCalcdef;
     std::vector<SceneParser::PathdefContext *> astPathdef;
+
     VariableHeandler _variables;
+    MathVisitor _mathVis;
     //Only used for Unittesting
-    CodeGenerator(): output(std::cout) {}
+    CodeGenerator(): output(std::cout), _mathVis(_variables) {}
     CodeGenerator(std::ostream &outStream);
   public:
     CodeGenerator(std::ostream &outStream, SceneParser::FileContext *AstBase);

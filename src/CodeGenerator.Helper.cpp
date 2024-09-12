@@ -91,11 +91,12 @@ void CodeGenerator::AddTurtelFunctions(){
   //TODO:
 }
 CodeGenerator::CodeGenerator(std::ostream &outStream)
-  : output(outStream), astBase(nullptr) {}
+  : output(outStream), astBase(nullptr), _mathVis(_variables) {}
 
 CodeGenerator::CodeGenerator(std::ostream &outStream, SceneParser::FileContext* AstBase)
   : output(outStream), astBase(AstBase), astMain(astBase->main()), 
-    astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()) {
+    astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()),
+    _mathVis(_variables){
 }
 
 void CodeGenerator::ProgrammBase(){

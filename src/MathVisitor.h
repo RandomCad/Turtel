@@ -2,11 +2,17 @@
 
 #include "SceneBaseVisitor.h"
 #include "src/VariableHeandler.h"
+
+#ifdef UNIT_TEST
+#include "../UnitTest/UnitTest.h"
+#endif
 class MathVisitor : public SceneBaseVisitor{
   private:
-    VariableHeandler _variables;
+    VariableHeandler &_variables;
 
   public:
+    MathVisitor(VariableHeandler &var) : _variables(var) {}
+
     //Number
     std::any visitInt(SceneParser::IntContext *ctx) override;
     std::any visitFloat(SceneParser::FloatContext *ctx) override;
