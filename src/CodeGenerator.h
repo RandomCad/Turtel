@@ -10,6 +10,7 @@
 #include "../libs/SceneBaseVisitor.h"
 #include "../UnitTest/UnitTest.h"
 #include "Variable.h"
+#include "src/VariableHeandler.h"
 
 #define POSITION_X_NAME POS_X
 #define POSITION_Y_NAME POS_Y
@@ -28,7 +29,7 @@ class CodeGenerator : public SceneBaseVisitor{
     SceneParser::MainContext *astMain;
     std::vector<SceneParser::CalcdefContext *> astCalcdef;
     std::vector<SceneParser::PathdefContext *> astPathdef;
-    std::unordered_map<const char *, Variable> Variables;
+    VariableHeandler _variables;
     //Only used for Unittesting
     CodeGenerator(): output(std::cout) {}
     CodeGenerator(std::ostream &outStream);

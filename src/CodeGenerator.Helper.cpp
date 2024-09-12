@@ -3,9 +3,6 @@
 #include <cstring>
 #include <tree/ParseTreeType.h>
 
-#define TURTLE_MAIN_FUNC_CALL "TurtelMain(" << Variables["RENDERER"].getName() << ")"
-#define TURTLE_MAIN_FUNC_DEF "void " "TurtelMain(" << Variables["RENDERER"] << ")"
-
 //formate of the C-File:
 //1. includes
 //2. functiondeclaration
@@ -32,7 +29,7 @@ void CodeGenerator::AddIncludes(){
 void CodeGenerator::AddFunctionDeclaration(){
   output
     << "//declaration of the Turtel Main:\n"
-    << TURTLE_MAIN_FUNC_DEF ";\n" //TODO add needed parameters
+    << "void TurtelMain(" << _variables.getVariableDefinition("rnd") << ");\n" //TODO add needed parameters
     << std::endl
   //add pathdef Functions:
     << "//declaration of the pathdefs\n"
@@ -52,12 +49,12 @@ void CodeGenerator::AddMain(){
   //sdl init
     << "  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"
     << "  SDL_Window* window = SDL_CreateWindow( \"Main Window\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN );\n"
-    << "  " << Variables["RENDERER"] << " = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);\n"
+    << "  " << _variables.getVariableDefinition("rnd") << " = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);\n"
     << "  SDL_Event events;\n"
   //allocate stack
 
   //call TurtelMain
-    << "  " TURTLE_MAIN_FUNC_CALL ";\n" //TODO add the parameters
+    << "  TurtelMain(" << _variables.getVariableNameString("rnd") << ");\n" //TODO add the parameters
   //Implicit wait
     #ifndef UNIT_TEST
     << "  do{\n"
@@ -74,7 +71,7 @@ void CodeGenerator::AddMain(){
     #endif
     << "  SDL_DEINIT_LABLE:\n"
   //sdl Deinit
-    << "  SDL_DestroyRenderer(" << Variables["RENDERER"].getName() << ");\n"
+    << "  SDL_DestroyRenderer(" << _variables.getVariableNameString("rnd") << ");\n"
     << "  SDL_DestroyWindow(window);\n"
     << "  SDL_Quit();\n"
   //main end
@@ -85,7 +82,7 @@ void CodeGenerator::AddMain(){
 void CodeGenerator::AddTurtelMain(){
   //Func def:
   output
-    << TURTLE_MAIN_FUNC_DEF "{\n"
+    << "void TurtelMain(" << _variables.getVariableDefinition("rnd") << "){\n"
     << "  double POSITION_X_NAME;\n"
     << "  double POSITION_Y_NAME;\n"
   //TODO:
@@ -103,9 +100,6 @@ CodeGenerator::CodeGenerator(std::ostream &outStream)
 CodeGenerator::CodeGenerator(std::ostream &outStream, SceneParser::FileContext* AstBase)
   : output(outStream), astBase(AstBase), astMain(astBase->main()), 
     astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()) {
-  Variables.insert({RENDERER_NAME,Variable(VarType::RENDERER,"rnd",false)});
-
-  //ProgrammBase();
 }
 
 void CodeGenerator::ProgrammBase(){
