@@ -89,7 +89,12 @@ SET(LLVM_LIBS
 #            Turtel Programm            #
 #---------------------------------------#
 # Creat CodeGenerator variable 
-set(CodeGeneration src/CodeGenerator.cpp src/CodeGenerator.Helper.cpp src/Variable.cpp)
+set(CodeGeneration 
+  src/CodeGenerator.cpp 
+  src/CodeGenerator.Helper.cpp 
+  src/Variable.cpp 
+  src/VariableHeandler.cpp
+  )
 # Creat LLVM Interface variable
 set(LLVM_Interface src/LLVMInterface.cpp)
 
@@ -109,9 +114,20 @@ target_link_libraries(Turtel antlr4_static ${SYSTEM_LIBS})
 #           UnitTest Programm           #
 #---------------------------------------#
 # Creat UnitTest variable
-set(UnitTest UnitTest/TestExpr.cpp UnitTest/TestCodeGenerator.Helper.cpp UnitTest/TestLLVMInterface.cpp UnitTest/TestVariable.cpp)
+set(UnitTest 
+  UnitTest/TestExpr.cpp 
+  UnitTest/TestCodeGenerator.Helper.cpp 
+  UnitTest/TestLLVMInterface.cpp 
+  UnitTest/TestVariable.cpp
+  )
 
-add_executable(UnitTest UnitTest/UnitTest.cpp ${UnitTest} ${CodeGeneration} ${LLVM_Interface} ${ANTLR_SceneGrammarParser_CXX_OUTPUTS})
+add_executable(UnitTest 
+  UnitTest/UnitTest.cpp 
+  ${UnitTest} 
+  ${CodeGeneration} 
+  ${LLVM_Interface} 
+  ${ANTLR_SceneGrammarParser_CXX_OUTPUTS}
+  )
 target_compile_definitions(UnitTest PUBLIC UNIT_TEST)
 
 target_link_libraries(UnitTest antlr4_static ${SYSTEM_LIBS})

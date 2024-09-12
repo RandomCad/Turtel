@@ -2,7 +2,8 @@
 #include <string>
 
 enum VarType{
-  RENDERER
+  RENDERER,
+  DOUBLE,
 };
 
 struct Variable{
@@ -11,6 +12,6 @@ struct Variable{
   bool isUnique;
   Variable(VarType Type, std::string nm, bool is = false) : type(Type), name(nm), isUnique(is){}
   Variable(){}
-  std::string &getName(){ return name;}
-  std::string getTypeAndName();
+  const std::string &getName() const { return name;}
+  std::string getTypeAndName() const;
 };
