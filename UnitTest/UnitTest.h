@@ -1,15 +1,13 @@
+#pragma once
+
 #include <cstdlib>
 #include <cstring>
 #include <ostream>
+#include <string>
 #include <regex>
-#ifndef UNIT_TEST
-#warning "UNIT_TEST NOT DEFINED" 
-#else
-#pragma once
 
 #define TEST_OUTPUT_DIR "./Testing"
 
-#include <string>
 
 #define NOT_NULL_ASSERT(ptr, ret, num) if( ptr == nullptr){ \
                               ret = declareError("NotNullAssert", "not nullptr assert failed.", TestErrorSeveraty::ERROR);  \
@@ -70,5 +68,3 @@ struct TestError {
 std::ostream &operator<<(std::ostream &a, TestError &b);
 
 std::string RandomString(const char val[], const size_t len);
-
-#endif
