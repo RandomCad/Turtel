@@ -80,15 +80,7 @@ void CodeGenerator::AddMain(){
 }
 
 void CodeGenerator::AddTurtelMain(){
-  //Func def:
-  output
-    << "void TurtelMain(" << _variables.getVariableDefinition("rnd") << "){\n"
-    << "  double POSITION_X_NAME;\n"
-    << "  double POSITION_Y_NAME;\n"
-  //TODO:
-  //close func:
-    << "}\n" 
-    <<std::endl;
+  astMain->accept(this);
 }
 
 void CodeGenerator::AddTurtelFunctions(){
