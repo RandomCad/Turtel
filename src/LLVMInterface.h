@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <cstring>
 #include <fstream>
-#include <forward_list>
 #include <vector>
 
 #include "../UnitTest/UnitTest.h"
@@ -23,7 +22,7 @@ class LLVMInterface{
     std::fstream llvmFile;
     
     ~LLVMInterface();
-    LLVMInterface(const char *const FileName) : fileName(new char[std::strlen(FileName)]) , fileNameLen(std::strlen(FileName)){
+    LLVMInterface(const char *const FileName) : fileName(new char[std::strlen(FileName) + 1]) , fileNameLen(std::strlen(FileName) + 1){
       std::memcpy(const_cast<char*>(fileName), FileName, fileNameLen);
       CreatTempFile();
     }
@@ -31,7 +30,7 @@ class LLVMInterface{
     void CallLLVM();
   private:
     void CreatTempFile();
-    void getSdlArguments();
+    std::vector<std::string> getSdlArguments();
 
 #ifdef UNIT_TEST
     friend bool TestCreatTempFile(TestError*&);
