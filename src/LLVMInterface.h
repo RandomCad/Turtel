@@ -9,6 +9,10 @@
 #include "../UnitTest/UnitTest.h"
 
 #define NameLength 32
+/**
+ * The class that interfaces with clang.
+ * It generates all the files, that should be used for the generate code of the transpiler and compiler steps.
+ */
 class LLVMInterface{
   char llvmFileName[NameLength];
   int fileDescriptor;
