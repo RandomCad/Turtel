@@ -18,11 +18,13 @@ class LLVMInterface{
   int fileDescriptor;
   const char * fileName;
   const size_t fileNameLen;
+  ///The arguments, that are needed to compile with SDL2
   std::vector<std::string> sdlArgs;
 
   LLVMInterface() : fileName(nullptr) , fileNameLen(0) {}
 
   public:
+    ///The file to put the transpieled C-Code in.
     std::fstream llvmFile;
     
     ~LLVMInterface();
@@ -31,6 +33,7 @@ class LLVMInterface{
       CreatTempFile();
     }
     
+    ///This function call compiles the llvmFile witch clang.
     void CallLLVM();
   private:
     void CreatTempFile();
