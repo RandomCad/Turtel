@@ -1,9 +1,10 @@
 #pragma once
 #include <string>
 
+///Defince all posible types of varaiables for the transpiler 
 enum VarType{
-  RENDERER,
-  DOUBLE,
+  RENDERER, ///< The type of the SDL2 renderer in \ref VariableHeandler::enviornment
+  DOUBLE, ///< The most comon type a normal c-double
 };
 
 struct Variable{
