@@ -42,4 +42,5 @@ std::any CodeGenerator::visitWalk(SceneParser::WalkContext *ctx){
   output 
     << ");"
     << std::endl;
+  return std::any();
 }
