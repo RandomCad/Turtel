@@ -16,14 +16,14 @@
 class LLVMInterface{
   char llvmFileName[NameLength];
   int fileDescriptor;
-  const char * fileName;
-  const size_t fileNameLen;
   ///The arguments, that are needed to compile with SDL2
   std::vector<std::string> sdlArgs;
 
   LLVMInterface() : fileName(nullptr) , fileNameLen(0) {}
 
   public:
+    const char * fileName; ///<The resulting file
+    const size_t fileNameLen;
     ///The file to put the transpieled C-Code in.
     std::fstream llvmFile;
     

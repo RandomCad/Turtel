@@ -7,6 +7,9 @@ std::string Variable::getTypeAndName() const{
     case RENDERER:
       ret += "SDL_Renderer * ";
       break;
+    case DOUBLE:
+      ret += "double ";
+      break;
   }
   return ret += name;
 }

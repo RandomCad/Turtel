@@ -25,12 +25,14 @@ const std::string VariableHeandler::getVariableNameString(const std::string&nm){
 }
 
 const std::string VariableHeandler::getVariableDefinition(const std::string&nm){
-  for(std::vector<std::map<std::string,Variable>>::reverse_iterator i = contextStack.rbegin();i != contextStack.rend(); ++i){
-    if(std::map<std::string,Variable>::iterator ret = i->find(nm); ret != i->end()){
+  for(auto i = contextStack.rbegin();i != contextStack.rend(); ++i){
+    std::map<std::string,Variable>::iterator ret = i->find(nm);
+    if( ret != i->end()){
       return ret->second.getTypeAndName();
     }
   }
-  if(auto ret = enviornment.find(nm); ret != enviornment.end()){
+  auto ret = enviornment.find(nm);
+  if( ret != enviornment.end()){
     return ret->second.getTypeAndName();
   }
   //TODO error case

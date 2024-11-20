@@ -130,6 +130,8 @@ set(
   UnitTest
   UnitTest/TestCodeGenerator.Helper.cpp
   UnitTest/TestLLVMInterface.cpp
+  UnitTest/VariableHeandler.cpp
+  UnitTest/Variable.cpp
   )
 
 add_executable(

@@ -8,7 +8,6 @@
 
 #include "../libs/SceneParser.h"
 #include "../libs/SceneBaseVisitor.h"
-#include "../UnitTest/UnitTest.h"
 #include "src/MathVisitor.h"
 #include "src/VariableHeandler.h"
 
