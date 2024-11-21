@@ -42,7 +42,6 @@ class CodeGenerator : public SceneBaseVisitor{
     
   private:
     std::any visitMain(SceneParser::MainContext *ctx) override;
-    std::any visitWalk(SceneParser::WalkContext *ctx) override;
 
     template<typename T>
     void inline CalcPosX(const T len){
