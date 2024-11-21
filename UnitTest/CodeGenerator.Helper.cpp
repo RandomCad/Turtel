@@ -1,146 +1,135 @@
-#include <ANTLRInputStream.h>
-#include <any>
-#include <cstdio>
-#include <filesystem>
-#include <iostream>
+#include "src/CodeGenerator.Helper.h"
+#include "src/VariableHeandler.h"
+#include "gtest/gtest.h"
 #include <sstream>
 
-#include "../src/CodeGenerator.h"
-#include "../src/LLVMInterface.h"
-#include "../libs/SceneParser.h"
-#include "../libs/SceneLexer.h"
-#include "gtest/gtest.h"
+TEST(Code_Generator_Helper, CalcPosX){
+  std::stringstream res;
+  ASSERT_EQ(res.str().length(), 0);
 
-using namespace antlr4;
+  { 
+    CalcPosX<int>(5, res, "test", "test");
+    ASSERT_EQ(res.str(), "test + 5 * cos(test)");
+    res.str("");
 
-TEST(Code_Generator_Test, TestEmptyMainVisit){
-  std::stringstream stream;
-  stream 
-    << "begin\n"
-    << "end\n"
-    << std::endl;
-  ANTLRInputStream input(stream);
-  SceneLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  SceneParser parser(&tokens);
+    CalcPosX<int>(5, res, "test", "Test");
+    ASSERT_EQ(res.str(), "test + 5 * cos(Test)");
+    res.str("");
 
-  auto astStart = parser.file();
-  EXPECT_TRUE(astStart);
-  EXPECT_TRUE(astStart->main());
-  EXPECT_EQ(astStart->calcdef().size(), 0);
-  EXPECT_EQ(astStart->pathdef().size(), 0);
+    CalcPosX<long>(5, res, "d", "Test");
+    ASSERT_EQ(res.str(), "d + 5 * cos(Test)");
+    res.str("");
 
-  std::stringstream testOut;
-  CodeGenerator test(testOut, astStart);
-  astStart->accept(&test);
-  ASSERT_NE(testOut.str(), "");
-  ASSERT_EQ(testOut.str(), std::string("void TurtelMain(SDL_Renderer * __rnd_rnd){\n  double __env_posX;\n  double __env_posY;\n}\n\n"));
+    CalcPosX<char>(5, res, "d", "get");
+    ASSERT_EQ(res.str(), "d + \005 * cos(get)");
+    res.str("");
 
+    CalcPosX<char *>((char *)"test", res, "d", "get");
+    ASSERT_EQ(res.str(), "d + test * cos(get)");
+    res.str("");
 
-}
+    CalcPosX<const char *>("tter", res, "get2", "get");
+    ASSERT_EQ(res.str(), "get2 + tter * cos(get)");
+    res.str("");
 
-TEST(Code_Generator_Test, BasicEmptyMain){
-  const char * testFile = "EmptyMainTest.out";
-  LLVMInterface interface(testFile);
-  std::stringstream stream;
-  stream 
-    << "begin\n"
-    << "end\n"
-    << std::endl;
-  ANTLRInputStream input(stream);
-  SceneLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  SceneParser parser(&tokens);
-
-  auto astStart = parser.file();
-  EXPECT_TRUE(astStart);
-  EXPECT_TRUE(astStart->main());
-  EXPECT_EQ(astStart->calcdef().size(), 0);
-  EXPECT_EQ(astStart->pathdef().size(), 0);
-
-  
-  CodeGenerator test(interface.llvmFile, astStart);
-  test.GenerateCode();
-
-  interface.CallLLVM();
-  
-  ASSERT_TRUE(std::filesystem::exists(testFile));
-  
-}
-/*
-
-bool TestBasicWalk(TestError *& in ){
-  const char *testFile = TEST_OUTPUT_DIR "/BasicWalkTest.out";
-  LLVMInterface interface(testFile);
-  std::stringstream stream;
-  stream 
-    << "begin\n"
-    << "  walk 5\n"
-    << "end\n"
-    << std::endl;
-  ANTLRInputStream input(stream);
-  SceneLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  SceneParser parser(&tokens);
-
-  auto astStart = parser.file();
-  CodeGenerator test(interface.llvmFile, astStart);
-  test.GenerateCode();
-
-  interface.CallLLVM();
-  TRUE_ASSERT(std::filesystem::exists(testFile), in, TestErrorSeveraty::ERROR);
-
-  return false;
-}
-bool TestCodeGeneratorEmpty(TestError *&col){
-  const char *testFile = TEST_OUTPUT_DIR "/EmptyCodeGenerator.out";
-  LLVMInterface interface(testFile);
-  CodeGenerator test(interface.llvmFile);
-  try {
-    test.GenerateCode();
-  } catch (std::invalid_argument) {
-    return false;   
+    CalcPosX<std::string>("td::string", res, "get2", "\004");
+    ASSERT_EQ(res.str(), "get2 + td::string * cos(\004)");
+    res.str("");
   }
 
-  col = declareError("NoNullPointer", "A astMain was generated without any ast given to the CodeGenerator Ctor", TestErrorSeveraty::ERROR);
-  return true;
-}
+  { 
+    VariableHeandler vars;
+    CalcPosX<int>(5, res, vars);
+    ASSERT_EQ(res.str(), "__env_posX + 5 * cos(__env_rot)");
+    res.str("");
 
-bool TestCodeGeneratorProgramBase(TestError *&ret){
-  std::stringstream stream;
-  CodeGenerator gen(stream);
-  stream.str("");
-  gen.ProgrammBase();
-  std::string testRet;
-  testRet = stream.str();
-  std::cout << testRet << std::endl;
-  
-  REGEX_ASSERT(testRet,"(?:.|\\n)*(?:#include\\s+<\\w*\\.h>(?:.|\\n)*){2,}(?:.|\\n)*int main\\(int argc, const char \\*argv\\[\\]\\)\\s*\\{(?:.|\\n)*", ret, 0)
-  return false;
-}
-bool TestCodeGeneratorCTor(TestError *& ret){
-  std::stringstream stream;
-  //CodeGenerator gen(stream, new SceneParser::FileContext());
-  std::string testRet;
-  testRet = stream.str();
-  std::cout << testRet << std::endl;
-  
-  REGEX_ASSERT(testRet,"(?:.|\\n)*(?:#include\\s+<\\w*\\.h>(?:.|\\n)*){2,}(?:.|\\n)*int main\\(int argc, const char \\*argv\\[\\]\\)\\s*\\{(?:.|\\n)*", ret, 0)
-  return false;
-}
-bool TestCodeGeneratorEndMain(TestError *& ret){
-  std::stringstream stream;
-  CodeGenerator gen(stream);
-  gen.EndeMain();
-  std::string testRet;
-  testRet = stream.str();
-  std::cout << testRet << std::endl;
-  
-  REGEX_ASSERT(testRet,"(.|\\n)*int main\\(int argc, const char \\*argv\\[\\]\\)\\{(.|\\n)*\\/\\/(\\w|\\s)+\\n\\}(.|\\n)*", ret, 0)
-  return false;
+    CalcPosX<int>(5, res, vars);
+    ASSERT_EQ(res.str(), "__env_posX + 5 * cos(__env_rot)");
+    res.str("");
 
-  return false;
+    CalcPosX<long>(5, res, vars);
+    ASSERT_EQ(res.str(), "__env_posX + 5 * cos(__env_rot)");
+    res.str("");
+
+    CalcPosX<char>(5, res, vars);
+    ASSERT_EQ(res.str(), "__env_posX + \005 * cos(__env_rot)");
+    res.str("");
+
+    CalcPosX<char *>((char *)"test", res, vars);
+    ASSERT_EQ(res.str(), "__env_posX + test * cos(__env_rot)");
+    res.str("");
+
+    CalcPosX<const char *>("tter", res, vars);
+    ASSERT_EQ(res.str(), "__env_posX + tter * cos(__env_rot)");
+    res.str("");
+
+    CalcPosX<std::string>("std::string", res, vars);
+    ASSERT_EQ(res.str(), "__env_posX + std::string * cos(__env_rot)");
+    res.str("");
+  }
 }
-bool TestCodeGeneratorDTor(TestError *&){
-  return false;
-}//*/
+TEST(Code_Generator_Helper, CalcPosY){
+  std::stringstream res;
+  ASSERT_EQ(res.str().length(), 0);
+
+  { 
+    CalcPosY<int>(5, res, "test", "test");
+    ASSERT_EQ(res.str(), "test + 5 * sin(test)");
+    res.str("");
+
+    CalcPosY<int>(5, res, "test", "Test");
+    ASSERT_EQ(res.str(), "test + 5 * sin(Test)");
+    res.str("");
+
+    CalcPosY<long>(5, res, "d", "Test");
+    ASSERT_EQ(res.str(), "d + 5 * sin(Test)");
+    res.str("");
+
+    CalcPosY<char>(5, res, "d", "get");
+    ASSERT_EQ(res.str(), "d + \005 * sin(get)");
+    res.str("");
+
+    CalcPosY<char *>((char *)"test", res, "d", "get");
+    ASSERT_EQ(res.str(), "d + test * sin(get)");
+    res.str("");
+
+    CalcPosY<const char *>("tter", res, "get2", "get");
+    ASSERT_EQ(res.str(), "get2 + tter * sin(get)");
+    res.str("");
+
+    CalcPosY<std::string>("td::string", res, "get2", "\004");
+    ASSERT_EQ(res.str(), "get2 + td::string * sin(\004)");
+    res.str("");
+  }
+
+  { 
+    VariableHeandler vars;
+    CalcPosY<int>(5, res, vars);
+    ASSERT_EQ(res.str(), "__env_posY + 5 * sin(__env_rot)");
+    res.str("");
+
+    CalcPosY<int>(5, res, vars);
+    ASSERT_EQ(res.str(), "__env_posY + 5 * sin(__env_rot)");
+    res.str("");
+
+    CalcPosY<long>(5, res, vars);
+    ASSERT_EQ(res.str(), "__env_posY + 5 * sin(__env_rot)");
+    res.str("");
+
+    CalcPosY<char>(5, res, vars);
+    ASSERT_EQ(res.str(), "__env_posY + \005 * sin(__env_rot)");
+    res.str("");
+
+    CalcPosY<char *>((char *)"test", res, vars);
+    ASSERT_EQ(res.str(), "__env_posY + test * sin(__env_rot)");
+    res.str("");
+
+    CalcPosY<const char *>("tter", res, vars);
+    ASSERT_EQ(res.str(), "__env_posY + tter * sin(__env_rot)");
+    res.str("");
+
+    CalcPosY<std::string>("std::string", res, vars);
+    ASSERT_EQ(res.str(), "__env_posY + std::string * sin(__env_rot)");
+    res.str("");
+  }
+}
