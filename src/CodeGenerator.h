@@ -42,7 +42,6 @@ class CodeGenerator : public SceneBaseVisitor{
     
   private:
     std::any visitMain(SceneParser::MainContext *ctx) override;
-    
     void AddIncludes();
     void AddFunctionDeclaration();
     void AddMain();
