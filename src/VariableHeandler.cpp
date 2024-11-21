@@ -10,6 +10,7 @@ const std::map<std::string, Variable> VariableHeandler::enviornment = {
  {std::string("rnd"),Variable(VarType::RENDERER,"__env_rnd")},
  {std::string("@x"),Variable(VarType::DOUBLE,"__env_posX")},
  {std::string("@y"),Variable(VarType::DOUBLE,"__env_posY")},
+ {std::string("@rot"),Variable(VarType::DOUBLE,"__env_rot")},
 };
 
 const std::string VariableHeandler::getVariableNameString(const std::string&nm){

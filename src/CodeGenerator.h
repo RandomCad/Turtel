@@ -42,15 +42,6 @@ class CodeGenerator : public SceneBaseVisitor{
     
   private:
     std::any visitMain(SceneParser::MainContext *ctx) override;
-
-    template<typename T>
-    void inline CalcPosX(const T len){
-      output << "POSITION_X_NAME + " << len <<" * cos(ROTATION_NAME)";
-    }
-    template<typename T>
-    void inline CalcPosY(const T len){
-      output << "POSITION_Y_NAME + " << len <<" * sin(ROTATION_NAME)";
-    }
     
     void AddIncludes();
     void AddFunctionDeclaration();
