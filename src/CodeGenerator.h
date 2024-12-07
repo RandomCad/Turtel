@@ -8,6 +8,7 @@
 
 #include "../libs/SceneParser.h"
 #include "../libs/SceneBaseVisitor.h"
+#include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
 #include "src/MathVisitor.h"
 #include "src/VariableHeandler.h"
 
@@ -47,6 +48,8 @@ class CodeGenerator : public SceneBaseVisitor{
     void AddMain();
     void AddTurtelMain();
     void AddTurtelFunctions();
+
+    FRIEND_TEST(Code_Generator_Test, AddMain);
 
     void ProgrammBase();
     void EndeMain();

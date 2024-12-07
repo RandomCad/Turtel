@@ -55,7 +55,24 @@ TEST(Code_Generator_Test, TestEmptyMainVisit){
   CodeGenerator test(testOut, astStart);
   astStart->accept(&test);
   ASSERT_NE(testOut.str(), "");
-  ASSERT_EQ(testOut.str(), std::string("void TurtelMain(SDL_Renderer * __rnd_rnd){\n  double __env_posX;\n  double __env_posY;\n}\n\n"));
+  ASSERT_EQ(testOut.str(), std::string("void TurtelMain(SDL_Renderer * __env_rnd){\n  double __env_posX;\n  double __env_posY;\n}\n\n"));
+}
+
+TEST(Code_Generator_Test, AddMain){
+  std::stringstream in1;
+  
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  auto in2 = parser.file();
+  CodeGenerator test(in1, in2);
+  ASSERT_EXIT(test.AddMain(), ::testing::ExitedWithCode(0), ".*");
 }
 
 TEST(Code_Generator_Test, BasicEmptyMain){
@@ -76,7 +93,6 @@ TEST(Code_Generator_Test, BasicEmptyMain){
   EXPECT_TRUE(astStart->main());
   EXPECT_EQ(astStart->calcdef().size(), 0);
   EXPECT_EQ(astStart->pathdef().size(), 0);
-
   
   CodeGenerator test(interface.llvmFile, astStart);
   test.GenerateCode();

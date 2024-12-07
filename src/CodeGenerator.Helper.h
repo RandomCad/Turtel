@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/InternalVarNames.h"
 #include "src/VariableHeandler.h"
 #include <ostream>
 
@@ -16,11 +17,11 @@ void CalcPosX(
     const T len,
     std::ostream &output,
     VariableHeandler &vars){
-  output  << vars.getVariableNameString("@x") 
+  output  << vars.getVariableNameString(POS_X) 
           << " + " 
           << len 
           << " * "
-          << "cos(" << vars.getVariableNameString("@rot") << ')';
+          << "cos(" << vars.getVariableNameString(ROTATION) << ')';
 }
 
 template<typename T>
@@ -36,9 +37,9 @@ void CalcPosY(
     const T len,
     std::ostream &output,
     VariableHeandler &vars){
-  output  << vars.getVariableNameString("@y") 
+  output  << vars.getVariableNameString(POS_Y) 
           << " + " 
           << len 
           << " * "
-          << "sin(" << vars.getVariableNameString("@rot") << ')';
+          << "sin(" << vars.getVariableNameString(ROTATION) << ')';
 }

@@ -6,11 +6,13 @@
 #include <string>
 #include <vector>
 
+#include "InternalVarNames.h"
+
 const std::map<std::string, Variable> VariableHeandler::enviornment = {
- {std::string("rnd"),Variable(VarType::RENDERER,"__env_rnd")},
- {std::string("@x"),Variable(VarType::DOUBLE,"__env_posX")},
- {std::string("@y"),Variable(VarType::DOUBLE,"__env_posY")},
- {std::string("@rot"),Variable(VarType::DOUBLE,"__env_rot")},
+ {std::string(RND_NAME),Variable(VarType::RENDERER,"__env_rnd")},
+ {std::string(POS_X),Variable(VarType::DOUBLE,"__env_posX")},
+ {std::string(POS_Y),Variable(VarType::DOUBLE,"__env_posY")},
+ {std::string(ROTATION),Variable(VarType::DOUBLE,"__env_rot")},
 };
 
 const std::string VariableHeandler::getVariableNameString(const std::string&nm){
