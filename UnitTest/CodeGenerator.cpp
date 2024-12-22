@@ -72,7 +72,7 @@ TEST(Code_Generator_Test, AddMain){
   SceneParser parser(&tokens);
   auto in2 = parser.file();
   CodeGenerator test(in1, in2);
-  ASSERT_EXIT(test.AddMain(), ::testing::ExitedWithCode(0), ".*");
+  ASSERT_EXIT((test.AddMain(), exit(0)), ::testing::ExitedWithCode(0), ".*");
 }
 
 TEST(Code_Generator_Test, BasicEmptyMain){
