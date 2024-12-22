@@ -135,6 +135,7 @@ set(
   UnitTest/Variable.cpp
   UnitTest/CodeGenerator.cpp
   UnitTest/TopLevelVisitor.cpp
+  UnitTest/MathVisitor.cpp
   )
 
 add_executable(
