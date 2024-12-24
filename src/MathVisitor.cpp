@@ -1,14 +1,15 @@
 #include "MathVisitor.h"
 #include <cmath>
+#include <iostream>
 
 std::any MathVisitor::visitInt(SceneParser::IntContext *ctx){
-  std::cout << __func__ << std::endl;
+  std::cerr << __func__ << std::endl;
   int64_t ret = std::stoi(ctx->Num()->getSymbol()->getText());
   return ret;
 }
 
 std::any MathVisitor::visitFloat(SceneParser::FloatContext *ctx){
-  std::cout << __func__ << std::endl;
+  std::cerr << __func__ << std::endl;
   double ret = std::stod(ctx->Float()->getSymbol()->getText());
   return ret;
 }

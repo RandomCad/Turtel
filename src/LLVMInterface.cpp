@@ -58,7 +58,7 @@ void LLVMInterface::CallLLVM(){
   auto clangPath = llvm::sys::findProgramByName("clang");
 	
 	// Arguments to pass to the clang driver:
-	//	clang getinmemory.c -lcurl -v
+	//	clang -o <output> -x c <inputFile> <SDLArgs> -v -Werror
   std::vector<const char *> args;
 	args.push_back(clangPath->c_str());
 	args.push_back("-o");
@@ -73,6 +73,7 @@ void LLVMInterface::CallLLVM(){
   //args.push_back("-l");
 	//args.push_back("curl");
 	args.push_back("-v");		// verbose
+	args.push_back("-Werror");		// warnings as errors
 
   for(auto i: args){
     std::cout << i << std::endl;

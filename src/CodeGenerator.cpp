@@ -6,7 +6,6 @@
 #include <any>
 #include <cmath>
 #include <iostream>
-#include <string>
 #include <cstring>
 #include <stdexcept>
 #include <tree/ParseTreeType.h>
@@ -17,7 +16,8 @@ std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
     << "void TurtelMain(SDL_Renderer * " 
     << _variables.getVariableNameString(RND_NAME) << "){\n"
     << "  " << _variables.getVariableDefinition(POS_X) << ";\n"
-    << "  " << _variables.getVariableDefinition(POS_Y) << ";\n";
+    << "  " << _variables.getVariableDefinition(POS_Y) << ";\n"
+    << "  " << _variables.getVariableDefinition(ROTATION) << ";\n";
 
   //visit all the contained statments(stat)
   for(auto i : ctx->children) i->accept(this);
@@ -56,7 +56,7 @@ void CodeGenerator::AddIncludes(){
 void CodeGenerator::AddFunctionDeclaration(){
   output
     << "//declaration of the Turtel Main:\n"
-    << "void TurtelMain(" << _variables.getVariableDefinition("rnd") << ");\n" //TODO add needed parameters
+    << "void TurtelMain(" << _variables.getVariableDefinition(RND_NAME) << ");\n" //TODO add needed parameters
     << std::endl
   //add pathdef Functions:
     << "//declaration of the pathdefs\n"

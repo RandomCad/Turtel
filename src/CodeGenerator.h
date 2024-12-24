@@ -49,20 +49,13 @@ class CodeGenerator : public SceneBaseVisitor{
     void AddTurtelMain();
     void AddTurtelFunctions();
 
-    FRIEND_TEST(Code_Generator_Test, AddMain);
-
     void ProgrammBase();
     void EndeMain();
 
-#ifdef UNIT_TEST
-    friend bool TestNumberExec(TestError*&ret);
-    friend bool TestExprExec(TestError *&ret);
-    friend bool TestCodeGeneratorProgramBase(TestError *&);
-    friend bool TestCodeGeneratorEndMain(TestError *&);
-    friend bool TestCodeGeneratorDTOr(TestError *&);
-    friend bool TestCodeGeneratorEmpty(TestError *&);
-    friend bool TestCodeGeneratorCTor(TestError *&);
-#endif
+    FRIEND_TEST(Code_Generator_Test, AddMain);
+    FRIEND_TEST(Code_Generator_Test, BasicEmptyMain);
+    FRIEND_TEST(Code_Generator, AddFunctionDeclaration);
+
 };
 
 #endif

@@ -1,5 +1,9 @@
 #include <ANTLRInputStream.h>
 #include <gtest/gtest.h>
+#include <istream>
+#include <llvm/Support/Chrono.h>
+#include <regex>
+#include <string>
 
 #include "../libs/SceneParser.h"
 #include "../libs/SceneLexer.h"
@@ -55,7 +59,7 @@ TEST(Code_Generator_Test, TestEmptyMainVisit){
   CodeGenerator test(testOut, astStart);
   astStart->accept(&test);
   ASSERT_NE(testOut.str(), "");
-  ASSERT_EQ(testOut.str(), std::string("void TurtelMain(SDL_Renderer * __env_rnd){\n  double __env_posX;\n  double __env_posY;\n}\n\n"));
+  ASSERT_EQ(testOut.str(), std::string("void TurtelMain(SDL_Renderer * __env_rnd){\n  double __env_posX;\n  double __env_posY;\n  double __env_rot;\n}\n\n"));
 }
 
 TEST(Code_Generator_Test, AddMain){
@@ -77,6 +81,8 @@ TEST(Code_Generator_Test, AddMain){
 
 TEST(Code_Generator_Test, BasicEmptyMain){
   const char * testFile = "EmptyMainTest.out";
+  std::filesystem::remove(testFile);
+
   LLVMInterface interface(testFile);
   std::stringstream stream;
   stream 
@@ -97,14 +103,64 @@ TEST(Code_Generator_Test, BasicEmptyMain){
   CodeGenerator test(interface.llvmFile, astStart);
   test.GenerateCode();
 
+  /*std::regex reg("(?:.|\\n)*(?:#include\\s+<\\w*\\.h>(?:.|\\n)*){2,}(?:.|\\n)*int main\\(int argc, const char \\*argv\\[\\]\\)\\s*\\{(?:.|\\n)*");
+  EXPECT_TRUE(std::regex_match())
+*/
+  test.output.flush();
+  std::istream &toTest(interface.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  
+  }
+
+  toTest.seekg(0);
   interface.CallLLVM();
   
   ASSERT_TRUE(std::filesystem::exists(testFile));
+}
+
+TEST(Code_Generator, AddFunctionDeclaration){
+  std::stringstream in1;
+  
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  auto in2 = parser.file();
+  CodeGenerator test(in1, in2);
+
+  ASSERT_EXIT((test.AddFunctionDeclaration(), exit(0)), ::testing::ExitedWithCode(0), ".*");
+
+  in1.clear();
+  test.AddFunctionDeclaration();
+
+  std::cerr << in1.str() << std::endl;
+
+  ASSERT_TRUE(in1.str().length());
+  std::string buf;
+  std::getline(in1, buf);
+  ASSERT_EQ(buf[0], '/');
+  ASSERT_EQ(buf[1], '/');
+
+  std::regex testReg("void TurtelMain(.+);.*");
+  std::getline(in1, buf);
+  std::smatch match;
+  ASSERT_TRUE(std::regex_match(buf, match, testReg));
   
 }
 
 TEST(Code_Generator, BasicWalk){
   const char *testFile = "BasicWalkTest.out";
+  std::filesystem::remove(testFile);
   LLVMInterface interface(testFile);
   std::stringstream stream;
   stream 

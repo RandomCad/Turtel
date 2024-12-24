@@ -60,7 +60,7 @@ TEST(TopLevelVisitor, WalkVisit){
 
   ret.flush();
 
-  std::cout << ret.str() << std::endl;
+  std::cerr << ret.str() << std::endl;
   ASSERT_EQ(
       ret.str(), 
       "  SDL_RenderDrawLine(__env_rnd, __env_posX, __env_posY, __env_posX + 5 * cos(__env_rot), __env_posY + 5 * sin(__env_rot));\n" 
