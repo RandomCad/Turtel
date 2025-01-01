@@ -39,7 +39,13 @@ std::any TopLevelVisitor::visitWalk(SceneParser::WalkContext *ctx){
     throw "Error unknowen type";
   }
   output 
-    << ");"
+    << ");\n"
+    << "  SDL_RenderPresent(" << vars.getVariableNameString(RND_NAME) << ");"
     << std::endl;
   return std::any();
+}
+
+std::any TopLevelVisitor::visitSave(SceneParser::SaveContext *ctx){
+ 
+    return  std::any();
 }
