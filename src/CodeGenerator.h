@@ -12,10 +12,6 @@
 #include "src/MathVisitor.h"
 #include "src/VariableHeandler.h"
 
-#define POSITION_X_NAME POS_X
-#define POSITION_Y_NAME POS_Y
-#define RENDERER_NAME "__rnd_rnd"
-#define ROTATION_NAME Rotation
 #define CALC_POS_X(len) POSITION_X_NAME + len * cos(ROTATION_NAME)
 #define CALC_POS_Y(len) POSITION_Y_NAME + len * sin(ROTATION_NAME)
 
@@ -45,6 +41,7 @@ class CodeGenerator : public SceneBaseVisitor{
     std::any visitMain(SceneParser::MainContext *ctx) override;
     void AddIncludes();
     void AddFunctionDeclaration();
+    void AddGlobalVars();
     void AddMain();
     void AddTurtelMain();
     void AddTurtelFunctions();

@@ -13,11 +13,43 @@
 
 std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
   output
+
     << "void TurtelMain(SDL_Renderer * " 
-    << _variables.getVariableNameString(RND_NAME) << "){\n"
-    << "  " << _variables.getVariableDefinition(POS_X) << ";\n"
-    << "  " << _variables.getVariableDefinition(POS_Y) << ";\n"
-    << "  " << _variables.getVariableDefinition(ROTATION) << ";\n";
+    << _variables.getVariableNameString(RND_NAME) 
+    << "){\n"
+
+    ///define and set the x Position to half the window size
+    << "  " << _variables.getVariableDefinition(POS_X) 
+    << '=' 
+    << _variables.getVariableNameString(WINDOW_X) << "/2;\n"
+
+    ///define and set the y Position to half the window size
+    << "  " << _variables.getVariableDefinition(POS_Y) 
+    << '=' 
+    << _variables.getVariableNameString(WINDOW_Y) << "/2;\n"
+
+    ///define and set the rotation to 0 the window size
+    << "  " << _variables.getVariableDefinition(ROTATION) << "=0;\n"
+    ///define the color to be white
+    << "  " << _variables.getVariableDefinition(COLOR_R) << "=100;\n"
+    << "  " << _variables.getVariableDefinition(COLOR_G) << "=100;\n"
+    << "  " << _variables.getVariableDefinition(COLOR_B) << "=100;\n"
+    
+    ///set the color for the Renderer
+    << "  SDL_SetRenderDrawColor(" 
+    << _variables.getVariableNameString(RND_NAME) << ','
+    << _variables.getVariableNameString(COLOR_R) << ','
+    << _variables.getVariableNameString(COLOR_G) << ','
+    << _variables.getVariableNameString(COLOR_B) << ','
+    << "255);\n"
+    ///set the max positions for the turtel
+    << "  " << _variables.getVariableDefinition(MAX_X) 
+    << '=' 
+    << _variables.getVariableNameString(WINDOW_X) << "/2;\n"
+    << "  " << _variables.getVariableDefinition(MAX_Y) 
+    << '=' 
+    << _variables.getVariableNameString(WINDOW_Y) << "/2;\n"
+    ;
 
   //visit all the contained statments(stat)
   for(auto i : ctx->children) i->accept(this);
@@ -36,11 +68,9 @@ std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
 void CodeGenerator::GenerateCode(){
   AddIncludes();
   AddFunctionDeclaration();
-  std::cerr << "test1" << std::endl;
+  AddGlobalVars();
   AddMain();
-  std::cerr << "test1" << std::endl;
   AddTurtelMain();
-  std::cerr << "test1" << std::endl;
   AddTurtelFunctions();
 }
 
@@ -69,13 +99,26 @@ void CodeGenerator::AddFunctionDeclaration(){
     ;
 }
 
+void CodeGenerator::AddGlobalVars(){
+  output 
+    << _variables.getVariableDefinition(WINDOW_X) << "=800;\n"
+    << _variables.getVariableDefinition(WINDOW_Y) << "=600;\n";
+  ///Global programed _variables
+}
+
 void CodeGenerator::AddMain(){
   //main head
   output
     << "int main(int argc, const char *argv[]){\n"
-  //sdl init
+  ///sdl init
     << "  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"
-    << "  SDL_Window* window = SDL_CreateWindow( \"Main Window\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN );\n"
+  ///creat window
+    << "  SDL_Window* window = SDL_CreateWindow( \"Main Window\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, "
+    << _variables.getVariableNameString(WINDOW_X) << ',' 
+    << _variables.getVariableNameString(WINDOW_Y) << ','
+    << "SDL_WINDOW_SHOWN );\n"
+
+  ///Define renderer
     << "  " << _variables.getVariableDefinition(RND_NAME) << " = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);\n"
     << "  SDL_Event events;\n"
   //allocate stack

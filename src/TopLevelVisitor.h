@@ -25,4 +25,5 @@ class TopLevelVisitor : public SceneBaseVisitor{
     
     ///The visitor for a walk statment.
     std::any visitWalk(SceneParser::WalkContext *ctx) override;
+    std::any visitSave(SceneParser::SaveContext *ctx) override;
 };
