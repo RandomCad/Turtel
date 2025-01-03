@@ -3,6 +3,8 @@
 #include <ANTLRInputStream.h>
 #include <any>
 #include <gtest/gtest.h>
+#include <regex>
+#include <string>
 
 #include "../libs/SceneParser.h"
 #include "../libs/SceneLexer.h"
@@ -10,7 +12,7 @@
 
 using  namespace antlr4;
 
-TEST(TopLevelVisitor, AcceptNumContext){
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, AcceptNumContext){
   std::stringstream stream;
   stream 
     << "5"
@@ -31,7 +33,7 @@ TEST(TopLevelVisitor, AcceptNumContext){
   ASSERT_FALSE(ret.has_value());
 }
 
-TEST(TopLevelVisitor, WalkVisit){
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkVisit){
   std::stringstream stream;
   stream 
     << "walk 5\n"
@@ -60,10 +62,29 @@ TEST(TopLevelVisitor, WalkVisit){
 
   ret.flush();
 
-  std::cerr << ret.str() << std::endl;
-  ASSERT_EQ(
-      ret.str(), 
-      "  SDL_RenderDrawLine(__env_rnd, __env_posX, __env_posY, __env_posX + 5 * cos(__env_rot), __env_posY + 5 * sin(__env_rot));\n" 
+  std::string line;
+  std::getline(ret, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s+SDL_RenderDrawLine\\s*\\("
+          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
+          ")\\s*;\\s*"
+          )
+        )
+      );
+
+  std::getline(ret, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex("\\s+SDL_RenderPresent\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*")
+        )
       );
   
 }

@@ -1,6 +1,8 @@
 #include <ANTLRInputStream.h>
+#include <functional>
 #include <gtest/gtest.h>
 #include <istream>
+#include <iterator>
 #include <llvm/Support/Chrono.h>
 #include <regex>
 #include <string>
@@ -35,10 +37,11 @@ TEST(Code_Generator, WalkVisit){
 #include "../libs/SceneParser.h"
 #include "../libs/SceneLexer.h"
 #include "gtest/gtest.h"
+#include "TestSuits.h"
 
 using namespace antlr4;
 
-TEST(Code_Generator_Test, TestEmptyMainVisit){
+TEST(CodeGeneratorTestSuite, TestEmptyMainVisit){
   std::stringstream stream;
   stream 
     << "begin\n"
@@ -57,9 +60,80 @@ TEST(Code_Generator_Test, TestEmptyMainVisit){
 
   std::stringstream testOut;
   CodeGenerator test(testOut, astStart);
+  std::cerr << "setupt finished" << std::endl;
   astStart->accept(&test);
+  std::cerr << "running the checks" << std::endl;
+  ASSERT_FALSE(testOut.bad());
   ASSERT_NE(testOut.str(), "");
-  ASSERT_EQ(testOut.str(), std::string("void TurtelMain(SDL_Renderer * __env_rnd){\n  double __env_posX;\n  double __env_posY;\n  double __env_rot;\n}\n\n"));
+
+  testOut.seekg(0);
+  std::string buf;
+  ///check for main definition
+  std::getline(testOut, buf);
+  std::cerr << buf << std::endl;
+  ASSERT_TRUE(std::regex_match(buf, std::regex(
+    "void\\s+TurtelMain\\s*\\(\\s*SDL_Renderer\\s+\\*\\s+\\w+\\s*\\)\\s*\\{\\s*",
+    std::regex_constants::ECMAScript
+  )));
+
+  std::getline(testOut, buf);
+  std::cerr << buf << std::endl;
+  ASSERT_TRUE(std::regex_match(buf, std::regex(
+    "\\s*double\\s+\\w+X\\s*=\\s*\\w+\\/\\s*2\\s*;\\s*",
+    std::regex_constants::ECMAScript
+  )));
+  
+  std::getline(testOut, buf);
+  std::cerr << buf << std::endl;
+  ASSERT_TRUE(std::regex_match(buf, std::regex(
+    "\\s*double\\s+\\w+Y\\s*=\\s*\\w+\\s*;\\s*",
+    std::regex_constants::ECMAScript
+  )));
+  
+  std::getline(testOut, buf);
+  std::cerr << buf << std::endl;
+  ASSERT_TRUE(std::regex_match(buf, std::regex(
+    "\\s*double\\s+\\w+\\s*=\\s*\\d+\\s*\\*\\s*\\("
+    "\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*",
+    std::regex_constants::ECMAScript
+  )));
+
+  for(int i = 0;std::getline(testOut, buf), i < 3; i++){
+    std::cerr << buf << std::endl;
+    ASSERT_TRUE(std::regex_match(buf, std::regex(
+      "\\s*double\\s+\\w+\\s*=\\s*100\\s*;\\s*",
+      std::regex_constants::ECMAScript
+    ))); 
+  }
+  
+  std::cerr << buf << std::endl;
+  ASSERT_TRUE(std::regex_match(buf, std::regex(
+    "\\s+SDL_SetRenderDrawColor\\s*\\("
+    "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,255\\s*\\)"
+    "\\s*;\\s*",
+    std::regex_constants::ECMAScript
+  )));
+
+  std::getline(testOut, buf);
+  std::cerr << buf << std::endl;
+  ASSERT_TRUE(std::regex_match(buf, std::regex(
+    "\\s*const\\s+double\\s+\\w+X\\s*=\\s*\\w+\\/\\s*2\\s*;\\s*",
+    std::regex_constants::ECMAScript
+  )));
+  
+  std::getline(testOut, buf);
+  std::cerr << buf << std::endl;
+  ASSERT_TRUE(std::regex_match(buf, std::regex(
+    "\\s*const\\s+double\\s+\\w+Y\\s*=\\s*\\w+\\/\\s*2\\s*;\\s*",
+    std::regex_constants::ECMAScript
+  )));
+
+  std::getline(testOut, buf);
+  std::cerr << buf << std::endl;
+  ASSERT_TRUE(std::regex_match(buf, std::regex(
+    "\\s*}\\s*",
+    std::regex_constants::ECMAScript
+  )));
 }
 
 TEST(Code_Generator_Test, AddMain){
@@ -79,7 +153,7 @@ TEST(Code_Generator_Test, AddMain){
   ASSERT_EXIT((test.AddMain(), exit(0)), ::testing::ExitedWithCode(0), ".*");
 }
 
-TEST(Code_Generator_Test, BasicEmptyMain){
+TEST(CodeGeneratorTestSuite, BasicEmptyMain){
   const char * testFile = "EmptyMainTest.out";
   std::filesystem::remove(testFile);
 
@@ -114,7 +188,6 @@ TEST(Code_Generator_Test, BasicEmptyMain){
   std::string line;
   while (std::getline(toTest, line)) {
     std::cerr << line << std::endl;
-  
   }
 
   toTest.seekg(0);
@@ -123,7 +196,7 @@ TEST(Code_Generator_Test, BasicEmptyMain){
   ASSERT_TRUE(std::filesystem::exists(testFile));
 }
 
-TEST(Code_Generator, AddFunctionDeclaration){
+TEST(CodeGeneratorTestSuite, AddFunctionDeclaration){
   std::stringstream in1;
   
   std::stringstream stream;
@@ -158,14 +231,14 @@ TEST(Code_Generator, AddFunctionDeclaration){
   
 }
 
-TEST(Code_Generator, BasicWalk){
+TEST(CodeGeneratorTestSuite, BasicWalk){
   const char *testFile = "BasicWalkTest.out";
   std::filesystem::remove(testFile);
   LLVMInterface interface(testFile);
   std::stringstream stream;
   stream 
     << "begin\n"
-    << "  walk 5\n"
+    << "  walk 50\n"
     << "end\n"
     << std::endl;
   ANTLRInputStream input(stream);
@@ -183,7 +256,31 @@ TEST(Code_Generator, BasicWalk){
   EXPECT_EQ(astStart->main()->stat().size(), 1);
 
   CodeGenerator test(interface.llvmFile, astStart);
+  ASSERT_EQ(test.astMain, astStart->main());
   test.GenerateCode();
+  
+  interface.llvmFile.seekg(0);
+  std::regex checkForDraw(
+          "\\s+SDL_RenderDrawLine\\s*\\("
+          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
+          ")\\s*;\\s*");
+
+  std::string line;
+  int ret = 0;
+  while (std::getline(interface.llvmFile, line)) {
+    std::cerr << line ;
+    if(std::regex_match(line, checkForDraw)){
+      ret++;
+      std::cerr << "//found";
+    }
+    std::cerr << std::endl;
+  }
+
+  interface.llvmFile.seekg(0);
+  
+  ASSERT_EQ(ret, 1);
 
   interface.CallLLVM();
   ASSERT_TRUE(std::filesystem::exists(testFile));

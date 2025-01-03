@@ -1,0 +1,4 @@
+#define CodeGeneratorTestSuite CodeGenerator
+#define CODE_GENERATOR_TEST_SUITE CodeGeneratorTestSuite
+#define TOP_LEVEL_VISITOR_TEST_SUITE TopLevelVisitor
+
