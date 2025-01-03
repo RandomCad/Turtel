@@ -10,7 +10,9 @@
 #include "../libs/SceneBaseVisitor.h"
 #include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
 #include "src/MathVisitor.h"
+#include "src/TopLevelVisitor.h"
 #include "src/VariableHeandler.h"
+#include "../UnitTest/TestSuits.h"
 
 #define CALC_POS_X(len) POSITION_X_NAME + len * cos(ROTATION_NAME)
 #define CALC_POS_Y(len) POSITION_Y_NAME + len * sin(ROTATION_NAME)
@@ -27,9 +29,10 @@ class CodeGenerator : public SceneBaseVisitor{
     std::vector<SceneParser::PathdefContext *> astPathdef;
 
     VariableHeandler _variables;
+    TopLevelVisitor _topVis;
     MathVisitor _mathVis;
     //Only used for Unittesting
-    CodeGenerator(): output(std::cout), _mathVis(_variables) {}
+    //CodeGenerator(): output(std::cout), _mathVis(_variables) {}
     CodeGenerator(std::ostream &outStream);
   public:
     CodeGenerator(std::ostream &outStream, SceneParser::FileContext *AstBase);
@@ -43,15 +46,15 @@ class CodeGenerator : public SceneBaseVisitor{
     void AddFunctionDeclaration();
     void AddGlobalVars();
     void AddMain();
-    void AddTurtelMain();
     void AddTurtelFunctions();
 
     void ProgrammBase();
     void EndeMain();
 
     FRIEND_TEST(Code_Generator_Test, AddMain);
-    FRIEND_TEST(Code_Generator_Test, BasicEmptyMain);
-    FRIEND_TEST(Code_Generator, AddFunctionDeclaration);
+    FRIEND_TEST(CodeGenerator, BasicEmptyMain);
+    FRIEND_TEST(CodeGenerator, BasicWalk);
+    FRIEND_TEST(CodeGenerator, AddFunctionDeclaration);
 
 };
 

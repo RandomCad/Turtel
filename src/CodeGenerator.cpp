@@ -7,11 +7,11 @@
 #include <cmath>
 #include <iostream>
 #include <cstring>
-#include <stdexcept>
 #include <tree/ParseTreeType.h>
 
 
 std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
+  std::cerr << "generating main body" << std::endl;
   output
 
     << "void TurtelMain(SDL_Renderer * " 
@@ -26,10 +26,10 @@ std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
     ///define and set the y Position to half the window size
     << "  " << _variables.getVariableDefinition(POS_Y) 
     << '=' 
-    << _variables.getVariableNameString(WINDOW_Y) << "/2;\n"
+    << _variables.getVariableNameString(WINDOW_Y) << ";\n"
 
     ///define and set the rotation to 0 the window size
-    << "  " << _variables.getVariableDefinition(ROTATION) << "=0;\n"
+    << "  " << _variables.getVariableDefinition(ROTATION) << "=270 * (M_PI/180);\n"
     ///define the color to be white
     << "  " << _variables.getVariableDefinition(COLOR_R) << "=100;\n"
     << "  " << _variables.getVariableDefinition(COLOR_G) << "=100;\n"
@@ -42,6 +42,7 @@ std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
     << _variables.getVariableNameString(COLOR_G) << ','
     << _variables.getVariableNameString(COLOR_B) << ','
     << "255);\n"
+
     ///set the max positions for the turtel
     << "  " << _variables.getVariableDefinition(MAX_X) 
     << '=' 
@@ -52,7 +53,7 @@ std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
     ;
 
   //visit all the contained statments(stat)
-  for(auto i : ctx->children) i->accept(this);
+  for(auto i : ctx->stat()) i->accept(&_topVis);
 
   output
     << "}\n" 
@@ -70,7 +71,7 @@ void CodeGenerator::GenerateCode(){
   AddFunctionDeclaration();
   AddGlobalVars();
   AddMain();
-  AddTurtelMain();
+  astMain->accept(this);
   AddTurtelFunctions();
 }
 
@@ -149,23 +150,16 @@ void CodeGenerator::AddMain(){
     << std::endl;
 }
 
-void CodeGenerator::AddTurtelMain(){
-  if(astMain == nullptr){
-    throw std::invalid_argument("astMain is null");
-  }
-  astMain->accept(this);
-}
-
 void CodeGenerator::AddTurtelFunctions(){
   //TODO:
 }
 CodeGenerator::CodeGenerator(std::ostream &outStream)
-  : output(outStream), astBase(nullptr), _mathVis(_variables) {}
+  : output(outStream), astBase(nullptr), _topVis(output, _variables), _mathVis(_variables) {}
 
 CodeGenerator::CodeGenerator(std::ostream &outStream, SceneParser::FileContext* AstBase)
   : output(outStream), astBase(AstBase), astMain(astBase->main()), 
     astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()),
-    _mathVis(_variables){
+    _topVis(output, _variables), _mathVis(_variables){
 }
 
 void CodeGenerator::ProgrammBase(){
