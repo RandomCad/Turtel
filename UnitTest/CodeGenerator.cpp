@@ -329,6 +329,61 @@ TEST(CodeGeneratorTestSuite, BasicWalk){
 
 }
 
+TEST(CodeGeneratorTestSuite, BasicJump){
+  const char *testFile = "BasicWalkTest.out";
+  std::filesystem::remove(testFile);
+  LLVMInterface interface(testFile);
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  jump 50\n"
+    << "  walk 50\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(),0);
+  EXPECT_EQ(astStart->pathdef().size(),0);
+  EXPECT_FALSE(astStart->main()->isEmpty());
+  EXPECT_EQ(astStart->main()->stat().size(), 2);
+
+  CodeGenerator test(interface.llvmFile, astStart);
+  test.GenerateCode();
+  
+  interface.llvmFile.seekg(0);
+  std::regex checkForDraw(
+          "\\s+SDL_RenderDrawLine\\s*\\("
+          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
+          ")\\s*;\\s*");
+
+  std::string line;
+  int ret = 0;
+  while (std::getline(interface.llvmFile, line)) {
+    std::cerr << line ;
+    if(std::regex_match(line, checkForDraw)){
+      ret++;
+      std::cerr << "//found";
+    }
+    std::cerr << std::endl;
+  }
+
+  interface.llvmFile.seekg(0);
+  
+  ASSERT_EQ(ret, 1);
+
+  interface.CallLLVM();
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+}
+
 /*
 bool TestCodeGeneratorEmpty(TestError *&col){
   const char *testFile = TEST_OUTPUT_DIR "/EmptyCodeGenerator.out";

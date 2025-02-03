@@ -7,10 +7,17 @@ pathdef : 'a';
 calcdef : 'a';
 
 stat    : walk
-        | save;
+        | save
+        | walkBack
+        | jump
+        | jumpBack
+        ;
 
 walk  	: Walk expr ;
 save    : Save ID ; ///<Save the drawen immage to the named Bitmap
+walkBack: Walk Back expr; ///<walk in the opposit direktion of the looking dir
+jump    : Jump expr ; ///< same as walk without drawing
+jumpBack: Jump Back expr ;
 
 // Parser rules
 expr  : ( klamKon | number) '^' (klamKon | number) #Exp
@@ -34,6 +41,8 @@ var   : ID      #Variable
 // Lexer rules
 Walk	: 'walk';
 Save  : 'save';
+Back  : 'back';
+Jump  : 'jump';
 
 Num   : [0-9]+ ;
 Float : [0-9]+ '.' [0-9]+
