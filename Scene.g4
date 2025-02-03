@@ -6,9 +6,11 @@ main    : 'begin' stat* 'end';
 pathdef : 'a';
 calcdef : 'a';
 
-stat    : walk;
+stat    : walk
+        | save;
 
 walk  	: Walk expr ;
+save    : Save ID ; ///<Save the drawen immage to the named Bitmap
 
 // Parser rules
 expr  : ( klamKon | number) '^' (klamKon | number) #Exp
@@ -31,6 +33,7 @@ var   : ID      #Variable
 
 // Lexer rules
 Walk	: 'walk';
+Save  : 'save';
 
 Num   : [0-9]+ ;
 Float : [0-9]+ '.' [0-9]+

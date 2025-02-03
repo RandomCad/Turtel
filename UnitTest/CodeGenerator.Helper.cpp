@@ -2,6 +2,52 @@
 #include "src/VariableHeandler.h"
 #include "gtest/gtest.h"
 #include <sstream>
+#include <string>
+#include <regex>
+
+TEST(Code_Generator_Helper, GenPresent){
+  VariableHeandler var;
+  std::stringstream out;
+
+  GenPresent(var,out);
+
+  std::string test;
+
+  std::getline(out, test);
+  std::cerr << test << std::endl;
+  ASSERT_TRUE(std::regex_match(test, std::regex(
+    "\\s+SDL_SetRenderTarget\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*\\)\\s*;\\s*",
+    std::regex_constants::ECMAScript
+  )));
+ 
+  std::getline(out, test);
+  std::cerr << test << std::endl;
+  ASSERT_TRUE(std::regex_match(test, std::regex(
+    "\\s+SDL_RenderClear\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*",
+    std::regex_constants::ECMAScript
+  ))); 
+
+  std::getline(out, test);
+  std::cerr << test << std::endl;
+  ASSERT_TRUE(std::regex_match(test, std::regex(
+    "\\s+SDL_RenderCopy\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*\\)\\s*;\\s*",
+    std::regex_constants::ECMAScript
+  )));
+
+  std::getline(out, test);
+  std::cerr << test << std::endl;
+  ASSERT_TRUE(std::regex_match(test, std::regex(
+    "\\s+SDL_RenderPresent\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*",
+    std::regex_constants::ECMAScript
+  )));
+
+  std::getline(out, test);
+  std::cerr << test << std::endl;
+  ASSERT_TRUE(std::regex_match(test, std::regex(
+    "\\s+SDL_SetRenderTarget\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*\\)\\s*;\\s*",
+    std::regex_constants::ECMAScript
+  )));
+}
 
 TEST(Code_Generator_Helper, CalcPosX){
   std::stringstream res;
@@ -68,6 +114,7 @@ TEST(Code_Generator_Helper, CalcPosX){
     res.str("");
   }
 }
+
 TEST(Code_Generator_Helper, CalcPosY){
   std::stringstream res;
   ASSERT_EQ(res.str().length(), 0);
@@ -133,3 +180,4 @@ TEST(Code_Generator_Helper, CalcPosY){
     res.str("");
   }
 }
+

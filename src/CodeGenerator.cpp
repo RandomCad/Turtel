@@ -2,11 +2,13 @@
 #include "../libs/SceneParser.h"
 #include "InternalVarNames.h"
 #include "CodeGenerator.h"
+#include "CodeGenerator.Helper.h"
 
 #include <any>
 #include <cmath>
 #include <iostream>
 #include <cstring>
+#include <string>
 #include <tree/ParseTreeType.h>
 
 
@@ -79,6 +81,7 @@ void CodeGenerator::AddIncludes(){
   output 
     << "//standart includes\n"
     << "#include <SDL2/SDL.h>\n"
+    << "#include <SDL2/SDL_image.h>\n"
     << "#include <math.h>\n"
     << std::endl;
   //add potential further includes
@@ -88,6 +91,17 @@ void CodeGenerator::AddFunctionDeclaration(){
   output
     << "//declaration of the Turtel Main:\n"
     << "void TurtelMain(" << _variables.getVariableDefinition(RND_NAME) << ");\n" //TODO add needed parameters
+    << "void save_texture(const char* file_name, SDL_Renderer* renderer, SDL_Texture* texture) {\n"
+    << "  SDL_Texture* target = SDL_GetRenderTarget(renderer);\n"
+    << "  SDL_SetRenderTarget(renderer, texture);\n"
+    << "  int width, height;\n"
+    << "  SDL_QueryTexture(texture, NULL, NULL, &width, &height);\n"
+    << "  SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);\n"
+    << "  SDL_RenderReadPixels(renderer, NULL, surface->format->format, surface->pixels, surface->pitch);\n"
+    << "  IMG_SavePNG(surface, file_name);\n"
+    << "  SDL_FreeSurface(surface);\n"
+    << "  SDL_SetRenderTarget(renderer, target);\n"
+    << "}\n"
     << std::endl
   //add pathdef Functions:
     << "//declaration of the pathdefs\n"
@@ -103,7 +117,9 @@ void CodeGenerator::AddFunctionDeclaration(){
 void CodeGenerator::AddGlobalVars(){
   output 
     << _variables.getVariableDefinition(WINDOW_X) << "=800;\n"
-    << _variables.getVariableDefinition(WINDOW_Y) << "=600;\n";
+    << _variables.getVariableDefinition(WINDOW_Y) << "=600;\n"
+    << _variables.getVariableDefinition(TEXTURE_NAME) << ";\n"
+    ;
   ///Global programed _variables
 }
 
@@ -121,9 +137,15 @@ void CodeGenerator::AddMain(){
 
   ///Define renderer
     << "  " << _variables.getVariableDefinition(RND_NAME) << " = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);\n"
+    << "  " << _variables.getVariableNameString(TEXTURE_NAME) << " = SDL_CreateTexture( " << _variables.getVariableNameString(RND_NAME) << ", SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, " << _variables.getVariableNameString(WINDOW_X) << ", " << _variables.getVariableNameString(WINDOW_Y) << ");\n"
     << "  SDL_Event events;\n"
   //allocate stack
 
+  ;
+  //switch to correct backbuffer (internal textur)
+  GenPresent(_variables, output);
+  
+  output
   //call TurtelMain
     << "  TurtelMain(" << _variables.getVariableNameString(RND_NAME) << ");\n" //TODO add the parameters
   //Implicit wait
@@ -181,7 +203,7 @@ void CodeGenerator::EndeMain(){
     << "//End of Main\n"
     << "}\n//Implimentation start for funktions";
 }
-
+///file lokal
 size_t GetUniquNumber(){
   static size_t num = 0;
   return num++;

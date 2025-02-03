@@ -77,14 +77,4 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkVisit){
           )
         )
       );
-
-  std::getline(ret, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(
-      std::regex_match(
-        line,
-        std::regex("\\s+SDL_RenderPresent\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*")
-        )
-      );
-  
 }

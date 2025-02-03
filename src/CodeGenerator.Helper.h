@@ -4,6 +4,8 @@
 #include "src/VariableHeandler.h"
 #include <ostream>
 
+void GenPresent(VariableHeandler &var, std::ostream &output);
+
 template<typename T>
 void CalcPosX(
     const T len,

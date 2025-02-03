@@ -2,6 +2,8 @@
 
 ///define the name of the renderer
 #define RND_NAME "&rnd"
+///define the backtexture
+#define TEXTURE_NAME "&text"
 ///define the size of the window
 ///x:
 #define WINDOW_X "&window_x"
@@ -17,3 +19,6 @@
 #define COLOR_R "@red"
 #define COLOR_G "@green"
 #define COLOR_B "@blue"
+
+///Debuging
+#define DEBUG_SURFACE "&surface"

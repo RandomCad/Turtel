@@ -20,6 +20,7 @@ const std::map<std::string, Variable> VariableHeandler::enviornment = {
  {std::string(COLOR_R),Variable(VarType::DOUBLE,"__env_red")},
  {std::string(COLOR_G),Variable(VarType::DOUBLE,"__env_green")},
  {std::string(COLOR_B),Variable(VarType::DOUBLE,"__env_blue")},
+ {std::string(TEXTURE_NAME), Variable(VarType::TESXTUR, "__env_textur")},
 };
 
 const std::string VariableHeandler::getVariableNameString(const std::string&nm){

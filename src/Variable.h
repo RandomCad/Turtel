@@ -6,6 +6,8 @@ enum VarType{
   RENDERER, ///< The type of the SDL2 renderer in \ref VariableHeandler::enviornment
   DOUBLE, ///< The most comon type a normal c-double
   CONST_DOUBLE, ///< Constant c-double
+  TESXTUR, ///< The sdl texture type
+  //SURFACE, ///< The sdl surface for output of immages
 };
 
 struct Variable{

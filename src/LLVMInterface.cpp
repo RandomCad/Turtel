@@ -75,6 +75,7 @@ void LLVMInterface::CallLLVM(){
 	args.push_back("-v");		// verbose
 	args.push_back("-Werror");		// warnings as errors
   args.push_back("-lm"); ///< add the math lib to the linking stage
+  args.push_back("-lSDL2_image"); ///< add link to sdl_immage
 
   for(auto i: args){
     std::cout << i << std::endl;

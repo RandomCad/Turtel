@@ -38,10 +38,8 @@ std::any TopLevelVisitor::visitWalk(SceneParser::WalkContext *ctx){
   else{
     throw "Error unknowen type";
   }
-  output 
-    << ");\n"
-    << "  SDL_RenderPresent(" << vars.getVariableNameString(RND_NAME) << ");"
-    << std::endl;
+  output << ");\n";
+  GenPresent(vars, output);
   return std::any();
 }
 
