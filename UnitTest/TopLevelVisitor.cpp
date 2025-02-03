@@ -78,3 +78,27 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkVisit){
         )
       );
 }
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, save){
+  std::stringstream stream;
+  stream 
+    << "save test.png\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.save();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream ret;
+  VariableHeandler var;
+  TopLevelVisitor toTest(ret, var);
+  std::any callRet;
+  callRet = astStart->accept(&toTest);
+    
+  ASSERT_FALSE(callRet.has_value());
+
+
+}

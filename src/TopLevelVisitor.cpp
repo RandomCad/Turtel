@@ -2,6 +2,7 @@
 #include "SceneParser.h"
 #include "CodeGenerator.Helper.h"
 #include "src/InternalVarNames.h"
+#include "src/Variable.h"
 
 #include <any>
 
@@ -44,6 +45,12 @@ std::any TopLevelVisitor::visitWalk(SceneParser::WalkContext *ctx){
 }
 
 std::any TopLevelVisitor::visitSave(SceneParser::SaveContext *ctx){
- 
-    return  std::any();
+  output
+    << "  save_texture(\"" 
+      << ctx->ID()->getText() << ".png\", "
+      << vars.getVariableNameString(RND_NAME) << ", "
+      << vars.getVariableNameString(TEXTURE_NAME) 
+    << ");\n"
+    ;
+  return  std::any();
 }
