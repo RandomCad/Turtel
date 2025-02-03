@@ -380,5 +380,6 @@ libs/SceneParser.cpp
 libs/SceneParser.h
 libs/SceneVisitor.cpp
 libs/SceneVisitor.h
+libs/*
 # Ignore Chach
 .cache
