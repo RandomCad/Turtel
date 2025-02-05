@@ -8,6 +8,49 @@
 #include <any>
 #include <ostream>
 
+///go back to WINDOW_X/2 and WINDOW_Y which should be the middle of the bottom of the screen
+std::any TopLevelVisitor::visitWaklHome(SceneParser::WaklHomeContext *ctx){
+  output  << "  SDL_RenderDrawLine("
+          << vars.getVariableNameString(RND_NAME) 
+          << ", " 
+          << vars.getVariableNameString(POS_X) 
+          << ", "
+          << vars.getVariableNameString(POS_Y) 
+          << ", "
+          << vars.getVariableNameString(WINDOW_X) << " / 2, "
+          << vars.getVariableNameString(WINDOW_Y) 
+          << ");\n"
+          
+          << vars.getVariableNameString(POS_X) 
+          << " = " 
+          << vars.getVariableNameString(WINDOW_X) 
+          << " / 2;\n"
+
+          << vars.getVariableNameString(POS_Y) 
+          << " = " 
+          << vars.getVariableNameString(WINDOW_Y) 
+          << ";\n"
+          ;
+
+  return std::any();
+}
+
+///go back to WINDOW_X/2 and WINDOW_Y which should be the middle of the bottom of the screen
+std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
+  output  << vars.getVariableNameString(POS_X) 
+          << " = " 
+          << vars.getVariableNameString(WINDOW_X) 
+          << " / 2;\n"
+
+          << vars.getVariableNameString(POS_Y) 
+          << " = " 
+          << vars.getVariableNameString(WINDOW_Y) 
+          << ";\n"
+          ;
+
+  return std::any();
+}
+
 ///File local funtion to move POS_X and POS_Y
 void MovePositions(VariableHeandler &vars, std::ostream &output, std::any &ret){
   if(ret.type() == typeid(std::string)){

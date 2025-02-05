@@ -22,6 +22,7 @@ Dieser kann zur überprüfung der korrekten Arbeitsweise SDL2 verwenden.
 * Java (13+(?))
 * c++17
 * git
+* libclang-dev
 
 ## Compilation
 
@@ -36,8 +37,7 @@ Warnungen können momentatan vernachlässigt werden.
 
 make oder ninja (nur bei weiterer Configuration) ausführen:
 
-`make`  
-`ninja` 
+`make` / `ninja` 
 
 Test ausführen.
 
