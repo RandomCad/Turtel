@@ -9,6 +9,7 @@
 #include "../libs/SceneParser.h"
 #include "../libs/SceneLexer.h"
 #include "src/VariableHeandler.h"
+#include "src/AstRewriteVisitor.h"
 
 using  namespace antlr4;
 
@@ -43,7 +44,7 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkVisit){
   CommonTokenStream tokens(&lexer);
   SceneParser parser(&tokens);
 
-  auto astStart = parser.walk();
+  auto astStart = dynamic_cast<SceneParser::WalkFrontContext*>(parser.walk());
   ASSERT_TRUE(astStart);
   ASSERT_TRUE(astStart->expr());
   ASSERT_EQ(typeid(astStart->expr()), typeid(SceneParser::ExprContext*));
@@ -103,6 +104,82 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkVisit){
       );
 }
 
+/*
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkBackVisit){
+  std::stringstream stream;
+  stream 
+    << "walk back 5\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto zwi = parser.stat();
+  zwi->accept(new AstRewriteVisitor());
+  auto astStart = dynamic_cast<SceneParser::WalkFrontContext*>(zwi->children[0]);
+
+  std::cerr << "test bank1:" << std::endl;
+  ASSERT_TRUE(astStart);
+  ASSERT_TRUE(astStart->expr());
+  ASSERT_EQ(typeid(astStart->expr()), typeid(SceneParser::ExprContext*));
+  auto numExpr = dynamic_cast<SceneParser::NegateContext*>( astStart->expr());
+  ASSERT_TRUE(numExpr);
+
+  std::cerr << "test bank2 prer:" << std::endl;
+  std::stringstream ret;
+  VariableHeandler var;
+  TopLevelVisitor toTest(ret, var);
+  std::any callRet;
+  std::cerr << "walking" << std::endl;
+  callRet = astStart->accept(&toTest);
+    
+  std::cerr << "test bank2:" << std::endl;
+  ASSERT_FALSE(callRet.has_value());
+
+  ret.flush();
+
+  std::string line;
+  std::getline(ret, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s+SDL_RenderDrawLine\\s*\\("
+          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
+          ")\\s*;\\s*"
+          )
+        )
+      );
+
+  std::getline(ret, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\w+\\s*="
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+
+  std::getline(ret, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\w+\\s*="
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}//*/
+
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, JumpVisit){
   std::stringstream stream;
   stream 
@@ -113,7 +190,7 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, JumpVisit){
   CommonTokenStream tokens(&lexer);
   SceneParser parser(&tokens);
 
-  auto astStart = parser.jump();
+  auto astStart = dynamic_cast<SceneParser::JumpFrontContext*>(parser.jump());
   ASSERT_TRUE(astStart);
   ASSERT_TRUE(astStart->expr());
   ASSERT_EQ(typeid(astStart->expr()), typeid(SceneParser::ExprContext*));

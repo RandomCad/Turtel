@@ -49,7 +49,7 @@ void MovePositions(VariableHeandler &vars, std::ostream &output, std::any &ret){
  *Expected output:
  *SDL_RenderDrawLine(@renderVar, @x, @y, @x + divx, @y + divy
  * */
-std::any TopLevelVisitor::visitWalk(SceneParser::WalkContext *ctx){
+std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
   std::any ret = ctx->expr()->accept(&mathVis);
   output  << "  SDL_RenderDrawLine("
           << vars.getVariableNameString(RND_NAME) 
@@ -84,7 +84,7 @@ std::any TopLevelVisitor::visitWalk(SceneParser::WalkContext *ctx){
   return std::any();
 }
 
-std::any TopLevelVisitor::visitJump(SceneParser::JumpContext *ctx){
+std::any TopLevelVisitor::visitJumpFront(SceneParser::JumpFrontContext *ctx){
   std::any ret = ctx->expr()->accept(&mathVis);
 
   MovePositions(vars, output, ret);

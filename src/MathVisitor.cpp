@@ -1,4 +1,5 @@
 #include "MathVisitor.h"
+#include <cassert>
 #include <cmath>
 #include <iostream>
 
@@ -27,7 +28,8 @@ std::any MathVisitor::visitABS(SceneParser::ABSContext *ctx){
 }
 
 std::any MathVisitor::visitNegate(SceneParser::NegateContext *ctx){
-  std::any number = ctx->number()->accept(this);
+  assert(ctx->children.size() == 1);
+  std::any number = ctx->children[0]->accept(this);
   if (number.type() == typeid(int64_t)){
     return -std::any_cast<int64_t>(number);
   }

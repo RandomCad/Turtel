@@ -24,9 +24,9 @@ class TopLevelVisitor : public SceneBaseVisitor{
     {};
     
     ///The visitor for a walk statment.
-    std::any visitWalk(SceneParser::WalkContext *ctx) override;
+    std::any visitJumpFront(SceneParser::JumpFrontContext *ctx) override;
+    std::any visitWalkFront(SceneParser::WalkFrontContext *ctx) override;
     std::any visitSave(SceneParser::SaveContext *ctx) override;
-    std::any visitJump(SceneParser::JumpContext *ctx) override;
     ///The folowing commented out functions must be implimented by a preprocessing step by rewriteing the AST
     //std::any visitWalkBack(SceneParser::WalkBackContext *ctx) override;
     //std::any visitJumpBack(SceneParser::JumpBackContext *ctx) override;

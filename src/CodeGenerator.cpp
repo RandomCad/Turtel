@@ -3,6 +3,7 @@
 #include "InternalVarNames.h"
 #include "CodeGenerator.h"
 #include "CodeGenerator.Helper.h"
+#include "AstRewriteVisitor.h"
 
 #include <any>
 #include <cmath>
@@ -73,6 +74,7 @@ void CodeGenerator::GenerateCode(){
   AddFunctionDeclaration();
   AddGlobalVars();
   AddMain();
+  astMain->accept(new AstRewriteVisitor());
   astMain->accept(this);
   AddTurtelFunctions();
 }

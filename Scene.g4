@@ -8,9 +8,7 @@ calcdef : 'a';
 
 stat    : walk
         | save
-        | walkBack
         | jump
-        | jumpBack
         | waklHome
         | jumpHome
         | turnLeft
@@ -21,11 +19,13 @@ stat    : walk
         | finish
         ;
 
-walk  	  : Walk expr ;
+walk  	  : Walk expr       #WalkFront
+          | Walk Back expr  #WalkBack
+          ;
+jump      : Jump expr       #JumpFront
+          | Jump Back expr  #JumpBack
+          ; ///< same as walk without drawing
 save      : Save ID ; ///<Save the drawen immage to the named Bitmap
-walkBack  : Walk Back expr; ///<walk in the opposit direktion of the looking dir
-jump      : Jump expr ; ///< same as walk without drawing
-jumpBack  : Jump Back expr ;
 waklHome  : Walk Home; ///< draw a line to the home position
 jumpHome  : Jump Home; ///< jump to the home position
 turnLeft  : Turn Left expr; ///< turn x deg to the left (positiv)
@@ -45,7 +45,7 @@ expr  : ( klamKon | number) '^' (klamKon | number) #Exp
       | expr '+' expr #Add
       | expr '-' expr #Dim
       | '|' expr '|'  #ABS
-      | '-' number    #Negate
+      | '-' ( number | klamKon )   #Negate
       | number	      #NumExpr	
       | var	      #VarExpr
       ;
