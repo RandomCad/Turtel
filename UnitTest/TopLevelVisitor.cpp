@@ -26,14 +26,11 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, TurnRight){
   auto astStart = parser.turnRight();
   ASSERT_TRUE(astStart);
 
-  std::cerr << "zwi" << std::endl;
   std::stringstream retStream;
   VariableHeandler var;
   TopLevelVisitor toTest(retStream, var);
 
-  std::cerr << "zwi" << std::endl;
   std::any ret = astStart->accept(&toTest);
-  std::cerr << "zwi" << std::endl;
 
   std::string line;
   std::getline(retStream, line);
@@ -43,6 +40,37 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, TurnRight){
         line,
         std::regex(
           "\\s*\\w+\\s*\\+=\\s*\\(\\s*5\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, Direction){
+  std::stringstream stream;
+  stream 
+    << "direction 5"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  auto astStart = parser.direction();
+  ASSERT_TRUE(astStart);
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\w+\\s*\\=\\s*\\(\\s*5\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*"
           )
         )
       );

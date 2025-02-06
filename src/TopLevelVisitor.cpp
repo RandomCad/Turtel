@@ -9,6 +9,40 @@
 #include <cstdint>
 #include <ostream>
 
+std::any TopLevelVisitor::visitDirection(SceneParser::DirectionContext *ctx){
+  std::any ret = ctx->expr()->accept(&mathVis);
+  if(ret.type() == typeid(std::string)){ //TODO clamp (what if always turning to the rigth -> pressision of the double gets worse.
+    output  << "  " 
+            << vars.getVariableNameString(ROTATION) 
+            << " = ("
+            << std::any_cast<std::string>(ret)
+            << ") * (M_PI/180);\n"
+            ;
+  }
+  else if (ret.type() == typeid(int64_t)){
+    output  << "  " 
+            << vars.getVariableNameString(ROTATION) 
+            << " = ("
+            << std::any_cast<int64_t>(ret)
+            << ") * (M_PI/180);\n"
+            ;
+  }
+  else if (ret.type() == typeid(double)){
+    output  << "  " 
+            << vars.getVariableNameString(ROTATION) 
+            << " = ("
+            << std::any_cast<double>(ret)
+            << ") * (M_PI/180);\n"
+            ;  
+  }
+  else{
+    throw "Error unknowen type";
+  }
+  
+  return std::any();
+
+}
+
 std::any TopLevelVisitor::visitTurnRight(SceneParser::TurnRightContext *ctx){
   std::any ret = ctx->expr()->accept(&mathVis);
   if(ret.type() == typeid(std::string)){ //TODO clamp (what if always turning to the rigth -> pressision of the double gets worse.
