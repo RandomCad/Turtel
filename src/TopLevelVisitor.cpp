@@ -9,6 +9,14 @@
 #include <cstdint>
 #include <ostream>
 
+std::any TopLevelVisitor::visitClear(SceneParser::ClearContext *ctx){
+  output  << "  SDL_RenderClear("
+          << vars.getVariableNameString(RND_NAME)
+          << ");\n"
+          ;
+  return std::any();
+}
+
 std::any TopLevelVisitor::visitDirection(SceneParser::DirectionContext *ctx){
   std::any ret = ctx->expr()->accept(&mathVis);
   if(ret.type() == typeid(std::string)){ //TODO clamp (what if always turning to the rigth -> pressision of the double gets worse.

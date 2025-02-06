@@ -13,6 +13,38 @@
 
 using  namespace antlr4;
 
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, Clear){
+  std::stringstream stream;
+  stream 
+    << "clear"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  auto astStart = parser.clear();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*SDL_RenderClear\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}
+
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, TurnRight){
   std::stringstream stream;
   stream 
