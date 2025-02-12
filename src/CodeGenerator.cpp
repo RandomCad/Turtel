@@ -71,8 +71,8 @@ std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
 //5. Turtel Funktions
 void CodeGenerator::GenerateCode(){
   AddIncludes();
-  AddFunctionDeclaration();
   AddGlobalVars();
+  AddFunctionDeclaration();
   AddMain();
   astMain->accept(new AstRewriteVisitor());
   astMain->accept(this);
@@ -93,27 +93,11 @@ void CodeGenerator::AddFunctionDeclaration(){
   output
     << "//declaration of the Turtel Main:\n"
     << "void TurtelMain(" << _variables.getVariableDefinition(RND_NAME) << ");\n" //TODO add needed parameters
-    << "void save_texture(const char* file_name, SDL_Renderer* renderer, SDL_Texture* texture) {\n"
-    << "  SDL_Texture* target = SDL_GetRenderTarget(renderer);\n"
-    << "  SDL_SetRenderTarget(renderer, texture);\n"
-    << "  int width, height;\n"
-    << "  SDL_QueryTexture(texture, NULL, NULL, &width, &height);\n"
-    << "  SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);\n"
-    << "  SDL_RenderReadPixels(renderer, NULL, surface->format->format, surface->pixels, surface->pitch);\n"
-    << "  IMG_SavePNG(surface, file_name);\n"
-    << "  SDL_FreeSurface(surface);\n"
-    << "  SDL_SetRenderTarget(renderer, target);\n"
-    << "}\n"
-    << std::endl
-  //add pathdef Functions:
-    << "//declaration of the pathdefs\n"
-    << std::endl
-  //TODO do
-  //add calcdef Functions:
-    << "//declaration of the calcdefs\n"
-    << std::endl
-  //TODO do
     ;
+
+  ///get all the function definitions
+  _funcs.getFunctionDeclarations(output);
+
 }
 
 void CodeGenerator::AddGlobalVars(){
@@ -121,6 +105,7 @@ void CodeGenerator::AddGlobalVars(){
     << _variables.getVariableDefinition(WINDOW_X) << "=800;\n"
     << _variables.getVariableDefinition(WINDOW_Y) << "=600;\n"
     << _variables.getVariableDefinition(TEXTURE_NAME) << ";\n"
+    << _variables.getVariableDefinition(WINDOW_NAME) << ";\n"
     ;
   ///Global programed _variables
 }
@@ -132,13 +117,20 @@ void CodeGenerator::AddMain(){
   ///sdl init
     << "  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"
   ///creat window
-    << "  SDL_Window* window = SDL_CreateWindow( \"Main Window\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, "
+    << "  " 
+    << _variables.getVariableNameString(WINDOW_NAME)
+    << " = SDL_CreateWindow( \"Main Window\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, "
     << _variables.getVariableNameString(WINDOW_X) << ',' 
     << _variables.getVariableNameString(WINDOW_Y) << ','
     << "SDL_WINDOW_SHOWN );\n"
 
   ///Define renderer
-    << "  " << _variables.getVariableDefinition(RND_NAME) << " = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);\n"
+    << "  " 
+    << _variables.getVariableDefinition(RND_NAME) 
+    << " = SDL_CreateRenderer("
+    << _variables.getVariableNameString(WINDOW_NAME)
+    << ", -1, SDL_RENDERER_ACCELERATED);\n"
+
     << "  " << _variables.getVariableNameString(TEXTURE_NAME) << " = SDL_CreateTexture( " << _variables.getVariableNameString(RND_NAME) << ", SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, " << _variables.getVariableNameString(WINDOW_X) << ", " << _variables.getVariableNameString(WINDOW_Y) << ");\n"
     << "  SDL_Event events;\n"
   //allocate stack
@@ -165,18 +157,24 @@ void CodeGenerator::AddMain(){
     << "  }while(1);\n"
     #endif
     << "  SDL_DEINIT_LABLE:\n"
+    ;
+  std::cerr << "generate endFunc Call" << std::endl;
   //sdl Deinit
-    << "  SDL_DestroyRenderer(" << _variables.getVariableNameString(RND_NAME) << ");\n"
-    << "  SDL_DestroyWindow(window);\n"
-    << "  SDL_Quit();\n"
-  //main end
-    << "}\n"
-    << std::endl;
+  _funcs.getFunctionCall(
+      END_FUNC,
+      std::vector<Variable>
+      {
+        Variable()
+        _variables.getVariable(RND_NAME)
+      }
+      );
+
 }
 
 void CodeGenerator::AddTurtelFunctions(){
-  //TODO:
+  _funcs.ImplementFunctions(output); 
 }
+
 CodeGenerator::CodeGenerator(std::ostream &outStream)
   : output(outStream), astBase(nullptr), _topVis(output, _variables), _mathVis(_variables) {}
 

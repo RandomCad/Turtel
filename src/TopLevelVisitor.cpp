@@ -9,6 +9,16 @@
 #include <cstdint>
 #include <ostream>
 
+std::any TopLevelVisitor::visitStopOK(SceneParser::StopOKContext *ctx){
+
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitStopError(SceneParser::StopErrorContext *ctx){
+
+  return std::any();
+}
+
 std::any TopLevelVisitor::visitClear(SceneParser::ClearContext *ctx){
   output  << "  SDL_RenderClear("
           << vars.getVariableNameString(RND_NAME)

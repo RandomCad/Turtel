@@ -32,6 +32,8 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitTurnRight(SceneParser::TurnRightContext *ctx) override;
     std::any visitDirection(SceneParser::DirectionContext *ctx) override;
     std::any visitClear(SceneParser::ClearContext *ctx) override;
+    std::any visitStopError(SceneParser::StopErrorContext *ctx) override;
+    std::any visitStopOK(SceneParser::StopOKContext *ctx) override;
     ///The folowing commented out functions must be implimented by a preprocessing step by rewriteing the AST
     //std::any visitWalkBack(SceneParser::WalkBackContext *ctx) override;
     //std::any visitJumpBack(SceneParser::JumpBackContext *ctx) override;

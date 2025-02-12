@@ -12,6 +12,7 @@
 #include "src/MathVisitor.h"
 #include "src/TopLevelVisitor.h"
 #include "src/VariableHeandler.h"
+#include "src/FunctionHandler.h"
 #include "../UnitTest/TestSuits.h"
 
 #define CALC_POS_X(len) POSITION_X_NAME + len * cos(ROTATION_NAME)
@@ -29,6 +30,7 @@ class CodeGenerator : public SceneBaseVisitor{
     std::vector<SceneParser::PathdefContext *> astPathdef;
 
     VariableHeandler _variables;
+    FuctionHandler _funcs;
     TopLevelVisitor _topVis;
     MathVisitor _mathVis;
     //Only used for Unittesting
@@ -51,7 +53,7 @@ class CodeGenerator : public SceneBaseVisitor{
     void ProgrammBase();
     void EndeMain();
 
-    FRIEND_TEST(Code_Generator_Test, AddMain);
+    FRIEND_TEST(CodeGenerator, AddMain);
     FRIEND_TEST(CodeGenerator, BasicEmptyMain);
     FRIEND_TEST(CodeGenerator, BasicWalk);
     FRIEND_TEST(CodeGenerator, AddFunctionDeclaration);

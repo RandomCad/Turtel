@@ -97,6 +97,8 @@ set(CodeGeneration
   src/MathVisitor.cpp
   src/TopLevelVisitor.cpp
   src/AstRewriteVisitor.cpp
+  src/FunctionHandler.cpp
+  src/Function.cpp
   )
 # Creat LLVM Interface variable
 set(LLVM_Interface src/LLVMInterface.cpp)
@@ -138,6 +140,7 @@ set(
   UnitTest/TopLevelVisitor.cpp
   UnitTest/MathVisitor.cpp
   UnitTest/AstRewriteVisitor.cpp
+  UnitTest/Function.cpp
   )
 
 add_executable(
