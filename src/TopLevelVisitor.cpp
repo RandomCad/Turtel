@@ -21,15 +21,30 @@ std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
   }
 }
 
-std::any TopLevelVisitor::visitStopOK(SceneParser::StopOKContext *ctx){
+std::any TopLevelVisitor::visitFinError(SceneParser::FinErrorContext *ctx){
+  output 
+    << "  __envfunc_fin("
+    << UnwrapExpre(ctx->expr())
+    <<", " << vars.getVariableNameString(RND_NAME) << ");\n";
+  return std::any();
+
+}
+
+std::any TopLevelVisitor::visitFinOK(SceneParser::FinOKContext *ctx){
   output 
     << "  __envfunc_fin(0, " << vars.getVariableNameString(RND_NAME) << ");\n";
   return std::any();
 }
 
+std::any TopLevelVisitor::visitStopOK(SceneParser::StopOKContext *ctx){
+  output 
+    << "  __envfunc_stop(0, " << vars.getVariableNameString(RND_NAME) << ");\n";
+  return std::any();
+}
+
 std::any TopLevelVisitor::visitStopError(SceneParser::StopErrorContext *ctx){
   output 
-    << "  __envfunc_fin("
+    << "  __envfunc_stop("
     << UnwrapExpre(ctx->expr())
     <<", " << vars.getVariableNameString(RND_NAME) << ");\n";
   return std::any();

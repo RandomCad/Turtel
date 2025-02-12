@@ -34,6 +34,10 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitClear(SceneParser::ClearContext *ctx) override;
     std::any visitStopError(SceneParser::StopErrorContext *ctx) override;
     std::any visitStopOK(SceneParser::StopOKContext *ctx) override;
+    std::any visitFinError(SceneParser::FinErrorContext *ctx) override;
+    std::any visitFinOK(SceneParser::FinOKContext *ctx) override;
+
+
   private:
     std::string UnwrapExpre(SceneParser::ExprContext *ctx);
 
