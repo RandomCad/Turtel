@@ -51,7 +51,7 @@ class CodeGenerator : public SceneBaseVisitor{
     void ProgrammBase();
     void EndeMain();
 
-    FRIEND_TEST(Code_Generator_Test, AddMain);
+    FRIEND_TEST(CodeGenerator, AddMain);
     FRIEND_TEST(CodeGenerator, BasicEmptyMain);
     FRIEND_TEST(CodeGenerator, BasicWalk);
     FRIEND_TEST(CodeGenerator, AddFunctionDeclaration);

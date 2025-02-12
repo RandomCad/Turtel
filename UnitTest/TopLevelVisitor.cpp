@@ -13,6 +13,231 @@
 
 using  namespace antlr4;
 
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, StopNOK){
+  std::stringstream stream;
+  stream 
+    << "stop 5"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  auto astStart = parser.stop();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*__envfunc_stop\\s*\\(\\s*5\\s*,\\s*\\w+\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, StopOK){
+  std::stringstream stream;
+  stream 
+    << "stop"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  auto astStart = parser.stop();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*__envfunc_stop\\s*\\(\\s*0\\s*,\\s*\\w+\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}
+
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, FinishNOK){
+  std::stringstream stream;
+  stream 
+    << "finish 5"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  auto astStart = parser.finish();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*__envfunc_fin\\s*\\(\\s*5\\s*,\\s*\\w+\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, FinishOK){
+  std::stringstream stream;
+  stream 
+    << "finish"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  auto astStart = parser.finish();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*__envfunc_fin\\s*\\(\\s*0\\s*,\\s*\\w+\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}
+
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, Clear){
+  std::stringstream stream;
+  stream 
+    << "clear"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  auto astStart = parser.clear();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*SDL_RenderClear\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, TurnRight){
+  std::stringstream stream;
+  stream 
+    << "turn right 5"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  auto astStart = parser.turnRight();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\w+\\s*\\+=\\s*\\(\\s*5\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, Direction){
+  std::stringstream stream;
+  stream 
+    << "direction 5"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  auto astStart = parser.direction();
+  ASSERT_TRUE(astStart);
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\w+\\s*\\=\\s*\\(\\s*5\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}
+
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, JumpHome){
   std::stringstream stream;
   stream 

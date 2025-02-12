@@ -178,7 +178,7 @@ TEST(CodeGeneratorTestSuite, TestEmptyMainVisit){
   )));
 }
 
-TEST(Code_Generator_Test, AddMain){
+TEST(CodeGeneratorTestSuite, AddMain){
   std::stringstream in1;
   
   std::stringstream stream;

@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 
+
 ///Defince all posible types of varaiables for the transpiler 
 enum VarType{
   RENDERER, ///< The type of the SDL2 renderer in \ref VariableHeandler::enviornment
@@ -8,7 +9,15 @@ enum VarType{
   CONST_DOUBLE, ///< Constant c-double
   TESXTUR, ///< The sdl texture type
   //SURFACE, ///< The sdl surface for output of immages
+  WINDOW, ///< The main and only window of the program
+  CONST_CHAR_PTR,
+  VOID,
+  EVENT
 };
+
+namespace VarTypeNS{
+  std::string getTypeName(VarType type);
+}
 
 struct Variable{
   VarType type;

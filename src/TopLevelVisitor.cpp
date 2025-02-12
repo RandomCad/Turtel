@@ -6,7 +6,77 @@
 #include "src/VariableHeandler.h"
 
 #include <any>
+#include <cstdint>
 #include <ostream>
+#include <string>
+
+///define function to unpack expr return
+std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
+  std::any ret = ctx->accept(&mathVis);
+  if(ret.type() == typeid(std::string))     return std::any_cast<std::string>(ret);
+  else if (ret.type() == typeid(int64_t))   return std::to_string(std::any_cast<int64_t>(ret));
+  else if (ret.type() == typeid(double))   return std::to_string(std::any_cast<double>(ret));
+  else{
+    throw "Error unknowen type";
+  }
+}
+
+std::any TopLevelVisitor::visitFinError(SceneParser::FinErrorContext *ctx){
+  output 
+    << "  __envfunc_fin("
+    << UnwrapExpre(ctx->expr())
+    <<", " << vars.getVariableNameString(RND_NAME) << ");\n";
+  return std::any();
+
+}
+
+std::any TopLevelVisitor::visitFinOK(SceneParser::FinOKContext *ctx){
+  output 
+    << "  __envfunc_fin(0, " << vars.getVariableNameString(RND_NAME) << ");\n";
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitStopOK(SceneParser::StopOKContext *ctx){
+  output 
+    << "  __envfunc_stop(0, " << vars.getVariableNameString(RND_NAME) << ");\n";
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitStopError(SceneParser::StopErrorContext *ctx){
+  output 
+    << "  __envfunc_stop("
+    << UnwrapExpre(ctx->expr())
+    <<", " << vars.getVariableNameString(RND_NAME) << ");\n";
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitClear(SceneParser::ClearContext *ctx){
+  output  << "  SDL_RenderClear("
+          << vars.getVariableNameString(RND_NAME)
+          << ");\n"
+          ;
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitDirection(SceneParser::DirectionContext *ctx){
+  output  << "  " 
+          << vars.getVariableNameString(ROTATION) 
+          << " = ("
+          << UnwrapExpre(ctx->expr())
+          << ") * (M_PI/180);\n"
+          ;
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitTurnRight(SceneParser::TurnRightContext *ctx){
+  output  << "  " 
+          << vars.getVariableNameString(ROTATION) 
+          << " += ("
+          << UnwrapExpre(ctx->expr())
+          << ") * (M_PI/180);\n"
+          ;
+  return std::any();
+}
 
 ///go back to WINDOW_X/2 and WINDOW_Y which should be the middle of the bottom of the screen
 std::any TopLevelVisitor::visitWaklHome(SceneParser::WaklHomeContext *ctx){
@@ -100,28 +170,12 @@ std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
           << vars.getVariableNameString(POS_X) 
           << ", "
           << vars.getVariableNameString(POS_Y) 
-          << ", ";
-
-  if(ret.type() == typeid(std::string)){
-    CalcPosX(std::any_cast<std::string>(ret), output, vars);
-    output << ", ";
-    CalcPosY(std::any_cast<std::string>(ret), output, vars);
-  }
-  else if (ret.type() == typeid(int64_t)){
-    std::cout << "got an int" << std::endl;
-    CalcPosX(std::any_cast<int64_t>(ret), output, vars);
-    output << ", ";
-    CalcPosY(std::any_cast<int64_t>(ret), output, vars);
-  }
-  else if (ret.type() == typeid(double)){
-    CalcPosX(std::any_cast<double>(ret), output, vars);
-    output << ", ";
-    CalcPosY(std::any_cast<double>(ret), output, vars);
-  }
-  else{
-    throw "Error unknowen type";
-  }
-  output << ");\n";
+          << ", "
+          ;
+  CalcPosX(UnwrapExpre(ctx->expr()), output, vars);
+  output  << ",";
+  CalcPosY(UnwrapExpre(ctx->expr()), output, vars);
+  output  << ");\n";
   MovePositions(vars, output, ret);
   GenPresent(vars, output);
   return std::any();

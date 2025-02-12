@@ -28,15 +28,16 @@ jump      : Jump expr       #JumpFront
 save      : Save ID ; ///<Save the drawen immage to the named Bitmap
 waklHome  : Walk Home; ///< draw a line to the home position
 jumpHome  : Jump Home; ///< jump to the home position
-turnLeft  : Turn Left expr; ///< turn x deg to the left (positiv)
-turnRight : Turn Right expr; ///< turn x deg to the right (negative)
+turnLeft  : Turn Left expr; ///< turn x deg to the left 
+turnRight : Turn (Right)? expr; ///< turn x deg to the right 
 direction : Direction expr; ///< set the looking direktion to expr from the global 0(up)
 clear     : Clear; ///< reset the screen to basecollore
-stop      : Stop      ///< end the program and wait for user input
-          | Stop expr;///< return code is expr (rounded)
-finish    : Finish
-          | Finish expr; ///< emediatly return
-
+stop      : Stop #StopOK     ///< end the program and wait for user input
+          | Stop expr #StopError ///< return code is expr (rounded)
+          ;
+finish    : Finish #FinOK
+          | Finish expr #FinError ///< emediatly return
+          ;
 
 // Parser rules
 expr  : ( klamKon | number) '^' (klamKon | number) #Exp
