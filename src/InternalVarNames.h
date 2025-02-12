@@ -1,5 +1,9 @@
 #pragma once
 
+///definition of the window variable name
+#define WINDOW_NAME "&window"
+///definition of the event var name
+#define EVENT_NAME "&events"
 ///define the name of the renderer
 #define RND_NAME "&rnd"
 ///define the backtexture
@@ -22,3 +26,10 @@
 
 ///Debuging
 #define DEBUG_SURFACE "&surface"
+
+
+//also define functionNames
+///the name of the save immage function
+#define IMMAGE_FUNC "\%Immage"
+#define END_FUNC "\%End"
+#define FINISH_FUNC "\%Fin"

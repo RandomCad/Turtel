@@ -8,6 +8,32 @@
 #include <any>
 #include <cstdint>
 #include <ostream>
+#include <string>
+
+///define function to unpack expr return
+std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
+  std::any ret = ctx->accept(&mathVis);
+  if(ret.type() == typeid(std::string))     return std::any_cast<std::string>(ret);
+  else if (ret.type() == typeid(int64_t))   return std::to_string(std::any_cast<int64_t>(ret));
+  else if (ret.type() == typeid(double))   return std::to_string(std::any_cast<double>(ret));
+  else{
+    throw "Error unknowen type";
+  }
+}
+
+std::any TopLevelVisitor::visitStopOK(SceneParser::StopOKContext *ctx){
+  output 
+    << "  __envfunc_fin(0, " << vars.getVariableNameString(RND_NAME) << ");\n";
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitStopError(SceneParser::StopErrorContext *ctx){
+  output 
+    << "  __envfunc_fin("
+    << UnwrapExpre(ctx->expr())
+    <<", " << vars.getVariableNameString(RND_NAME) << ");\n";
+  return std::any();
+}
 
 std::any TopLevelVisitor::visitClear(SceneParser::ClearContext *ctx){
   output  << "  SDL_RenderClear("

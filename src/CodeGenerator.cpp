@@ -71,8 +71,8 @@ std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
 //5. Turtel Funktions
 void CodeGenerator::GenerateCode(){
   AddIncludes();
-  AddFunctionDeclaration();
   AddGlobalVars();
+  AddFunctionDeclaration();
   AddMain();
   astMain->accept(new AstRewriteVisitor());
   astMain->accept(this);
@@ -104,6 +104,31 @@ void CodeGenerator::AddFunctionDeclaration(){
     << "  SDL_FreeSurface(surface);\n"
     << "  SDL_SetRenderTarget(renderer, target);\n"
     << "}\n"
+  ///define the finsih function
+    << "void __envfunc_stop(const double ret, SDL_Renderer * rnd){\n" 
+    << "  SDL_DestroyRenderer(rnd);\n"
+    << "  SDL_DestroyWindow( " << _variables.getVariableNameString(WINDOW_NAME) << ");\n"
+    << "  SDL_Quit();\n"
+    << "  exit((int) ret);\n"
+    << "}"
+  ///define the stop function
+    << "void __envfunc_fin(const double ret, SDL_Renderer * rnd){\n"
+#ifndef UNIT_TEST
+    << "  do{\n"
+#ifndef NDEBUG
+    << "    printf(\"Event Loop\\n\");\n"
+#endif
+    << "    SDL_WaitEvent(&" << _variables.getVariableNameString(EVENT_NAME) << ");\n"
+    << "    switch ("<< _variables.getVariableNameString(EVENT_NAME) << ".type){\n"
+    << "      case SDL_KEYDOWN:\n"
+    << "      case SDL_QUIT: goto SDL_DEINIT_LABLE;\n"
+    << "      default: break;\n"
+    << "    }\n"
+    << "  }while(1);\n"
+#endif
+    << "SDL_DEINIT_LABLE:\n"
+    << "  __envfunc_stop(0, rnd);\n"
+    << "}\n"
     << std::endl
   //add pathdef Functions:
     << "//declaration of the pathdefs\n"
@@ -121,6 +146,8 @@ void CodeGenerator::AddGlobalVars(){
     << _variables.getVariableDefinition(WINDOW_X) << "=800;\n"
     << _variables.getVariableDefinition(WINDOW_Y) << "=600;\n"
     << _variables.getVariableDefinition(TEXTURE_NAME) << ";\n"
+    << _variables.getVariableDefinition(WINDOW_NAME) << ";\n"
+    << _variables.getVariableDefinition(EVENT_NAME) << ";\n"
     ;
   ///Global programed _variables
 }
@@ -132,14 +159,31 @@ void CodeGenerator::AddMain(){
   ///sdl init
     << "  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"
   ///creat window
-    << "  SDL_Window* window = SDL_CreateWindow( \"Main Window\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, "
+    << "  "
+    << _variables.getVariableNameString(WINDOW_NAME)
+    << "= SDL_CreateWindow( \"Main Window\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, "
+
     << _variables.getVariableNameString(WINDOW_X) << ',' 
     << _variables.getVariableNameString(WINDOW_Y) << ','
     << "SDL_WINDOW_SHOWN );\n"
 
   ///Define renderer
-    << "  " << _variables.getVariableDefinition(RND_NAME) << " = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);\n"
-    << "  " << _variables.getVariableNameString(TEXTURE_NAME) << " = SDL_CreateTexture( " << _variables.getVariableNameString(RND_NAME) << ", SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, " << _variables.getVariableNameString(WINDOW_X) << ", " << _variables.getVariableNameString(WINDOW_Y) << ");\n"
+    << "  " 
+    << _variables.getVariableDefinition(RND_NAME) 
+    << " = SDL_CreateRenderer("
+    << _variables.getVariableNameString(WINDOW_NAME)
+    << ", -1, SDL_RENDERER_ACCELERATED);\n"
+    
+    << "  " 
+    << _variables.getVariableNameString(TEXTURE_NAME) 
+    << " = SDL_CreateTexture( " 
+    << _variables.getVariableNameString(RND_NAME) 
+    << ", SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, " 
+    << _variables.getVariableNameString(WINDOW_X) 
+    << ", " 
+    << _variables.getVariableNameString(WINDOW_Y) 
+    << ");\n"
+
     << "  SDL_Event events;\n"
   //allocate stack
 
@@ -151,24 +195,7 @@ void CodeGenerator::AddMain(){
   //call TurtelMain
     << "  TurtelMain(" << _variables.getVariableNameString(RND_NAME) << ");\n" //TODO add the parameters
   //Implicit wait
-    #ifndef UNIT_TEST
-    << "  do{\n"
-    #ifdef NDEBUG
-    << "    printf(\"Event Loop\\n\");\n"
-    #endif
-    << "    SDL_WaitEvent(&events);\n"
-    << "    switch (events.type){\n"
-    << "      case SDL_KEYDOWN:\n"
-    << "      case SDL_QUIT: goto SDL_DEINIT_LABLE;\n"
-    << "      default: break;\n"
-    << "    }\n"
-    << "  }while(1);\n"
-    #endif
-    << "  SDL_DEINIT_LABLE:\n"
-  //sdl Deinit
-    << "  SDL_DestroyRenderer(" << _variables.getVariableNameString(RND_NAME) << ");\n"
-    << "  SDL_DestroyWindow(window);\n"
-    << "  SDL_Quit();\n"
+    << "  __envfunc_fin(0, " << _variables.getVariableNameString(RND_NAME) << ");\n"
   //main end
     << "}\n"
     << std::endl;

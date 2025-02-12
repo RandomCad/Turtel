@@ -8,7 +8,7 @@
 
 #include "InternalVarNames.h"
 
-const std::map<std::string, Variable> VariableHeandler::enviornment = {
+const std::unordered_map<std::string, Variable> VariableHeandler::enviornment = {
  {std::string(RND_NAME),Variable(VarType::RENDERER,"__env_rnd")},
  {std::string(WINDOW_X), Variable(VarType::CONST_DOUBLE, "__env_wx")},
  {std::string(WINDOW_Y), Variable(VarType::CONST_DOUBLE, "__env_wy")},
@@ -21,6 +21,8 @@ const std::map<std::string, Variable> VariableHeandler::enviornment = {
  {std::string(COLOR_G),Variable(VarType::DOUBLE,"__env_green")},
  {std::string(COLOR_B),Variable(VarType::DOUBLE,"__env_blue")},
  {std::string(TEXTURE_NAME), Variable(VarType::TESXTUR, "__env_textur")},
+ {std::string(WINDOW_NAME), Variable(VarType::WINDOW, "__env_window")},
+ {std::string(EVENT_NAME), Variable(VarType::EVENT, "__env_event")},
 };
 
 const std::string VariableHeandler::getVariableNameString(const std::string&nm){
@@ -45,6 +47,18 @@ const std::string VariableHeandler::getVariableDefinition(const std::string&nm){
   auto ret = enviornment.find(nm);
   if( ret != enviornment.end()){
     return ret->second.getTypeAndName();
+  }
+  //TODO error case
+}
+
+Variable VariableHeandler::getVariable(const std::string&nm){
+  for(std::vector<std::map<std::string,Variable>>::reverse_iterator i = contextStack.rbegin();i != contextStack.rend(); ++i){
+    if(std::map<std::string,Variable>::iterator ret = i->find(nm); ret != i->end()){
+      return ret->second;
+    }
+  }
+  if(auto ret = enviornment.find(nm); ret != enviornment.end()){
+    return ret->second;
   }
   //TODO error case
 }
