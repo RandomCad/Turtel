@@ -23,7 +23,7 @@ stat    : walk
         | colorCmd
         ;
 ///Variable commands
-store   : 'store' expr 'in' var ;
+storeVar: 'store' expr 'in' var ;
 addVar  : 'add' expr 'to' var;
 subVar  : 'sub' expr 'from' var;
 divVar  : 'div' var 'by' expr;
