@@ -96,6 +96,8 @@ set(CodeGeneration
   src/VariableHeandler.cpp
   src/TopLevelVisitor.cpp
   src/VariableVisitor.cpp
+  src/FunctionHandler.cpp
+  src/Function.cpp
   )
 # Creat LLVM Interface variable
 set(LLVM_Interface src/LLVMInterface.cpp)
@@ -136,6 +138,7 @@ set(
   UnitTest/CodeGenerator.cpp
   UnitTest/TopLevelVisitor.cpp
   UnitTest/VariableVisitor.cpp
+  UnitTest/Function.cpp
   )
 
 add_executable(

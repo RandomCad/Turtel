@@ -1,24 +1,26 @@
 grammar Scene;
 
 // Lexer rules
-Walk	: 'walk';
-Save  : 'save';
-Back  : 'back';
-Jump  : 'jump';
-Home  : 'home';
-Left  : 'left';
-Turn  : 'turn';
-Stop  : 'stop';
-Right : 'right';
-Clear : 'clear';
-Finish: 'finish';
-Direction : 'direction';
-Mark: 'mark';
-Store : 'store';
-In    : 'in';
-Step  : 'step';
-While : 'while';
-Untile: 'untile';
+Walk	: 'walk'          ;
+Save  : 'save'          ;
+Back  : 'back'          ;
+Jump  : 'jump'          ;
+Home  : 'home'          ;
+Left  : 'left'          ;
+Turn  : 'turn'          ;
+Stop  : 'stop'          ;
+Right : 'right'         ;
+Clear : 'clear'         ;
+Finish: 'finish'        ;
+Direction : 'direction' ;
+Mark  : 'mark'          ;
+Store : 'store'         ;
+In    : 'in'            ;
+Step  : 'step'          ;
+While : 'while'         ;
+Untile: 'untile'        ;
+Begin : 'begin'         ;
+End   : 'end'           ;
 
 Num   : [0-9]+ ;
 Float : [0-9]+ '.' [0-9]+
@@ -29,9 +31,12 @@ IncID : '@' [_@a-zA-Z0-9]* ;
 
 file  : (pathdef | calcdef)* main (pathdef |calcdef)*; 
 
-main    : 'begin' stat* 'end';
-pathdef : 'a';
-calcdef : 'a';
+main    : Begin stat* End;
+pathdef : 'path' ID paramlist? stat* 'endpath' ;
+calcdef : 'calculation' ID  paramlist stat* 'returns' expr 'endcalc' ;
+paramlist : '(' (var ',')* var ')'
+          | '(' ')'
+          ;
 
 stat    : walk        | save        | jump
         | waklHome    | jumpHome    | turnLeft
