@@ -11,6 +11,7 @@
 #include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
 #include "src/TopLevelVisitor.h"
 #include "src/VariableHeandler.h"
+#include "src/FunctionHandler.h"
 #include "../UnitTest/TestSuits.h"
 
 #define CALC_POS_X(len) POSITION_X_NAME + len * cos(ROTATION_NAME)
@@ -28,6 +29,7 @@ class CodeGenerator : public SceneBaseVisitor{
     std::vector<SceneParser::PathdefContext *> astPathdef;
 
     VariableHeandler _variables;
+    FuctionHandler _funcs;
     TopLevelVisitor _topVis;
     //Only used for Unittesting
     //CodeGenerator(): output(std::cout), _mathVis(_variables) {}

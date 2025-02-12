@@ -147,6 +147,10 @@ void CodeGenerator::AddFunctionDeclaration(){
     << std::endl
   //TODO do
     ;
+
+  ///get all the function definitions
+  _funcs.getFunctionDeclarations(output);
+
 }
 
 void CodeGenerator::AddGlobalVars(){
@@ -239,15 +243,16 @@ void CodeGenerator::AddMain(){
 }
 
 void CodeGenerator::AddTurtelFunctions(){
-  //TODO:
+  _funcs.ImplementFunctions(this); 
 }
+
 CodeGenerator::CodeGenerator(std::ostream &outStream)
-  : output(outStream), astBase(nullptr), _topVis(output, _variables) {}
+  : output(outStream), astBase(nullptr), _funcs(astMain, astPathdef, astCalcdef), _topVis(output, _variables) {}
 
 CodeGenerator::CodeGenerator(std::ostream &outStream, SceneParser::FileContext* AstBase)
   : output(outStream), astBase(AstBase), astMain(astBase->main()), 
     astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()),
-    _topVis(output, _variables){
+    _funcs(astMain, astPathdef, astCalcdef), _topVis(output, _variables){
 }
 
 void CodeGenerator::ProgrammBase(){
