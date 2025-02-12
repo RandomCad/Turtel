@@ -44,69 +44,22 @@ std::any TopLevelVisitor::visitClear(SceneParser::ClearContext *ctx){
 }
 
 std::any TopLevelVisitor::visitDirection(SceneParser::DirectionContext *ctx){
-  std::any ret = ctx->expr()->accept(&mathVis);
-  if(ret.type() == typeid(std::string)){ //TODO clamp (what if always turning to the rigth -> pressision of the double gets worse.
-    output  << "  " 
-            << vars.getVariableNameString(ROTATION) 
-            << " = ("
-            << std::any_cast<std::string>(ret)
-            << ") * (M_PI/180);\n"
-            ;
-  }
-  else if (ret.type() == typeid(int64_t)){
-    output  << "  " 
-            << vars.getVariableNameString(ROTATION) 
-            << " = ("
-            << std::any_cast<int64_t>(ret)
-            << ") * (M_PI/180);\n"
-            ;
-  }
-  else if (ret.type() == typeid(double)){
-    output  << "  " 
-            << vars.getVariableNameString(ROTATION) 
-            << " = ("
-            << std::any_cast<double>(ret)
-            << ") * (M_PI/180);\n"
-            ;  
-  }
-  else{
-    throw "Error unknowen type";
-  }
-  
+  output  << "  " 
+          << vars.getVariableNameString(ROTATION) 
+          << " = ("
+          << UnwrapExpre(ctx->expr())
+          << ") * (M_PI/180);\n"
+          ;
   return std::any();
-
 }
 
 std::any TopLevelVisitor::visitTurnRight(SceneParser::TurnRightContext *ctx){
-  std::any ret = ctx->expr()->accept(&mathVis);
-  if(ret.type() == typeid(std::string)){ //TODO clamp (what if always turning to the rigth -> pressision of the double gets worse.
-    output  << "  " 
-            << vars.getVariableNameString(ROTATION) 
-            << " += ("
-            << std::any_cast<std::string>(ret)
-            << ") * (M_PI/180);\n"
-            ;
-  }
-  else if (ret.type() == typeid(int64_t)){
-    output  << "  " 
-            << vars.getVariableNameString(ROTATION) 
-            << " += ("
-            << std::any_cast<int64_t>(ret)
-            << ") * (M_PI/180);\n"
-            ;
-  }
-  else if (ret.type() == typeid(double)){
-    output  << "  " 
-            << vars.getVariableNameString(ROTATION) 
-            << " += ("
-            << std::any_cast<double>(ret)
-            << ") * (M_PI/180);\n"
-            ;  
-  }
-  else{
-    throw "Error unknowen type";
-  }
-  
+  output  << "  " 
+          << vars.getVariableNameString(ROTATION) 
+          << " += ("
+          << UnwrapExpre(ctx->expr())
+          << ") * (M_PI/180);\n"
+          ;
   return std::any();
 }
 
@@ -202,28 +155,12 @@ std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
           << vars.getVariableNameString(POS_X) 
           << ", "
           << vars.getVariableNameString(POS_Y) 
-          << ", ";
-
-  if(ret.type() == typeid(std::string)){
-    CalcPosX(std::any_cast<std::string>(ret), output, vars);
-    output << ", ";
-    CalcPosY(std::any_cast<std::string>(ret), output, vars);
-  }
-  else if (ret.type() == typeid(int64_t)){
-    std::cout << "got an int" << std::endl;
-    CalcPosX(std::any_cast<int64_t>(ret), output, vars);
-    output << ", ";
-    CalcPosY(std::any_cast<int64_t>(ret), output, vars);
-  }
-  else if (ret.type() == typeid(double)){
-    CalcPosX(std::any_cast<double>(ret), output, vars);
-    output << ", ";
-    CalcPosY(std::any_cast<double>(ret), output, vars);
-  }
-  else{
-    throw "Error unknowen type";
-  }
-  output << ");\n";
+          << ", "
+          ;
+  CalcPosX(UnwrapExpre(ctx->expr()), output, vars);
+  output  << ",";
+  CalcPosY(UnwrapExpre(ctx->expr()), output, vars);
+  output  << ");\n";
   MovePositions(vars, output, ret);
   GenPresent(vars, output);
   return std::any();
