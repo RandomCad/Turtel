@@ -4,6 +4,7 @@
 #include "SceneParser.h"
 #include "src/MathVisitor.h"
 #include "src/VariableHeandler.h"
+#include "MarkerStack.h" 
 #include <ostream>
 /**
  *This class is the Top Level visitor.
@@ -16,6 +17,7 @@ class TopLevelVisitor : public SceneBaseVisitor{
 
     ///other Visitors:
     MathVisitor mathVis;
+    MarkerStack markerStack; 
   public:
     TopLevelVisitor(std::ostream &a, VariableHeandler &b) : 
       output(a), 
@@ -36,6 +38,10 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitStopOK(SceneParser::StopOKContext *ctx) override;
     std::any visitFinError(SceneParser::FinErrorContext *ctx) override;
     std::any visitFinOK(SceneParser::FinOKContext *ctx) override;
+
+    std::any visitMark(SceneParser::MarkContext *ctx);
+    std::any visitJumpMark(SceneParser::JumpMarkContext *ctx);
+    std::any visitWalkMark(SceneParser::WalkMarkContext *ctx);
 
 
   private:

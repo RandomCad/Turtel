@@ -5,6 +5,7 @@
 #include "src/Variable.h"
 #include "src/VariableHeandler.h"
 
+
 #include <any>
 #include <cstdint>
 #include <ostream>
@@ -198,5 +199,41 @@ std::any TopLevelVisitor::visitSave(SceneParser::SaveContext *ctx){
     << ");\n"
     ;
   return  std::any();
+}
+
+std::any TopLevelVisitor::visitMark(SceneParser::MarkContext *ctx) {
+  double currentX = CalcPosX(UnwrapExpre(ctx->expr()), output, vars);
+  double currentY = CalcPosY(UnwrapExpre(ctx->expr()), output, vars);
+  double currentAngle = getCurrentAngle();
+  TurtleState state { currentX, currentY, currentAngle };
+  
+  markerStack.mark(state);
+  
+  output << "  // Marker gesetzt: (" << currentX << ", " << currentY 
+         << ") Winkel: " << currentAngle << "\n";
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitJumpMark(SceneParser::JumpMarkContext *ctx) {
+  try {
+      TurtleState state = markerStack.pop();
+      output << "  set_position(" << state.x << ", " << state.y << ");\n"
+             << "  set_direction(" << state.angle << ");\n";
+  } catch (const std::runtime_error &e) {
+      // Fehlerbehandlung, wenn kein Marker vorhanden ist.
+      output << "  // Fehler: Kein Marker vorhanden!\n";
+  }
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitWalkMark(SceneParser::WalkMarkContext *ctx) {
+  try {
+      TurtleState state = markerStack.pop();
+      output << "  set_position(" << state.x << ", " << state.y << ");\n"
+             << "  set_direction(" << state.angle << ");\n";
+  } catch (const std::runtime_error &e) {
+      output << "  // Fehler: " << e.what() << "\n";
+  }
+  return std::any();
 }
 

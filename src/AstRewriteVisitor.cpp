@@ -5,6 +5,18 @@
 #include "SceneLexer.h"
 #include "SceneParser.h"
 
+/**
+ * @brief Wandelt einen JumpBack-Knoten in einen JumpFront-Knoten um.
+ *
+ * Extrahiert den im JumpBack-Kontext enthaltenen Ausdruck, verpackt ihn in einen
+ * NegateContext (um ihn zu negieren) und ersetzt damit den ursprünglichen Ausdruck.
+ * Anschließend wird ein neuer JumpFront-Knoten erstellt, der die aktualisierten
+ * Kindknoten und Elternbeziehungen übernimmt. Der neue Knoten wird anstelle des
+ * ursprünglichen JumpBack-Knotens im AST eingesetzt.
+ *
+ * @param ctx Zeiger auf den JumpBack-Kontext, der transformiert werden soll.
+ * @return Das Ergebnis des Besuchs des neuen JumpFront-Knotens.
+ */
 std::any AstRewriteVisitor::visitJumpBack(SceneParser::JumpBackContext *ctx) {
     // Get the expression to negate
     SceneParser::ExprContext *expr = ctx->expr();
@@ -45,6 +57,16 @@ std::any AstRewriteVisitor::visitJumpBack(SceneParser::JumpBackContext *ctx) {
     return invertJump->accept(this);
 }
 
+/**
+ * @brief Wandelt einen WalkBack-Knoten in einen WalkFront-Knoten um.
+ *
+ * Diese Methode negiert den Ausdruck im übergebenen WalkBack-Kontext und erstellt
+ * einen neuen WalkFront-Kontext, der den negierten Ausdruck enthält. Anschließend
+ * wird der neue Kontext in den Elternknoten eingesetzt.
+ *
+ * @param ctx Zeiger auf den WalkBack-Kontext, der umgeschrieben werden soll.
+ * @return Das Ergebnis des Besuchs des neuen WalkFront-Knotens.
+ */
 std::any AstRewriteVisitor::visitWalkBack(SceneParser::WalkBackContext *ctx){
   // Get the expression to negate
   SceneParser::ExprContext *expr = ctx->expr();
