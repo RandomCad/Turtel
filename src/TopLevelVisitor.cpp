@@ -200,3 +200,60 @@ std::any TopLevelVisitor::visitSave(SceneParser::SaveContext *ctx){
   return  std::any();
 }
 
+/**
+ * @brief Handling of the "walk mark" command inside the scene parser.
+ * 
+ * This method restores the latest saved position and direction. 
+ * Afterwards it draws a line from the current position to the restored position and refreshes the screen.
+ *
+ * @param ctx is the context of the "walk mark" command
+ * @return an empty std::any object
+ */
+std::any TopLevelVisitor::visitWalkMarkCommand(SceneParser::WalkMarkCommandContext *ctx) {
+
+  double currentPosX = vars.getVariable(POS_X).getValue<double>();
+  double currentPosY = vars.getVariable(POS_Y).getValue<double>();
+
+  restoreLastPosition();
+  output  << "  SDL_RenderDrawLine("
+          << vars.getVariableNameString(RND_NAME)
+          << ", "
+          << currentPosX
+          << ", "
+          << currentPosY
+          << ", "
+          << vars.getVariableNameString(POS_X)
+          << ", "
+          << vars.getVariableNameString(POS_Y)
+          << ");\n";
+  
+  GenPresent(vars, output);
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitMark(SceneParser::MarkContext *ctx) {
+  markPosition();
+  return std::any();
+}
+
+void TopLevelVisitor::markPosition() {
+  TurtleState currentState = {
+      vars.getVariable(POS_X).getValue<double>(),
+      vars.getVariable(POS_Y).getValue<double>(),
+      vars.getVariable(ROTATION).getValue<double>()
+  };
+  positionStack.push(currentState);
+}
+
+void TopLevelVisitor::restorePreviousPosition() {
+  if (!positionStack.empty()) {
+    TurtleState lastState = positionStack.top();
+    positionStack.pop();
+    vars.setVariable(POS_X, lastState.posX);
+    vars.setVariable(POS_Y, lastState.posY);
+    vars.setVariable(ROTATION, lastState.rotation);
+} else {
+    std::cerr << "Fehler: Kein gespeicherter Zustand vorhanden." << std::endl;
+}
+}
+

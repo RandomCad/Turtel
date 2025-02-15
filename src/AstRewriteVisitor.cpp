@@ -5,6 +5,7 @@
 #include "SceneLexer.h"
 #include "SceneParser.h"
 
+
 std::any AstRewriteVisitor::visitJumpBack(SceneParser::JumpBackContext *ctx) {
     // Get the expression to negate
     SceneParser::ExprContext *expr = ctx->expr();
