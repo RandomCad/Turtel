@@ -14,6 +14,20 @@ stat    : walk        | save        | jump
         | multVar     | walkMark    | jumpMark
         | mark        | colorCmd
         ;
+
+///conditions/loops
+if      : 'if' cond 'then' stat+ 'endif' #simpleIf
+        | 'if' cond 'then' stat+ 'else' stat+ 'endif' #elseIf
+        ;
+simpFor : 'do' expr 'times' stat 'done';
+for     : 'counter' var 'from' expr 'to' expr 'do' stat+ 'done' #simpUpFor
+        | 'counter' var 'from' expr 'to' expr 'step' expr 'do' stat+ 'done' #stepUpFor
+        | 'counter' var 'from' expr 'downto' expr 'do' stat+ 'done' #simpDownFor
+        | 'counter' var 'from' expr 'downto' expr 'step' expr 'do' stat+ 'done' #stepDownFor
+        ; //could all be implemented with stepUpFor
+while   : 'while' cond 'do' stat+ 'done';
+doWhile : 'repeat' stat+ 'untile' cond;
+
 ///Variable commands
 storeVar: 'store' expr 'in' var ;
 addVar  : 'add' expr 'to' var;
@@ -46,7 +60,14 @@ walkMark  : Walk Mark;
 jumpMark  : Jump Mark;
 colorCmd  : Color expr expr expr;
 
-// Parser rules
+///conditions (if)
+cond  : expr '<' expr #lesThan
+      | expr '>' expr #greaterThan
+      | expr '<=' expr #lesEqThan
+      | expr '>=' expr #greaterEqThan
+      ;
+
+///Math expressions
 expr  : ( klamKon | number) '^' (klamKon | number) #Exp
       | ( klamKon | number) '*' (klamKon | number) #Mult
       | ( klamKon | number) '/' (klamKon | number) #Dife
