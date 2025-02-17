@@ -10,7 +10,6 @@
 #include "libs/SceneParser.h"
 #include "libs/SceneLexer.h"
 #include "src/VariableHeandler.h"
-#include "src/AstRewriteVisitor.h"
 #include "src/VariableVisitor.h"
 
 using  namespace antlr4;
