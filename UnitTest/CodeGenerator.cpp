@@ -1,4 +1,5 @@
 #include <ANTLRInputStream.h>
+#include <cstdlib>
 #include <functional>
 #include <gtest/gtest.h>
 #include <istream>
@@ -6,28 +7,6 @@
 #include <llvm/Support/Chrono.h>
 #include <regex>
 #include <string>
-
-#include "../libs/SceneParser.h"
-#include "../libs/SceneLexer.h"
-
-using  namespace antlr4;
-/*
-TEST(Code_Generator, WalkVisit){
-  std::stringstream stream;
-  stream 
-    << "walk 5\n"
-    << std::endl;
-  ANTLRInputStream input(stream);
-  SceneLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  SceneParser parser(&tokens);
-
-  auto astStart = parser.walk();
-  ASSERT_TRUE(astStart);
-  ASSERT_TRUE(astStart->expr());
-}//*/
-#include <ANTLRInputStream.h>
-#include <cstdio>
 #include <filesystem>
 #include <iostream>
 #include <sstream>
@@ -42,7 +21,7 @@ TEST(Code_Generator, WalkVisit){
 using namespace antlr4;
 
 TEST(CodeGeneratorTestSuite, TestVarCommands){
-  const char * testFile = "TestTrivialSave.out";
+  const char * testFile = "TestVarCommand.out";
   std::filesystem::remove(testFile);
 
   LLVMInterface interface(testFile);
@@ -88,8 +67,9 @@ TEST(CodeGeneratorTestSuite, TestVarCommands){
   
   ASSERT_TRUE(std::filesystem::exists(testFile));
 
-  int ret = std::system(testFile);
-  ASSERT_EQ(ret, 36);
+  //couldn't finde a way to do this direcktly in cpp
+  int exitCode = std::system((std::string("./") + testFile /*+ std::string("\nif [ $? -eq 36 ]; then exit 0; else exit 1; fi")*/).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 36);
   //TODO: check the output
 }//*/
 
