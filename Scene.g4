@@ -90,6 +90,8 @@ cond  : expr '<' expr #lesThan
       | expr '>' expr #greaterThan
       | expr '<=' expr #lesEqThan
       | expr '>=' expr #greaterEqThan
+      | expr '=' expr #Equal
+      | expr '<>' expr #Unequal
       | '(' cond ')' #clamCond
       | 'NOT' cond #notCond
       | cond 'AND' cond #andCond
