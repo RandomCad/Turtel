@@ -7,6 +7,7 @@
 
 #include <any>
 #include <cstdint>
+#include <iterator>
 #include <ostream>
 #include <string>
 #include <cmath>
@@ -405,6 +406,16 @@ std::any TopLevelVisitor::visitFloat(SceneParser::FloatContext *ctx){
   else{\
     throw std::runtime_error("todo:"); /*TODO:*/\
   }
+
+///returns a string or bool
+std::any TopLevelVisitor::visitUnequal(SceneParser::UnequalContext *ctx){
+  OperationMacro(!=);  
+}
+///returns a string or bool
+std::any TopLevelVisitor::visitEqual(SceneParser::EqualContext *ctx){
+  OperationMacro(==);  
+}
+
 ///returns a string or bool
 std::any TopLevelVisitor::visitLesEqThan(SceneParser::LesEqThanContext *ctx){
   OperationMacro(<=);  
@@ -422,11 +433,12 @@ std::any TopLevelVisitor::visitLesThan(SceneParser::LesThanContext *ctx){
 
 ///returns a string or bool
 std::any TopLevelVisitor::visitGreaterEqThan(SceneParser::GreaterEqThanContext *ctx){
-  OperationMacro(<=);  
+  OperationMacro(>=);  
 }
 
 std::any TopLevelVisitor::visitClamCond(SceneParser::ClamCondContext *ctx){
-  std::any ret = ctx->cond();
+  std::cerr << __func__ << std::endl;
+  std::any ret = ctx->cond()->accept(this);
   if (ret.type() == typeid(bool))
     return ret;
   else if (ret.type() == typeid(std::string))
@@ -436,7 +448,7 @@ std::any TopLevelVisitor::visitClamCond(SceneParser::ClamCondContext *ctx){
 }
 
 std::any TopLevelVisitor::visitNotCond(SceneParser::NotCondContext *ctx){
-  std::any ret = ctx->cond();
+  std::any ret = ctx->cond()->accept(this);
   if (ret.type() == typeid(bool))
     return !std::any_cast<bool>(ret);
   else if (ret.type() == typeid(std::string))
@@ -446,11 +458,55 @@ std::any TopLevelVisitor::visitNotCond(SceneParser::NotCondContext *ctx){
 }
 
 std::any TopLevelVisitor::visitAndCond(SceneParser::AndCondContext *ctx){
-  OperationMacro(&&);
+  std::cerr << __func__ << std::endl;
+  std::any left = ctx->children[0]->accept(this);
+  std::any right = ctx->children[2]->accept(this);
+  if (left.type() == typeid(bool) && right.type() == typeid(bool))
+      return std::any_cast<bool>(left) && std::any_cast<bool>(right);
+  else if (left.type() == typeid(bool) && right.type() == typeid(std::string))
+  {
+    if(std::any_cast<bool>(left)) 
+      return std::any_cast<std::string>(right);
+    else
+     return false;
+  }
+  else if (left.type() == typeid(std::string) && right.type() == typeid(bool))
+  {
+    if(std::any_cast<bool>(right)) 
+      return std::any_cast<std::string>(left);
+    else
+     return false;
+  }
+  else if (left.type() == typeid(std::string) && right.type() == typeid(std::string))
+    return std::any_cast<std::string>(left) + "&&" + std::any_cast<std::string>(right);
+  else
+   throw "todo"; //TODO
 }
 
 std::any TopLevelVisitor::visitOrCond(SceneParser::OrCondContext *ctx){
-  OperationMacro(||);
+  std::cerr << __func__ << std::endl;
+  std::any left = ctx->children[0]->accept(this);
+  std::any right = ctx->children[2]->accept(this);
+  if (left.type() == typeid(bool) && right.type() == typeid(bool))
+      return std::any_cast<bool>(left) || std::any_cast<bool>(right);
+  else if (left.type() == typeid(bool) && right.type() == typeid(std::string))
+  {
+    if(std::any_cast<bool>(left)) 
+      return true;
+    else
+      return std::any_cast<std::string>(right);
+  }
+  else if (left.type() == typeid(std::string) && right.type() == typeid(bool))
+  {
+    if(std::any_cast<bool>(right)) 
+      return true;
+    else
+      return std::any_cast<std::string>(left);
+  }
+  else if (left.type() == typeid(std::string) && right.type() == typeid(std::string))
+    return std::any_cast<std::string>(left) + "||" + std::any_cast<std::string>(right);
+  else
+   throw "todo"; //TODO
 }
 
 std::any TopLevelVisitor::visitABS(SceneParser::ABSContext *ctx){

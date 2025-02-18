@@ -468,7 +468,6 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, TurnLeft){
       );
 }
 
-
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, Direction){
   std::stringstream stream;
   stream 
@@ -1091,6 +1090,562 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, save){
     
   ASSERT_FALSE(callRet.has_value());
 }
+
+#define BoolRetIs(ASSERT) \
+  {\
+    TopLevelVisitor visitor(zwi, var);\
+    auto test = parser.cond();\
+    ASSERT_TRUE(test);\
+    std::any ret = test->accept(&visitor);\
+    ASSERT_EQ(ret.type(), typeid(bool));\
+    ASSERT(std::any_cast<bool>(ret));\
+  }
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, LesEquThan){
+  std::stringstream stream;
+  stream
+    << "5 <= 3\n"
+    << "3 <= 5\n"
+    << "3 <= 3\n"
+    << "var <= 3\n"
+    ;
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  std::stringstream zwi;
+  {
+    TopLevelVisitor visitor(zwi, var);
+
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    std::any ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(bool));
+    ASSERT_FALSE(std::any_cast<bool>(ret));
+  }
+  {
+    TopLevelVisitor visitor(zwi, var);
+
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    std::any ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(bool));
+    ASSERT_TRUE(std::any_cast<bool>(ret));
+  }
+  {
+    TopLevelVisitor visitor(zwi, var);
+
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    std::any ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(bool));
+    ASSERT_TRUE(std::any_cast<bool>(ret));
+  }
+  {
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    var.setContext(VarVisitor().getVariableContext(test));
+    TopLevelVisitor visitor(zwi, var);
+    auto ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    std::string testRet = std::any_cast<std::string>(ret);
+
+    std::cerr << testRet << std::endl;
+    ASSERT_TRUE(
+        std::regex_match(
+          testRet,
+          std::regex(
+            "\\s*\\w+\\s*<=\\s*3\\s*"
+            )
+          )
+        );
+  }
+}
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, LesThan){
+  std::stringstream stream;
+  stream
+    << "5 < 3\n"
+    << "3 < 5\n"
+    << "3 < 3\n"
+    << "var < 3\n"
+    ;
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  std::stringstream zwi;
+  {
+    TopLevelVisitor visitor(zwi, var);
+
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    std::any ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(bool));
+    ASSERT_FALSE(std::any_cast<bool>(ret));
+  }
+  {
+    TopLevelVisitor visitor(zwi, var);
+
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    std::any ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(bool));
+    ASSERT_TRUE(std::any_cast<bool>(ret));
+  }
+  {
+    TopLevelVisitor visitor(zwi, var);
+
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    std::any ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(bool));
+    ASSERT_FALSE(std::any_cast<bool>(ret));
+  }
+  {
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    var.setContext(VarVisitor().getVariableContext(test));
+    TopLevelVisitor visitor(zwi, var);
+    auto ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    std::string testRet = std::any_cast<std::string>(ret);
+
+    std::cerr << testRet << std::endl;
+    ASSERT_TRUE(
+        std::regex_match(
+          testRet,
+          std::regex(
+            "\\s*\\w+\\s*<\\s*3\\s*"
+            )
+          )
+        );
+  }
+} 
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, GreaterEquThan){
+  std::stringstream stream;
+  stream
+    << "5 >= 3\n"
+    << "3 >= 5\n"
+    << "3 >= 3\n"
+    << "var >= 3\n"
+    ;
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  std::stringstream zwi;
+  { 
+    TopLevelVisitor visitor(zwi, var);
+
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    std::any ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(bool));
+    ASSERT_TRUE(std::any_cast<bool>(ret));
+  }
+  {
+    TopLevelVisitor visitor(zwi, var);
+
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    std::any ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(bool));
+    ASSERT_FALSE(std::any_cast<bool>(ret));
+  }
+  {
+    TopLevelVisitor visitor(zwi, var);
+
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    std::any ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(bool));
+    ASSERT_TRUE(std::any_cast<bool>(ret));
+  }
+  {
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    var.setContext(VarVisitor().getVariableContext(test));
+    TopLevelVisitor visitor(zwi, var);
+    auto ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    std::string testRet = std::any_cast<std::string>(ret);
+
+    std::cerr << testRet << std::endl;
+    ASSERT_TRUE(
+        std::regex_match(
+          testRet,
+          std::regex(
+            "\\s*\\w+\\s*>=\\s*3\\s*"
+            )
+          )
+        );
+  }
+}
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, GreaterThan){
+  std::stringstream stream;
+  stream
+    << "3 > 5\n"
+    << "5 > 3\n"
+    << "3 > 3\n"
+    << "var > 3\n"
+    ;
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  std::stringstream zwi;
+  BoolRetIs(ASSERT_FALSE)
+  BoolRetIs(ASSERT_TRUE)
+  BoolRetIs(ASSERT_FALSE)
+  {
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    var.setContext(VarVisitor().getVariableContext(test));
+    TopLevelVisitor visitor(zwi, var);
+    auto ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    std::string testRet = std::any_cast<std::string>(ret);
+
+    std::cerr << testRet << std::endl;
+    ASSERT_TRUE(
+        std::regex_match(
+          testRet,
+          std::regex(
+            "\\s*\\w+\\s*>\\s*3\\s*"
+            )
+          )
+        );
+  }
+} 
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, CondEqual){
+  std::stringstream stream;
+  stream
+    << "3 = 5\n"
+    << "5 = 3\n"
+    << "3 = 3\n"
+    << "var = 3\n"
+    ;
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  std::stringstream zwi;
+  BoolRetIs(ASSERT_FALSE)
+  BoolRetIs(ASSERT_FALSE)
+  BoolRetIs(ASSERT_TRUE)
+  {
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    var.setContext(VarVisitor().getVariableContext(test));
+    TopLevelVisitor visitor(zwi, var);
+    auto ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    std::string testRet = std::any_cast<std::string>(ret);
+
+    std::cerr << testRet << std::endl;
+    ASSERT_TRUE(
+        std::regex_match(
+          testRet,
+          std::regex(
+            "\\s*\\w+\\s*==\\s*3\\s*"
+            )
+          )
+        );
+  }
+} 
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, CondUnequal){
+  std::stringstream stream;
+  stream
+    << "3 <> 5\n"
+    << "5 <> 3\n"
+    << "3 <> 3\n"
+    << "var <> 3\n"
+    ;
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  std::stringstream zwi;
+  BoolRetIs(ASSERT_TRUE)
+  BoolRetIs(ASSERT_TRUE)
+  BoolRetIs(ASSERT_FALSE)
+  {
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    var.setContext(VarVisitor().getVariableContext(test));
+    TopLevelVisitor visitor(zwi, var);
+    auto ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    std::string testRet = std::any_cast<std::string>(ret);
+
+    std::cerr << testRet << std::endl;
+    ASSERT_TRUE(
+        std::regex_match(
+          testRet,
+          std::regex(
+            "\\s*\\w+\\s*!=\\s*3\\s*"
+            )
+          )
+        );
+  }
+} 
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, ClamCond){
+  std::stringstream stream;
+  stream
+    << "(3 > 5)\n"
+    << "(5 > 3)\n"
+    << "(3 > 3)\n"
+    << "(var > 3)\n"
+    ;
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  std::stringstream zwi;
+  BoolRetIs(ASSERT_FALSE)
+  BoolRetIs(ASSERT_TRUE)
+  BoolRetIs(ASSERT_FALSE)
+  { 
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    var.setContext(VarVisitor().getVariableContext(test));
+    TopLevelVisitor visitor(zwi, var);
+    auto ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    std::string testRet = std::any_cast<std::string>(ret);
+
+    std::cerr << testRet << std::endl;
+    ASSERT_TRUE(
+        std::regex_match(
+          testRet,
+          std::regex(
+            "\\s*\\(\\s*\\w+\\s*>\\s*3\\s*\\)\\s*"
+            )
+          )
+        );
+  }
+} 
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, NotCond){
+  std::stringstream stream;
+  stream
+    << "NOT 3 > 5\n"
+    << "NOT 5 > 3\n"
+    << "NOT 3 > 3\n"
+    << "NOT var > 3\n"
+    ;
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  std::stringstream zwi;
+  BoolRetIs(ASSERT_TRUE)
+  BoolRetIs(ASSERT_FALSE)
+  BoolRetIs(ASSERT_TRUE)
+  { 
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    var.setContext(VarVisitor().getVariableContext(test));
+    TopLevelVisitor visitor(zwi, var);
+    auto ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    std::string testRet = std::any_cast<std::string>(ret);
+
+    std::cerr << testRet << std::endl;
+    ASSERT_TRUE(
+        std::regex_match(
+          testRet,
+          std::regex(
+            "\\s*!\\(\\s*\\w+\\s*>\\s*3\\s*\\)\\s*"
+            )
+          )
+        );
+  }
+} 
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, AndCond){
+  std::stringstream stream;
+  stream
+    << "3 > 5 AND 12 > 12.5\n"
+    << "3 > 5 AND 13 > 12.5\n"
+    << "5 > 3 AND -3 > 0\n"
+    << "5 > 3 AND -3 > -5\n"
+    << "var > 3 AND var < 100\n"
+    << "var > 3 AND 100 < 100\n"
+    << "var > 3 AND 10 < 100\n"
+    ;
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  std::stringstream zwi;
+  BoolRetIs(ASSERT_FALSE);
+  BoolRetIs(ASSERT_FALSE);
+  BoolRetIs(ASSERT_FALSE);
+  BoolRetIs(ASSERT_TRUE);
+  { 
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    var.setContext(VarVisitor().getVariableContext(test));
+    TopLevelVisitor visitor(zwi, var);
+    auto ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    std::string testRet = std::any_cast<std::string>(ret);
+
+    std::cerr << testRet << std::endl;
+    ASSERT_TRUE(
+        std::regex_match(
+          testRet,
+          std::regex(
+            "\\s*\\w+\\s*>\\s*\\d+\\s*&&\\s*\\w+\\s*<\\s*\\d+\\s*"
+            )
+          )
+        );
+  }
+  BoolRetIs(ASSERT_FALSE);
+  { 
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    var.setContext(VarVisitor().getVariableContext(test));
+    TopLevelVisitor visitor(zwi, var);
+    auto ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    std::string testRet = std::any_cast<std::string>(ret);
+
+    std::cerr << testRet << std::endl;
+    ASSERT_TRUE(
+        std::regex_match(
+          testRet,
+          std::regex(
+            "\\s*\\w+\\s*>\\s*\\d+\\s*"
+            )
+          )
+        );
+  }
+} 
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, OrCond){
+  std::stringstream stream;
+  stream
+    << "3 > 5 OR 12 > 12.5\n"
+    << "3 > 5 OR 13 > 12.5\n"
+    << "5 > 3 OR -3 > 0\n"
+    << "5 > 3 OR -3 > -5\n"
+    << "var > 3 OR var < 100\n"
+    << "var > 3 OR 100 < 100\n"
+    << "var > 3 OR 10 < 100\n"
+    ;
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  std::stringstream zwi;
+  BoolRetIs(ASSERT_FALSE);
+  BoolRetIs(ASSERT_TRUE);
+  BoolRetIs(ASSERT_TRUE);
+  BoolRetIs(ASSERT_TRUE);
+  { 
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    var.setContext(VarVisitor().getVariableContext(test));
+    TopLevelVisitor visitor(zwi, var);
+    auto ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    std::string testRet = std::any_cast<std::string>(ret);
+
+    std::cerr << testRet << std::endl;
+    ASSERT_TRUE(
+        std::regex_match(
+          testRet,
+          std::regex(
+            "\\s*\\w+\\s*>\\s*\\d+\\s*\\|\\|\\s*\\w+\\s*<\\s*\\d+\\s*"
+            )
+          )
+        );
+  }
+  { 
+    auto test = parser.cond();
+
+    ASSERT_TRUE(test);
+
+    var.setContext(VarVisitor().getVariableContext(test));
+    TopLevelVisitor visitor(zwi, var);
+    auto ret = test->accept(&visitor);
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    std::string testRet = std::any_cast<std::string>(ret);
+
+    std::cerr << testRet << std::endl;
+    ASSERT_TRUE(
+        std::regex_match(
+          testRet,
+          std::regex(
+            "\\s*\\w+\\s*>\\s*\\d+\\s*"
+            )
+          )
+        );
+  }
+  BoolRetIs(ASSERT_TRUE);
+} 
+#undef BoolRetIs
 
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, NumExpr){
   std::stringstream stream;
