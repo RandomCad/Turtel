@@ -13,7 +13,6 @@
 class TopLevelVisitor : public SceneBaseVisitor{
     std::ostream &output; ///<The output of this class. Everything is writen to this.
     VariableHeandler &vars; ///<The variable conetext my be changed.
-    std::stack<TurtleState> positionStack;
 
     ///other Visitors:
     MathVisitor mathVis;
@@ -37,13 +36,13 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitStopOK(SceneParser::StopOKContext *ctx) override;
     std::any visitFinError(SceneParser::FinErrorContext *ctx) override;
     std::any visitFinOK(SceneParser::FinOKContext *ctx) override;
-    std::any TopLevelVisitor::visitMark(SceneParser::MarkContext *ctx) override;
+    std::any visitMark(SceneParser::MarkContext *ctx) override;
+    std::any visitWalkMark(SceneParser::WalkMarkContext *ctx) override;
+    std::any visitJumpMark(SceneParser::JumpMarkContext *ctx) override;
 
 
   private:
     std::string UnwrapExpre(SceneParser::ExprContext *ctx);
-    std::void markPosition();
-    std::void restorePreviousPosition();
 
     ///The folowing commented out functions must be implimented by a preprocessing step by rewriteing the AST
     //std::any visitWalkBack(SceneParser::WalkBackContext *ctx) override;
