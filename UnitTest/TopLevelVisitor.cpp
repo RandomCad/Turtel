@@ -426,6 +426,164 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkVisit){
       );
 }
 
+// Test für den "mark"-Befehl
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, MarkCommand) {
+  std::stringstream stream;
+  stream << "mark" << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.mark();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << "MarkCommand output: " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*pushMarker\\(\\(Marker\\)\\{\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*\\}\\);\\s*")
+  ));
+}
+
+// Test für den "walk mark"-Befehl
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkMarkCommand) {
+  std::stringstream stream;
+  stream << "walk mark" << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.walkMark();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+
+  std::getline(retStream, line);
+  std::cerr << "WalkMarkCommand output (Zeile 1): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*if \\(markerStackTop >= 0\\) \\{\\s*")
+  ));
+
+  std::getline(retStream, line);
+  std::cerr << "WalkMarkCommand output (Zeile 2): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*Marker m = popMarker\\(\\);\\s*")
+  ));
+
+  std::getline(retStream, line);
+  std::cerr << "WalkMarkCommand output (Zeile 3): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*SDL_RenderDrawLine\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*m\\.posX,\\s*m\\.posY\\s*\\)\\s*;\\s*")
+  ));
+
+  std::getline(retStream, line);
+  std::cerr << "WalkMarkCommand output (Zeile 4): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*\\w+\\s*=\\s*m\\.posX;\\s*")
+  ));
+
+  std::getline(retStream, line);
+  std::cerr << "WalkMarkCommand output (Zeile 5): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*\\w+\\s*=\\s*m\\.posY;\\s*")
+  ));
+
+  std::getline(retStream, line);
+  std::cerr << "WalkMarkCommand output (Zeile 6): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*\\w+\\s*=\\s*m\\.rotation;\\s*")
+  ));
+
+  std::getline(retStream, line);
+  std::cerr << "WalkMarkCommand output (Zeile 7): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*\\}\\s*")
+  ));
+}
+
+// Test für den "jump mark"-Befehl
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, JumpMarkCommand) {
+  std::stringstream stream;
+  stream << "jump mark" << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.jumpMark();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+
+  std::getline(retStream, line);
+  std::cerr << "JumpMarkCommand output (Zeile 1): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*if \\(markerStackTop >= 0\\) \\{\\s*")
+  ));
+
+  std::getline(retStream, line);
+  std::cerr << "JumpMarkCommand output (Zeile 2): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*Marker m = popMarker\\(\\);\\s*")
+  ));
+
+  std::getline(retStream, line);
+  std::cerr << "JumpMarkCommand output (Zeile 3): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*\\w+\\s*=\\s*m\\.posX;\\s*")
+  ));
+
+  std::getline(retStream, line);
+  std::cerr << "JumpMarkCommand output (Zeile 4): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*\\w+\\s*=\\s*m\\.posY;\\s*")
+  ));
+
+  std::getline(retStream, line);
+  std::cerr << "JumpMarkCommand output (Zeile 5): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*\\w+\\s*=\\s*m\\.rotation;\\s*")
+  ));
+
+  std::getline(retStream, line);
+  std::cerr << "JumpMarkCommand output (Zeile 6): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*\\}\\s*")
+  ));
+}
+
 /*
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkBackVisit){
   std::stringstream stream;

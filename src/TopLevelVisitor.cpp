@@ -200,3 +200,45 @@ std::any TopLevelVisitor::visitSave(SceneParser::SaveContext *ctx){
   return  std::any();
 }
 
+std::any TopLevelVisitor::visitMark(SceneParser::MarkContext *ctx) {
+  output << "  pushMarker((Marker){ "
+         << vars.getVariableNameString(POS_X) << ", "
+         << vars.getVariableNameString(POS_Y) << ", "
+         << vars.getVariableNameString(ROTATION)
+         << " });\n";
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitWalkMark(SceneParser::WalkMarkContext *ctx) {
+  output << "  if (markerStackTop >= 0) {\n"
+  	     << "      Marker m = popMarker();\n"
+  	     << "      SDL_RenderDrawLine(" 
+  	     << vars.getVariableNameString(RND_NAME) << ", "
+  	     << vars.getVariableNameString(POS_X) << ", "
+  	     << vars.getVariableNameString(POS_Y) << ", "
+  	     << "m.posX, m.posY);\n"
+  	     << "      " << vars.getVariableNameString(POS_X) << " = m.posX;\n"
+  	     << "      " << vars.getVariableNameString(POS_Y) << " = m.posY;\n"
+  	     << "      " << vars.getVariableNameString(ROTATION) << " = m.rotation;\n"
+  	     << "  } else {\n"
+  	     << "      fprintf(stderr, \"Fehler: Marker-Stack leer!\\n\");\n"
+  	     << "      exit(EXIT_FAILURE);\n"
+  	     << "  }\n";
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitJumpMark(SceneParser::JumpMarkContext *ctx) {
+  output << "  if (markerStackTop >= 0) {\n"
+         << "      Marker m = popMarker();\n"
+         << "      " << vars.getVariableNameString(POS_X) << " = m.posX;\n"
+         << "      " << vars.getVariableNameString(POS_Y) << " = m.posY;\n"
+         << "      " << vars.getVariableNameString(ROTATION) << " = m.rotation;\n"
+         << "  } else {\n"
+         << "      fprintf(stderr, \"Fehler: Marker-Stack leer!\\n\");\n"
+         << "      exit(EXIT_FAILURE);\n"
+         << "  }\n";
+  return std::any();
+}
+
+
+

@@ -36,6 +36,9 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitStopOK(SceneParser::StopOKContext *ctx) override;
     std::any visitFinError(SceneParser::FinErrorContext *ctx) override;
     std::any visitFinOK(SceneParser::FinOKContext *ctx) override;
+    std::any visitMark(SceneParser::MarkContext *ctx) override;
+    std::any visitWalkMark(SceneParser::WalkMarkContext *ctx) override;
+    std::any visitJumpMark(SceneParser::JumpMarkContext *ctx) override;
 
 
   private:

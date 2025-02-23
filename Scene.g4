@@ -17,9 +17,12 @@ stat    : walk
         | clear
         | stop
         | finish
+        | mark
+        | walkMark
+        | jumpMark
         ;
 
-walk  	  : Walk expr       #WalkFront
+walk      : Walk expr       #WalkFront
           | Walk Back expr  #WalkBack
           ;
 jump      : Jump expr       #JumpFront
@@ -38,6 +41,9 @@ stop      : Stop #StopOK     ///< end the program and wait for user input
 finish    : Finish #FinOK
           | Finish expr #FinError ///< emediatly return
           ;
+mark      : Mark;
+walkMark  : Walk Mark;
+jumpMark  : Jump Mark;
 
 // Parser rules
 expr  : ( klamKon | number) '^' (klamKon | number) #Exp
@@ -71,6 +77,8 @@ Right : 'right';
 Clear : 'clear';
 Finish: 'finish';
 Direction : 'direction';
+Mark: 'mark';
+
 
 Num   : [0-9]+ ;
 Float : [0-9]+ '.' [0-9]+
