@@ -85,6 +85,8 @@ void CodeGenerator::AddIncludes(){
     << "#include <SDL2/SDL.h>\n"
     << "#include <SDL2/SDL_image.h>\n"
     << "#include <math.h>\n"
+    << "#include <stdio.h>\n"
+    << "#include <stdlib.h>\n"
     << std::endl;
   //add potential further includes
 }
@@ -142,6 +144,34 @@ void CodeGenerator::AddFunctionDeclaration(){
 }
 
 void CodeGenerator::AddGlobalVars(){
+  output 
+    // Marker-Struct
+    << "typedef struct {\n"
+    << "  double posX;\n"
+    << "  double posY;\n"
+    << "  double rotation;\n"
+    << "} Marker;\n\n"
+    << "#define MARKER_STACK_CAPACITY 4096\n\n"
+    << "static Marker markerStack[MARKER_STACK_CAPACITY];\n"
+    << "static int markerStackTop = -1;\n\n"
+    // pushMarker-Funktion
+    << "void pushMarker(Marker m) {\n"
+    << "  if (markerStackTop < MARKER_STACK_CAPACITY - 1) {\n"
+    << "    markerStack[++markerStackTop] = m;\n"
+    << "  } else {\n"
+    << "    fprintf(stderr, \"Fehler: Marker-Stack überlaufen!\\n\");\n"
+    << "    exit(EXIT_FAILURE);\n"
+    << "  }\n"
+    << "}\n\n"
+    // popMarker-Funktion
+    << "Marker popMarker(void) {\n"
+    << "  if (markerStackTop >= 0) {\n"
+    << "    return markerStack[markerStackTop--];\n"
+    << "  } else {\n"
+    << "    fprintf(stderr, \"Fehler: Marker-Stack leer!\\n\");\n"
+    << "    exit(EXIT_FAILURE);\n"
+    << "  }\n"
+    << "}\n";
   output 
     << _variables.getVariableDefinition(WINDOW_X) << "=800;\n"
     << _variables.getVariableDefinition(WINDOW_Y) << "=600;\n"
