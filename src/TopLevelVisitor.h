@@ -23,11 +23,14 @@ class TopLevelVisitor : public SceneBaseVisitor{
   private:
     ///The visitor for a walk statment.
     std::any visitJumpFront(SceneParser::JumpFrontContext *ctx) override;
+    std::any visitJumpBack(SceneParser::JumpBackContext *ctx) override;
     std::any visitWalkFront(SceneParser::WalkFrontContext *ctx) override;
+    std::any visitWalkBack(SceneParser::WalkBackContext *ctx) override;
     std::any visitSave(SceneParser::SaveContext *ctx) override;
     std::any visitWaklHome(SceneParser::WaklHomeContext *ctx) override;
     std::any visitJumpHome(SceneParser::JumpHomeContext *ctx) override;
     std::any visitTurnRight(SceneParser::TurnRightContext *ctx) override;
+    std::any visitTurnLeft(SceneParser::TurnLeftContext *ctx) override;
     std::any visitDirection(SceneParser::DirectionContext *ctx) override;
     std::any visitClear(SceneParser::ClearContext *ctx) override;
     std::any visitStopError(SceneParser::StopErrorContext *ctx) override;
