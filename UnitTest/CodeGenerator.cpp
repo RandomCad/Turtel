@@ -41,6 +41,58 @@ TEST(Code_Generator, WalkVisit){
 
 using namespace antlr4;
 
+TEST(CodeGeneratorTestSuite, TestVarCommands){
+  const char * testFile = "TestTrivialSave.out";
+  std::filesystem::remove(testFile);
+
+  LLVMInterface interface(testFile);
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  store 5 in test\n"
+    << "  store -3 in ret\n"
+    << "  add ret to test\n"  //test = 2
+    << "  mul ret by test\n"  //ret = -3 * 2 = -6
+    << "  div test by ret\n"  //test = 2 / -6 = -0,5
+    << "  store ret in test\n"//test = ret = -6
+    << "  mul ret by test\n"  //ret = 36
+    << "  finish ret\n"
+    << "end\n"
+    << std::endl;
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 0);
+  EXPECT_EQ(astStart->pathdef().size(), 0);
+  
+  CodeGenerator test(interface.llvmFile, astStart);
+  test.GenerateCode();
+
+  std::istream &toTest(interface.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  interface.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int ret = std::system(testFile);
+  ASSERT_EQ(ret, 36);
+  //TODO: check the output
+}//*/
+
 TEST(CodeGeneratorTestSuite, TestTrivialSave){
   const char * testFile = "TestTrivialSave.out";
   std::filesystem::remove(testFile);

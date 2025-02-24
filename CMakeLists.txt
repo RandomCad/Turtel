@@ -94,7 +94,6 @@ set(CodeGeneration
   src/CodeGenerator.Helper.cpp 
   src/Variable.cpp 
   src/VariableHeandler.cpp
-  src/MathVisitor.cpp
   src/TopLevelVisitor.cpp
   src/AstRewriteVisitor.cpp
   src/VariableVisitor.cpp
@@ -137,7 +136,6 @@ set(
   UnitTest/Variable.cpp
   UnitTest/CodeGenerator.cpp
   UnitTest/TopLevelVisitor.cpp
-  UnitTest/MathVisitor.cpp
   UnitTest/AstRewriteVisitor.cpp
   UnitTest/VariableVisitor.cpp
   )
