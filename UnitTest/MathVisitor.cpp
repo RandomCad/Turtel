@@ -52,6 +52,32 @@ TEST(MathVisitor, NumExpr){
   testDouble = std::any_cast<double>(test->accept(&visitor));
   ASSERT_EQ(testDouble, .876541132);
 }
+
+TEST(MathVisitor, NegExpr){
+  std::stringstream stream;
+  stream
+    << -5
+    ;
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  MathVisitor visitor(var);
+
+  auto test = parser.expr();
+
+  ASSERT_TRUE(test);
+  SceneParser::NegateContext *neg;
+  ASSERT_TRUE(neg = dynamic_cast<SceneParser::NegateContext*>(test));
+  ASSERT_EQ(neg->children.size(), 2);
+  ASSERT_TRUE(neg->children[0]);
+  ASSERT_STREQ(neg->children[0]->getText().c_str(), "-");
+  ASSERT_TRUE(neg->children[1]);
+  ASSERT_TRUE(dynamic_cast<SceneParser::NumberContext*>(neg->children[1]));
+}
+
 #if FALSE
 bool TestWalkParsing(TestError *&ret){
   std::stringstream stream;

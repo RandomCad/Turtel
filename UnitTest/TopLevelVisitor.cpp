@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 #include <ANTLRInputStream.h>
 #include <any>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <regex>
 #include <string>
@@ -245,7 +246,6 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, StopNOK){
         )
       );
 }
-
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, StopOK){
   std::stringstream stream;
   stream 
@@ -309,7 +309,6 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, FinishNOK){
         )
       );
 }
-
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, FinishOK){
   std::stringstream stream;
   stream 
@@ -546,13 +545,15 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, AcceptNumContext){
   
   auto astStart = parser.number();
   ASSERT_TRUE(astStart);
+  ASSERT_TRUE(dynamic_cast<SceneParser::NumberContext*>(astStart));
+  ASSERT_TRUE(dynamic_cast<SceneParser::IntContext*>(astStart));
 
   std::stringstream retStream;
   VariableHeandler var;
   TopLevelVisitor toTest(retStream, var);
 
   std::any ret = astStart->accept(&toTest);
-  ASSERT_FALSE(ret.has_value());
+  ASSERT_EQ(std::any_cast<int64_t>(ret), 5);
 }
 
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkVisit){
@@ -986,3 +987,178 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, save){
     
   ASSERT_FALSE(callRet.has_value());
 }
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, NumExpr){
+  std::stringstream stream;
+  stream << "794651" << std::endl << "91231" << std::endl << "6541.89645" << std::endl
+    << "786451.168754" << std::endl << ".8765413" << std::endl 
+    << ".876541132" << std::endl;
+
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  std::stringstream zwi;
+  TopLevelVisitor visitor(zwi, var);
+
+  auto test = parser.number();
+  ASSERT_TRUE(test);
+  int testNum = std::any_cast<int64_t>(test->accept(&visitor));
+  ASSERT_EQ(testNum, 794651);
+
+  test = parser.number();
+  ASSERT_TRUE(test);
+  testNum = std::any_cast<int64_t>(test->accept(&visitor));
+  ASSERT_EQ(testNum, 91231);
+
+  test = parser.number();
+  ASSERT_TRUE(test);
+  double testDouble = std::any_cast<double>(test->accept(&visitor));
+  ASSERT_EQ(testDouble, 6541.89645);
+
+  test = parser.number();
+  ASSERT_TRUE(test);
+  testDouble = std::any_cast<double>(test->accept(&visitor));
+  ASSERT_EQ(testDouble, 786451.168754);
+  
+  test = parser.number();
+  ASSERT_TRUE(test);
+  testDouble = std::any_cast<double>(test->accept(&visitor));
+  ASSERT_EQ(testDouble, .8765413);
+
+  test = parser.number();
+  ASSERT_TRUE(test);
+  testDouble = std::any_cast<double>(test->accept(&visitor));
+  ASSERT_EQ(testDouble, .876541132);
+}
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, NegExpr){
+  std::stringstream stream;
+  stream
+    << -5
+    ;
+  //test Setup
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  VariableHeandler var;
+  std::stringstream zwi;
+  TopLevelVisitor visitor(zwi, var);
+
+  auto test = parser.expr();
+
+  ASSERT_TRUE(test);
+  SceneParser::NegateContext *neg;
+  ASSERT_TRUE(neg = dynamic_cast<SceneParser::NegateContext*>(test));
+  ASSERT_EQ(neg->children.size(), 2);
+  ASSERT_TRUE(neg->children[0]);
+  ASSERT_STREQ(neg->children[0]->getText().c_str(), "-");
+  ASSERT_TRUE(neg->children[1]);
+  ASSERT_TRUE(dynamic_cast<SceneParser::NumberContext*>(neg->children[1]));
+}
+
+#if FALSE
+bool TestWalkParsing(TestError *&ret){
+  std::stringstream stream;
+  size_t testNumber = 0;
+
+  //add data
+  stream << "walk 5" << std::endl;
+  stream << "walk -5walk 20 + 5" << std::endl;
+  
+  //Test preperation
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  //test
+  auto test = parser.walk();
+  NOT_NULL_ASSERT(test, ret, testNumber);
+  NOT_NULL_ASSERT(test->expr(), ret, testNumber);
+
+  test = parser.walk();
+  NOT_NULL_ASSERT(test, ret, ++testNumber);
+  NOT_NULL_ASSERT(test->expr(), ret, testNumber);
+  NOT_NULL_ASSERT(dynamic_cast<SceneParser::NegateContext*>(test->expr()), ret, testNumber)
+
+  test = parser.walk();
+  NOT_NULL_ASSERT(test, ret, ++testNumber);
+  NOT_NULL_ASSERT(test->expr(), ret, testNumber);
+  NOT_NULL_ASSERT(dynamic_cast<SceneParser::AddContext*>(test->expr()), ret, testNumber)
+
+  return false;
+}
+
+bool TestVariableParsing(TestError *&ret){
+  const size_t TestAmount = 1000;
+  std::stringstream stream;
+  std::string cor[TestAmount];
+
+  for (size_t i = 0; i < TestAmount; i++) {
+    cor[i] = RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", 1);
+    cor[i] += RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@", rand() % (TestAmount)); 
+
+    stream << cor[i] << std::endl;
+  }
+  {  
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);    
+  
+  for (size_t i = 0; i < TestAmount; i++) {
+    std::cout << "test" << i << std::endl;
+    auto test = parser.var();
+    
+    NOT_NULL_ASSERT(test, ret, i);
+    SceneParser::VariableContext *testVar = dynamic_cast<SceneParser::VariableContext*>(test); 
+    std::cout << testVar->ID()->getSymbol()->getText() << std::endl << cor[i] << std::endl;
+    NOT_NULL_ASSERT(testVar, ret, i)
+    NULL_ASSERT(testVar->exception, ret, i);
+    NOT_NULL_ASSERT(testVar->ID(), ret, i);
+    NOT_NULL_ASSERT(testVar->ID()->getSymbol(), ret, i)
+    STRING_ASSERT(testVar->ID()->getSymbol()->getText(), cor[i], ret, i)
+  }
+  }
+
+  stream.clear();
+
+  //explisitly test the case of only @
+  cor[0] = "@";
+  stream << cor[0] << std::endl;
+
+  for (size_t i = 1; i < TestAmount; i++) {
+    cor[i] = "@";
+    cor[i] += RandomString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@", rand() % (TestAmount)); 
+
+    stream << cor[i] << std::endl;
+  }
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);    
+  
+  for (size_t i = 0; i < TestAmount; i++) {
+    std::cout << "test" << i << std::endl;
+    auto test = parser.var();
+    
+    NOT_NULL_ASSERT(test, ret, i);
+    SceneParser::GlobalVariableContext *testVar = dynamic_cast<SceneParser::GlobalVariableContext*>(test); 
+    NOT_NULL_ASSERT(testVar, ret, i)
+    NULL_ASSERT(testVar->exception, ret, i);
+    NOT_NULL_ASSERT(testVar->IncID(), ret, i);
+    NOT_NULL_ASSERT(testVar->IncID()->getSymbol(), ret, i)
+    STRING_ASSERT(testVar->IncID()->getSymbol()->getText(), cor[i], ret, i)
+  }
+
+
+  
+  return false;
+}
+
+#endif

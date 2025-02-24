@@ -9,7 +9,6 @@
 #include "../libs/SceneParser.h"
 #include "../libs/SceneBaseVisitor.h"
 #include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
-#include "src/MathVisitor.h"
 #include "src/TopLevelVisitor.h"
 #include "src/VariableHeandler.h"
 #include "../UnitTest/TestSuits.h"
@@ -30,7 +29,6 @@ class CodeGenerator : public SceneBaseVisitor{
 
     VariableHeandler _variables;
     TopLevelVisitor _topVis;
-    MathVisitor _mathVis;
     //Only used for Unittesting
     //CodeGenerator(): output(std::cout), _mathVis(_variables) {}
     CodeGenerator(std::ostream &outStream);
