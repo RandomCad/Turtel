@@ -404,6 +404,71 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, TurnRight){
       );
 }
 
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, TurnImplizitRight){
+  std::stringstream stream;
+  stream 
+    << "turn 5"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  auto astStart = parser.turnRight();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\w+\\s*\\+=\\s*\\(\\s*5\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, TurnLeft){
+  std::stringstream stream;
+  stream 
+    << "turn left 5"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  auto astStart = parser.turnLeft();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\w+\\s*\\-=\\s*\\(\\s*5\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}
+
+
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, Direction){
   std::stringstream stream;
   stream 
@@ -555,7 +620,7 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, AcceptNumContext){
   ASSERT_EQ(std::any_cast<int64_t>(ret), 5);
 }
 
-TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkVisit){
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkFrontVisit){
   std::stringstream stream;
   stream 
     << "walk 5\n"
@@ -834,7 +899,6 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, ColorCommand) {
   ));
 }
 
-/*
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkBackVisit){
   std::stringstream stream;
   stream 
@@ -845,26 +909,21 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkBackVisit){
   CommonTokenStream tokens(&lexer);
   SceneParser parser(&tokens);
 
-  auto zwi = parser.stat();
-  zwi->accept(new AstRewriteVisitor());
-  auto astStart = dynamic_cast<SceneParser::WalkFrontContext*>(zwi->children[0]);
-
-  std::cerr << "test bank1:" << std::endl;
+  auto astStart = dynamic_cast<SceneParser::WalkBackContext*>(parser.walk());
   ASSERT_TRUE(astStart);
   ASSERT_TRUE(astStart->expr());
   ASSERT_EQ(typeid(astStart->expr()), typeid(SceneParser::ExprContext*));
-  auto numExpr = dynamic_cast<SceneParser::NegateContext*>( astStart->expr());
+  auto numExpr = dynamic_cast<SceneParser::NumExprContext*>( astStart->expr());
   ASSERT_TRUE(numExpr);
+  ASSERT_TRUE(numExpr->number());
+  ASSERT_EQ(numExpr->number()->getText(), "5");
 
-  std::cerr << "test bank2 prer:" << std::endl;
   std::stringstream ret;
   VariableHeandler var;
   TopLevelVisitor toTest(ret, var);
   std::any callRet;
-  std::cerr << "walking" << std::endl;
   callRet = astStart->accept(&toTest);
     
-  std::cerr << "test bank2:" << std::endl;
   ASSERT_FALSE(callRet.has_value());
 
   ret.flush();
@@ -876,11 +935,7 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkBackVisit){
       std::regex_match(
         line,
         std::regex(
-          "\\s+SDL_RenderDrawLine\\s*\\("
-          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
-          ")\\s*;\\s*"
+          "\\s+SDL_RenderDrawLine\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*cos\\(\\s*\\w+\\s*\\)\\s*,\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*sin\\(\\s*\\w+\\s*\\)\\s*\\)\\s*;\\s*"
           )
         )
       );
@@ -891,8 +946,7 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkBackVisit){
       std::regex_match(
         line,
         std::regex(
-          "\\s*\\w+\\s*="
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"
+          "\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*cos\\(\\s*\\w+\\s*\\)\\s*;\\s*"
           )
         )
       );
@@ -903,12 +957,11 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkBackVisit){
       std::regex_match(
         line,
         std::regex(
-          "\\s*\\w+\\s*="
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"
+          "\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*sin\\(\\s*\\w+\\s*\\)\\s*;\\s*"
           )
         )
       );
-}//*/
+}
 
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, JumpVisit){
   std::stringstream stream;
@@ -960,6 +1013,58 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, JumpVisit){
         std::regex(
           "\\s*\\w+\\s*="
           "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+}
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, JumpBackVisit){
+  std::stringstream stream;
+  stream 
+    << "jump back 5\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = dynamic_cast<SceneParser::JumpBackContext*>(parser.jump());
+  ASSERT_TRUE(astStart);
+  ASSERT_TRUE(astStart->expr());
+  ASSERT_EQ(typeid(astStart->expr()), typeid(SceneParser::ExprContext*));
+  auto numExpr = dynamic_cast<SceneParser::NumExprContext*>( astStart->expr());
+  ASSERT_TRUE(numExpr);
+  ASSERT_TRUE(numExpr->number());
+  ASSERT_EQ(numExpr->number()->getText(), "5");
+
+  std::stringstream ret;
+  VariableHeandler var;
+  TopLevelVisitor toTest(ret, var);
+  std::any callRet;
+  callRet = astStart->accept(&toTest);
+    
+  ASSERT_FALSE(callRet.has_value());
+
+  ret.flush();
+
+  std::string line;
+  std::getline(ret, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*cos\\(\\s*\\w+\\s*\\)\\s*;\\s*"
+          )
+        )
+      );
+
+  std::getline(ret, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*sin\\(\\s*\\w+\\s*\\)\\s*;\\s*"
           )
         )
       );

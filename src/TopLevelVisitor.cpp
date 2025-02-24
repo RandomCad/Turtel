@@ -143,6 +143,15 @@ std::any TopLevelVisitor::visitTurnRight(SceneParser::TurnRightContext *ctx){
           ;
   return std::any();
 }
+std::any TopLevelVisitor::visitTurnLeft(SceneParser::TurnLeftContext *ctx){
+  output  << "  " 
+          << vars.getVariableNameString(ROTATION) 
+          << " -= ("
+          << UnwrapExpre(ctx->expr())
+          << ") * (M_PI/180);\n"
+          ;
+  return std::any();
+}
 
 ///go back to WINDOW_X/2 and WINDOW_Y which should be the middle of the bottom of the screen
 std::any TopLevelVisitor::visitWalkHome(SceneParser::WalkHomeContext *ctx){
@@ -188,6 +197,16 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
 }
 
 ///File local funtion to move POS_X and POS_Y
+void MovePositions(VariableHeandler &vars, std::ostream &output, std::string &&ret){
+  output << "  " << vars.getVariableNameString(POS_X) << " = ";
+  CalcPosX(ret, output, vars);
+  output 
+    << ";\n"
+    
+    << "  " << vars.getVariableNameString(POS_Y) << " = ";
+  CalcPosY(ret, output, vars);
+  output << ";\n";
+}
 void MovePositions(VariableHeandler &vars, std::ostream &output, std::any &ret){
   if(ret.type() == typeid(std::string)){
     output << "  " << vars.getVariableNameString(POS_X) << " = ";
@@ -246,11 +265,32 @@ std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
   GenPresent(vars, output);
   return std::any();
 }
+std::any TopLevelVisitor::visitWalkBack(SceneParser::WalkBackContext *ctx){
+  output  << "  SDL_RenderDrawLine("
+          << vars.getVariableNameString(RND_NAME) 
+          << ", " 
+          << vars.getVariableNameString(POS_X) 
+          << ", "
+          << vars.getVariableNameString(POS_Y) 
+          << ", "
+          ;
+  CalcPosX("-(" + UnwrapExpre(ctx->expr()) + ')', output, vars);
+  output  << ",";
+  CalcPosY("-(" + UnwrapExpre(ctx->expr()) + ')', output, vars);
+  output  << ");\n";
+  MovePositions(vars, output, "-(" + UnwrapExpre(ctx->expr()) + ')');
+  GenPresent(vars, output);
+  return std::any();
+}
 
 std::any TopLevelVisitor::visitJumpFront(SceneParser::JumpFrontContext *ctx){
   std::any ret = ctx->expr()->accept(this);
-
   MovePositions(vars, output, ret);
+  
+  return std::any();
+}
+std::any TopLevelVisitor::visitJumpBack(SceneParser::JumpBackContext *ctx){
+  MovePositions(vars, output, "-(" + UnwrapExpre(ctx->expr()) + ')');
   
   return std::any();
 }
