@@ -22,8 +22,15 @@ stat    : walk
         | jumpMark
         | colorCmd
         ;
+///Variable commands
+store   : 'store' expr 'in' var ;
+addVar  : 'add' expr 'to' var;
+subVar  : 'sub' expr 'from' var;
+divVar  : 'div' var 'by' expr;
+multVar : 'mul' var 'by' expr;
 
-walk      : Walk expr       #WalkFront
+///move commands
+walk  	  : Walk expr       #WalkFront
           | Walk Back expr  #WalkBack
           ;
 jump      : Jump expr       #JumpFront
@@ -82,6 +89,8 @@ Direction : 'direction';
 Mark: 'mark';
 Color: 'color';
 
+Store : 'store';
+In    : 'in';
 
 Num   : [0-9]+ ;
 Float : [0-9]+ '.' [0-9]+
