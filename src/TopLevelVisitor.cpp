@@ -240,15 +240,15 @@ std::any TopLevelVisitor::visitSimpUpFor(SceneParser::SimpUpForContext *ctx){
     output << "#pragma unroll\n";
   }
   output  << "  for ( " 
-          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
           << " = "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[3]))
           << "; "
-          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
           << " < "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[5]))
           << "; ++"
-          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
           << "){\n"
           ;
 
@@ -269,15 +269,15 @@ std::any TopLevelVisitor::visitSimpDownFor(SceneParser::SimpDownForContext *ctx)
     output << "#pragma unroll\n";
   }
   output  << "  for ( " 
-          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
           << " = "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[3]))
           << "; "
-          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
           << " > "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[5]))
           << "; --"
-          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
           << "){\n"
           ;
 
@@ -300,15 +300,15 @@ std::any TopLevelVisitor::visitStepDownFor(SceneParser::StepDownForContext *ctx)
     output << "#pragma unroll\n";
   }
   output  << "  for ( " 
-          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
           << " = "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[3]))
           << "; "
-          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
           << " > "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[5]))
           << "; "
-          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
           << " -= "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[7]))
           << "){\n"
@@ -333,15 +333,15 @@ std::any TopLevelVisitor::visitStepUpFor(SceneParser::StepUpForContext *ctx){
     output << "#pragma unroll\n";
   }
   output  << "  for ( " 
-          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
           << " = "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[3]))
           << "; "
-          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
           << " < "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[5]))
           << "; "
-          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
           << " += "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[7]))
           << "){\n"
