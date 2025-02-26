@@ -20,6 +20,7 @@ stat    : walk
         | mark
         | walkMark
         | jumpMark
+        | colorCmd
         ;
 
 walk      : Walk expr       #WalkFront
@@ -44,6 +45,7 @@ finish    : Finish #FinOK
 mark      : Mark;
 walkMark  : Walk Mark;
 jumpMark  : Jump Mark;
+colorCmd  : Color expr expr expr;
 
 // Parser rules
 expr  : ( klamKon | number) '^' (klamKon | number) #Exp
@@ -78,6 +80,7 @@ Clear : 'clear';
 Finish: 'finish';
 Direction : 'direction';
 Mark: 'mark';
+Color: 'color';
 
 
 Num   : [0-9]+ ;

@@ -584,6 +584,40 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, JumpMarkCommand) {
   ));
 }
 
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, ColorCommand) {
+  std::stringstream stream;
+  stream << "color 255 0 128" << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.colorCmd();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << "ColorCommand output (Zeile 1): " << line << std::endl;
+  
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*SDL_SetRenderDrawColor\\s*\\(\\s*\\w+\\s*,\\s*255\\s*,\\s*0\\s*,\\s*128\\s*,\\s*255\\s*\\)\\s*;\\s*")
+  ));
+
+  std::getline(retStream, line);
+  std::cerr << "ColorCommand output (Zeile 2): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*\\w+\\s*=\\s*255\\s*;\\s*")
+  ));
+}
+
 /*
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkBackVisit){
   std::stringstream stream;
