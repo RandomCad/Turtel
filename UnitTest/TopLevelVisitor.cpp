@@ -471,6 +471,7 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkMarkCommand) {
   std::any ret = astStart->accept(&toTest);
 
   std::string line;
+  
 
   std::getline(retStream, line);
   std::cerr << "WalkMarkCommand output (Zeile 1): " << line << std::endl;
@@ -478,47 +479,48 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkMarkCommand) {
     line,
     std::regex("\\s*if \\(markerStackTop >= 0\\) \\{\\s*")
   ));
-
+  
   std::getline(retStream, line);
   std::cerr << "WalkMarkCommand output (Zeile 2): " << line << std::endl;
   ASSERT_TRUE(std::regex_match(
     line,
     std::regex("\\s*Marker m = popMarker\\(\\);\\s*")
   ));
-
+  
   std::getline(retStream, line);
   std::cerr << "WalkMarkCommand output (Zeile 3): " << line << std::endl;
   ASSERT_TRUE(std::regex_match(
     line,
     std::regex("\\s*SDL_RenderDrawLine\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*m\\.posX,\\s*m\\.posY\\s*\\)\\s*;\\s*")
   ));
-
+  
   std::getline(retStream, line);
   std::cerr << "WalkMarkCommand output (Zeile 4): " << line << std::endl;
   ASSERT_TRUE(std::regex_match(
     line,
     std::regex("\\s*\\w+\\s*=\\s*m\\.posX;\\s*")
   ));
-
+  
   std::getline(retStream, line);
   std::cerr << "WalkMarkCommand output (Zeile 5): " << line << std::endl;
   ASSERT_TRUE(std::regex_match(
     line,
     std::regex("\\s*\\w+\\s*=\\s*m\\.posY;\\s*")
   ));
-
+  
   std::getline(retStream, line);
   std::cerr << "WalkMarkCommand output (Zeile 6): " << line << std::endl;
   ASSERT_TRUE(std::regex_match(
     line,
     std::regex("\\s*\\w+\\s*=\\s*m\\.rotation;\\s*")
   ));
-
+  
   std::getline(retStream, line);
   std::cerr << "WalkMarkCommand output (Zeile 7): " << line << std::endl;
+
   ASSERT_TRUE(std::regex_match(
     line,
-    std::regex("\\s*\\}\\s*")
+    std::regex("\\s*\\}\\s*(else\\s*\\{)?\\s*")
   ));
 }
 
@@ -540,21 +542,21 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, JumpMarkCommand) {
   std::any ret = astStart->accept(&toTest);
 
   std::string line;
-
+  
   std::getline(retStream, line);
   std::cerr << "JumpMarkCommand output (Zeile 1): " << line << std::endl;
   ASSERT_TRUE(std::regex_match(
     line,
     std::regex("\\s*if \\(markerStackTop >= 0\\) \\{\\s*")
   ));
-
+  
   std::getline(retStream, line);
   std::cerr << "JumpMarkCommand output (Zeile 2): " << line << std::endl;
   ASSERT_TRUE(std::regex_match(
     line,
     std::regex("\\s*Marker m = popMarker\\(\\);\\s*")
   ));
-
+  
   std::getline(retStream, line);
   std::cerr << "JumpMarkCommand output (Zeile 3): " << line << std::endl;
   ASSERT_TRUE(std::regex_match(
@@ -568,22 +570,23 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, JumpMarkCommand) {
     line,
     std::regex("\\s*\\w+\\s*=\\s*m\\.posY;\\s*")
   ));
-
+  
   std::getline(retStream, line);
   std::cerr << "JumpMarkCommand output (Zeile 5): " << line << std::endl;
   ASSERT_TRUE(std::regex_match(
     line,
     std::regex("\\s*\\w+\\s*=\\s*m\\.rotation;\\s*")
   ));
-
+  
   std::getline(retStream, line);
   std::cerr << "JumpMarkCommand output (Zeile 6): " << line << std::endl;
   ASSERT_TRUE(std::regex_match(
     line,
-    std::regex("\\s*\\}\\s*")
+    std::regex("\\s*\\}\\s*(else\\s*\\{)?\\s*")
   ));
 }
 
+// Test für den "color"-Befehl
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, ColorCommand) {
   std::stringstream stream;
   stream << "color 255 0 128" << std::endl;
@@ -602,19 +605,33 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, ColorCommand) {
   std::any ret = astStart->accept(&toTest);
 
   std::string line;
+  
   std::getline(retStream, line);
   std::cerr << "ColorCommand output (Zeile 1): " << line << std::endl;
-  
   ASSERT_TRUE(std::regex_match(
     line,
     std::regex("\\s*SDL_SetRenderDrawColor\\s*\\(\\s*\\w+\\s*,\\s*255\\s*,\\s*0\\s*,\\s*128\\s*,\\s*255\\s*\\)\\s*;\\s*")
   ));
-
+  
   std::getline(retStream, line);
   std::cerr << "ColorCommand output (Zeile 2): " << line << std::endl;
   ASSERT_TRUE(std::regex_match(
     line,
     std::regex("\\s*\\w+\\s*=\\s*255\\s*;\\s*")
+  ));
+  
+  std::getline(retStream, line);
+  std::cerr << "ColorCommand output (Zeile 3): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*\\w+\\s*=\\s*0\\s*;\\s*")
+  ));
+  
+  std::getline(retStream, line);
+  std::cerr << "ColorCommand output (Zeile 4): " << line << std::endl;
+  ASSERT_TRUE(std::regex_match(
+    line,
+    std::regex("\\s*\\w+\\s*=\\s*128\\s*;\\s*")
   ));
 }
 
