@@ -240,5 +240,25 @@ std::any TopLevelVisitor::visitJumpMark(SceneParser::JumpMarkContext *ctx) {
   return std::any();
 }
 
+std::any TopLevelVisitor::visitColorCmd(SceneParser::ColorCmdContext *ctx) {
+
+  std::string rValue = UnwrapExpre(ctx->expr(0));
+  std::string gValue = UnwrapExpre(ctx->expr(1));
+  std::string bValue = UnwrapExpre(ctx->expr(2));
+
+  output << "  SDL_SetRenderDrawColor(" 
+         << vars.getVariableNameString(RND_NAME) << ", "
+         << rValue << ", "
+         << gValue << ", "
+         << bValue << ", 255);\n";
+  
+  output << "  " << vars.getVariableNameString(COLOR_R) << " = " << rValue << ";\n"
+         << "  " << vars.getVariableNameString(COLOR_G) << " = " << gValue << ";\n"
+         << "  " << vars.getVariableNameString(COLOR_B) << " = " << bValue << ";\n";
+
+  return std::any();
+}
+
+
 
 

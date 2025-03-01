@@ -25,6 +25,7 @@ Dieser kann zur überprüfung der korrekten Arbeitsweise SDL2 verwenden.
 * libclang-14-dev
 * llvm-14
 * llvm-14-dev
+* libsdl2-image-dev
 
 ## Compilation
 
