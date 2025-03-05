@@ -59,6 +59,7 @@ find_package(Clang REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+message(STATUS "Using CLANG dir in: ${CLANG_INCLUDE_DIRS}")
 
 # Add the include directories
 include_directories(${LLVM_INCLUDE_DIRS})
@@ -75,14 +76,8 @@ llvm_map_components_to_libnames(llvm_libs support core irreader)
 
 # Creat llvm-libs
 SET(LLVM_LIBS 
-  ${llvm_libs} 
-  clangTooling 
-  clangBasic 
-  clangAST 
-  clangDriver 
-  clangFrontend 
-  clangFrontendTool 
-  clangSerialization
+  clang-cpp
+  LLVM
   ) 
 
 #---------------------------------------#
@@ -139,6 +134,8 @@ set(
   UnitTest/TopLevelVisitor.cpp
   UnitTest/VariableVisitor.cpp
   UnitTest/Function.cpp
+
+  UnitTest/TestHelper.cpp
   )
 
 add_executable(
