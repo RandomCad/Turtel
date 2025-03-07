@@ -9,10 +9,11 @@
 #include <iostream>
 #include <sstream>
 
-#include "../src/CodeGenerator.h"
-#include "../src/LLVMInterface.h"
-#include "../libs/SceneParser.h"
-#include "../libs/SceneLexer.h"
+#include "src/Function.h"
+#include "src/CodeGenerator.h"
+#include "src/LLVMInterface.h"
+#include "libs/SceneParser.h"
+#include "libs/SceneLexer.h"
 #include "gtest/gtest.h"
 #include "TestSuits.h"
 

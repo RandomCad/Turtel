@@ -1,9 +1,10 @@
 
 #include "SceneParser.h"
-#include "SceneVisitor.h"
+#include "src/CodeGenerator.h"
 #include "src/InternalVarNames.h"
 #include "src/Variable.h"
 #include "src/FunctionHandler.h"
+#include "src/Function.h"
 #include "src/VariableVisitor.h"
 #include <algorithm>
 #include <iostream>
@@ -98,7 +99,7 @@ std::cerr << __func__ << std::endl;
   return funcs.at(funcName).getFunctionCall(input);
 }
 
-void FuctionHandler::ImplementFunctions(std::ostream &out, SceneVisitor *vis){
+void FuctionHandler::ImplementFunctions(std::ostream &out, CodeGenerator *vis){
   for (auto i : funcs) {
     std::cerr << &i << std::endl;
     i.second.Implement(out, vis);

@@ -1,5 +1,6 @@
-#ifndef MY_VISITOR_FILE
-#define MY_VISITOR_FILE
+#pragma once
+
+class CodeGenerator;
 
 #include <ParserRuleContext.h>
 #include <iostream>
@@ -13,11 +14,11 @@
 #include "src/TopLevelVisitor.h"
 #include "src/VariableHeandler.h"
 #include "src/FunctionHandler.h"
-#include "../UnitTest/TestSuits.h"
+#include "src/Function.h"
+#include "UnitTest/TestSuits.h"
 
 #define CALC_POS_X(len) POSITION_X_NAME + len * cos(ROTATION_NAME)
 #define CALC_POS_Y(len) POSITION_Y_NAME + len * sin(ROTATION_NAME)
-
 
 size_t GetUniquNumber();
 
@@ -49,13 +50,12 @@ class CodeGenerator : public SceneBaseVisitor{
 
     void ProgrammBase();
     void EndeMain();
-    void ImplementFunction(std::vector<Variable>&, antlr4::ParserRuleContext *);
+    void ImplementFunction(std::unordered_map<std::string,Variable>&, antlr4::ParserRuleContext *);
 
     FRIEND_TEST(CodeGenerator, AddMain);
     FRIEND_TEST(CodeGenerator, BasicEmptyMain);
     FRIEND_TEST(CodeGenerator, BasicWalk);
     FRIEND_TEST(CodeGenerator, AddFunctionDeclaration);
 
+    friend class Function;
 };
-
-#endif
