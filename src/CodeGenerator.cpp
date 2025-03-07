@@ -132,6 +132,8 @@ void CodeGenerator::AddFunctionDeclaration(){
   ///get all the function definitions
   _funcs.getFunctionDeclarations(output);
 
+  output << std::endl;
+
 }
 
 void CodeGenerator::AddGlobalVars(){
@@ -215,7 +217,7 @@ void CodeGenerator::AddMain(){
   GenPresent(_variables, output);
   
   ///call turtel main
-  _funcs.getFunctionCall(MAIN_FUNC, {_variables.getVariable(RND_NAME)});
+  output << _funcs.getFunctionCall(MAIN_FUNC, {_variables.getVariable(RND_NAME)});
 
   output
   //Implicit wait

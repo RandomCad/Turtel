@@ -79,7 +79,7 @@ std::cerr << __func__ << std::endl;
     throw "input length unequal function length";
   }
   //no the name and the opening '('
-  std::string ret = " __fun_" + name + "(";
+  std::string ret = name + "(";
   //add all the variables
   for (auto i : var) {
     ret += i.getName() + ", ";
@@ -110,11 +110,25 @@ void Function::Implement(std::ostream &out, CodeGenerator *vis){
 
   ///output the head of the function 
   out << VarTypeNS::getTypeName(retType)
-      << " __func_"
       << name
       << ret
       << '\n'
       ;
+  for (auto i : varCtx) {
+    bool isDefined = false;
+    for (auto y : vars) {
+      if (i.second.name == y.name){
+        isDefined = true;
+        break;
+      }
+    }
+    if(!isDefined){
+      out << "  "
+          <<i.second.getTypeAndName()
+          << " = 0;\n"
+          ;
+    }
+  }
   vis->ImplementFunction(varCtx, ctx);
   out << "}\n";
 }
