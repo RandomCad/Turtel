@@ -380,6 +380,79 @@ std::any TopLevelVisitor::visitFloat(SceneParser::FloatContext *ctx){
   return std::stod(ctx->Float()->getSymbol()->getText());
 }
 
+#define OperationMacro(symbol) \
+  std::cout << __func__ << std::endl;\
+  std::any left = ctx->children[0]->accept(this);\
+  std::any reigth = ctx->children[2]->accept(this);\
+  if(left.type() == typeid(std::string) && reigth.type() == typeid(std::string))\
+    return std::any_cast<std::string>(left) + #symbol + std::any_cast<std::string>(reigth);\
+  else if(left.type() == typeid(std::string) && reigth.type() == typeid(int64_t))\
+    return std::any_cast<std::string>(left) + #symbol + std::to_string(std::any_cast<int64_t>(reigth));\
+  else if(left.type() == typeid(std::string) && reigth.type() == typeid(double))\
+    return std::any_cast<std::string>(left) + #symbol + std::to_string(std::any_cast<double>(reigth));\
+  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(std::string))\
+    return std::to_string(std::any_cast<int64_t>(left)) + #symbol + std::any_cast<std::string>(reigth);\
+  else if(left.type() == typeid(double) && reigth.type() == typeid(std::string))\
+    return std::to_string(std::any_cast<double>(left)) + #symbol + std::any_cast<std::string>(reigth);\
+  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(int64_t))\
+    return std::any_cast<int64_t>(left) symbol std::any_cast<int64_t>(reigth);\
+  else if(left.type() == typeid(double) && reigth.type() == typeid(int64_t))\
+    return std::any_cast<double>(left) symbol std::any_cast<int64_t>(reigth);\
+  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(double))\
+    return std::any_cast<int64_t>(left) symbol std::any_cast<double>(reigth);\
+  else if(left.type() == typeid(double) && reigth.type() == typeid(double))\
+    return std::any_cast<double>(left) symbol std::any_cast<double>(reigth);\
+  else{\
+    throw std::runtime_error("todo:"); /*TODO:*/\
+  }
+///returns a string or bool
+std::any TopLevelVisitor::visitLesEqThan(SceneParser::LesEqThanContext *ctx){
+  OperationMacro(<=);  
+}
+
+///returns a string or bool
+std::any TopLevelVisitor::visitGreaterThan(SceneParser::GreaterThanContext *ctx){
+  OperationMacro(>);  
+}
+
+///returns a string or bool
+std::any TopLevelVisitor::visitLesThan(SceneParser::LesThanContext *ctx){
+  OperationMacro(<);  
+}
+
+///returns a string or bool
+std::any TopLevelVisitor::visitGreaterEqThan(SceneParser::GreaterEqThanContext *ctx){
+  OperationMacro(<=);  
+}
+
+std::any TopLevelVisitor::visitClamCond(SceneParser::ClamCondContext *ctx){
+  std::any ret = ctx->cond();
+  if (ret.type() == typeid(bool))
+    return ret;
+  else if (ret.type() == typeid(std::string))
+    return '(' + std::any_cast<std::string>(ret) + ')';
+  else
+   throw "TODO"; //TODO:
+}
+
+std::any TopLevelVisitor::visitNotCond(SceneParser::NotCondContext *ctx){
+  std::any ret = ctx->cond();
+  if (ret.type() == typeid(bool))
+    return !std::any_cast<bool>(ret);
+  else if (ret.type() == typeid(std::string))
+    return "!(" + std::any_cast<std::string>(ret) + ')';
+  else
+   throw "TODO"; //TODO:
+}
+
+std::any TopLevelVisitor::visitAndCond(SceneParser::AndCondContext *ctx){
+  OperationMacro(&&);
+}
+
+std::any TopLevelVisitor::visitOrCond(SceneParser::OrCondContext *ctx){
+  OperationMacro(||);
+}
+
 std::any TopLevelVisitor::visitABS(SceneParser::ABSContext *ctx){
   std::any ret = ctx->expr()->accept(this);
   if (ret.type() == typeid(int64_t))

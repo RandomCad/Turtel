@@ -59,7 +59,15 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitNegate(SceneParser::NegateContext *ctx) override;
     std::any visitVarExpr(SceneParser::VarExprContext *ctx) override;
 
-
+    ///conditions (bool)
+    std::any visitLesEqThan(SceneParser::LesEqThanContext *ctx) override;
+    std::any visitGreaterThan(SceneParser::GreaterThanContext *ctx) override;
+    std::any visitLesThan(SceneParser::LesThanContext *ctx) override;
+    std::any visitGreaterEqThan(SceneParser::GreaterEqThanContext *ctx) override;
+    std::any visitClamCond(SceneParser::ClamCondContext *ctx) override;
+    std::any visitNotCond(SceneParser::NotCondContext *ctx) override;
+    std::any visitAndCond(SceneParser::AndCondContext *ctx) override;
+    std::any visitOrCond(SceneParser::OrCondContext *ctx) override;
     //Number
     std::any visitInt(SceneParser::IntContext *ctx) override;
     std::any visitFloat(SceneParser::FloatContext *ctx) override;
