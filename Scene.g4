@@ -6,21 +6,13 @@ main    : 'begin' stat* 'end';
 pathdef : 'a';
 calcdef : 'a';
 
-stat    : walk
-        | save
-        | jump
-        | waklHome
-        | jumpHome
-        | turnLeft
-        | turnRight
-        | direction
-        | clear
-        | stop
-        | finish
-        | mark
-        | walkMark
-        | jumpMark
-        | colorCmd
+stat    : walk        | save        | jump
+        | waklHome    | jumpHome    | turnLeft
+        | turnRight   | direction   | clear
+        | stop        | finish      | storeVar
+        | addVar      | subVar      | divVar
+        | multVar     | walkMark    | jumpMark
+        | mark        | colorCmd
         ;
 ///Variable commands
 storeVar: 'store' expr 'in' var ;
