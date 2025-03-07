@@ -1,6 +1,8 @@
 #include "src/Function.h"
 #include "SceneParser.h"
+#include "src/CodeGenerator.h"
 #include "src/InternalVarNames.h"
+#include "src/TopLevelVisitor.h"
 #include "src/Variable.h"
 #include "src/VariableVisitor.h"
 #include <iostream>
@@ -94,7 +96,7 @@ std::cerr << __func__ << std::endl;
   return ret;
 }
 
-void Function::Implement(std::ostream &out, SceneVisitor *vis){
+void Function::Implement(std::ostream &out, CodeGenerator *vis){
   //prepere the variable part of the string
   std::string ret = "(";
   for (auto i : vars) {
@@ -105,12 +107,14 @@ void Function::Implement(std::ostream &out, SceneVisitor *vis){
     ret[ret.size() - 1] = '{';
   }
   else ret += "){";
+
+  ///output the head of the function 
   out << VarTypeNS::getTypeName(retType)
       << " __func_"
       << name
       << ret
       << '\n'
       ;
-  ctx->accept(vis);
+  vis->ImplementFunction(varCtx, ctx);
   out << "}\n";
 }

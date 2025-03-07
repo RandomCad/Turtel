@@ -1,5 +1,9 @@
+#pragma once
+
+class Function;
+
 #include "libs/SceneParser.h"
-#include "libs/SceneVisitor.h"
+#include "src/CodeGenerator.h"
 #include "src/Variable.h"
 
 #include <ParserRuleContext.h>
@@ -8,7 +12,6 @@
 #include <unordered_map>
 #include <vector>
 
-#pragma once
 
 class Function{
   protected:
@@ -23,7 +26,7 @@ class Function{
     Function(const std::string nm, VarType retT, SceneParser::MainContext *CTX);
     std::string getFunctionDeclaration();
     std::string getFunctionCall(const std::vector<Variable> var);
-    void Implement(std::ostream &out, SceneVisitor *vis);
+    void Implement(std::ostream &out, CodeGenerator *vis);
 
     FRIEND_TEST(FunctionHandler, CTor);
 };

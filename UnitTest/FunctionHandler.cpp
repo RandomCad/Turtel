@@ -1,10 +1,10 @@
 #include "SceneParser.h"
-#include "build/_deps/googletest-src/googletest/include/gtest/gtest.h"
 #include "src/InternalVarNames.h"
 #include "src/Variable.h"
+#include "src/FunctionHandler.h"
+#include "src/Function.h"
 #include "UnitTest/TestHelper.h"
 #include "gtest/gtest.h"
-#include "src/FunctionHandler.h"
 #include <regex>
 #include <sstream>
 #include <string>

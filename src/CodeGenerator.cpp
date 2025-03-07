@@ -4,12 +4,14 @@
 #include "CodeGenerator.h"
 #include "CodeGenerator.Helper.h"
 #include "VariableVisitor.h"
+#include "src/Function.h"
 
 #include <any>
 #include <cmath>
 #include <iostream>
 #include <cstring>
 #include <tree/ParseTreeType.h>
+#include <unordered_map>
 
 
 std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
@@ -257,9 +259,9 @@ void CodeGenerator::EndeMain(){
     << "}\n//Implimentation start for funktions";
 }
 
-void CodeGenerator::ImplementFunction(std::vector<Variable> &vars, antlr4::ParserRuleContext *ctx){
-  auto varContext = VarVisitor().getVariableContext(ctx);
-  _variables.setContext(varContext);
+void CodeGenerator::ImplementFunction(std::unordered_map<std::string, Variable> &vars, antlr4::ParserRuleContext *ctx){
+  _variables.setContext(vars);
+  ctx->accept(this);
 }
 ///file lokal
 size_t GetUniquNumber(){
