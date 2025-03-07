@@ -3,6 +3,7 @@
 #include "src/MathVisitor.h"
 #include "src/VariableHeandler.h"
 #include <gtest/gtest.h>
+#include <cmath>
 
 using namespace antlr4;
 
@@ -152,3 +153,33 @@ bool TestVariableParsing(TestError *&ret){
 }
 
 #endif
+
+TEST(MathVisitor, ConstFoldingNaN) {
+  std::stringstream stream;
+  stream << "0.0 / 0.0";
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto exprCtx = parser.expr();
+  ASSERT_TRUE(exprCtx != nullptr);
+
+  VariableHeandler var;
+  MathVisitor mathVis(var);
+  std::any result = exprCtx->accept(&mathVis);
+  
+  ASSERT_TRUE(result.type() == typeid(double));
+  double foldedValue = std::any_cast<double>(result);
+  
+  ASSERT_TRUE(std::isnan(foldedValue)) << "Erwarteter NaN-Wert, aber erhalten: " << foldedValue;
+  
+  std::string generatedCode;
+  if (std::isnan(foldedValue))
+    generatedCode = "NAN";
+  else
+    generatedCode = std::to_string(foldedValue);
+
+  ASSERT_EQ(generatedCode, "NAN");
+}
+
