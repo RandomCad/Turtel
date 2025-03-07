@@ -26,39 +26,35 @@ const std::unordered_map<std::string, Variable> VariableHeandler::enviornment = 
 };
 
 const std::string VariableHeandler::getVariableNameString(const std::string&nm){
-  for(std::vector<std::map<std::string,Variable>>::reverse_iterator i = contextStack.rbegin();i != contextStack.rend(); ++i){
-    if(std::map<std::string,Variable>::iterator ret = i->find(nm); ret != i->end()){
-      return ret->second.getName();
-    }
+  if(ctx.count(nm)){
+    return ctx.at(nm).getName();
   }
-  if(auto ret = enviornment.find(nm); ret != enviornment.end()){
-    return ret->second.getName();
+  else if(enviornment.count(nm)){
+    return enviornment.at(nm).getName();
   }
   //TODO error case
 }
 
 const std::string VariableHeandler::getVariableDefinition(const std::string&nm){
-  for(auto i = contextStack.rbegin();i != contextStack.rend(); ++i){
-    std::map<std::string,Variable>::iterator ret = i->find(nm);
-    if( ret != i->end()){
-      return ret->second.getTypeAndName();
-    }
+  if(ctx.count(nm)){
+    return ctx.at(nm).getTypeAndName();
   }
-  auto ret = enviornment.find(nm);
-  if( ret != enviornment.end()){
-    return ret->second.getTypeAndName();
+  else if(enviornment.count(nm)){
+    return enviornment.at(nm).getTypeAndName();
   }
   //TODO error case
 }
 
 Variable VariableHeandler::getVariable(const std::string&nm){
-  for(std::vector<std::map<std::string,Variable>>::reverse_iterator i = contextStack.rbegin();i != contextStack.rend(); ++i){
-    if(std::map<std::string,Variable>::iterator ret = i->find(nm); ret != i->end()){
-      return ret->second;
-    }
+  if(ctx.count(nm)){
+    return ctx.at(nm);
   }
-  if(auto ret = enviornment.find(nm); ret != enviornment.end()){
-    return ret->second;
+  else if(enviornment.count(nm)){
+    return enviornment.at(nm);
   }
   //TODO error case
+}
+
+void VariableHeandler::setContext(const std::unordered_map<std::string, Variable> &con){
+  ctx = con;
 }

@@ -22,7 +22,11 @@ class TopLevelVisitor : public SceneBaseVisitor{
       vars(b), 
       mathVis(vars) 
     {};
+
+    std::any visitVariable(SceneParser::VariableContext *ctx) override;
+    std::any visitGlobalVariable(SceneParser::GlobalVariableContext *ctx) override;
     
+  private:
     ///The visitor for a walk statment.
     std::any visitJumpFront(SceneParser::JumpFrontContext *ctx) override;
     std::any visitWalkFront(SceneParser::WalkFrontContext *ctx) override;
@@ -40,9 +44,13 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitWalkMark(SceneParser::WalkMarkContext *ctx) override;
     std::any visitJumpMark(SceneParser::JumpMarkContext *ctx) override;
     std::any visitColorCmd(SceneParser::ColorCmdContext *ctx) override;
+    ///The visitor for the var commands
+    std::any visitStoreVar(SceneParser::StoreVarContext *ctx) override;
+    std::any visitSubVar(SceneParser::SubVarContext *ctx) override;
+    std::any visitDivVar(SceneParser::DivVarContext *ctx) override;
+    std::any visitAddVar(SceneParser::AddVarContext *ctx) override;
+    std::any visitMultVar(SceneParser::MultVarContext *ctx) override;
 
-
-  private:
     std::string UnwrapExpre(SceneParser::ExprContext *ctx);
 
     ///The folowing commented out functions must be implimented by a preprocessing step by rewriteing the AST

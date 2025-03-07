@@ -4,6 +4,7 @@
 #include "CodeGenerator.h"
 #include "CodeGenerator.Helper.h"
 #include "AstRewriteVisitor.h"
+#include "VariableVisitor.h"
 
 #include <any>
 #include <cmath>
@@ -15,6 +16,9 @@
 
 std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
   std::cerr << "generating main body" << std::endl;
+  auto varContext = VarVisitor().getVariableContext(ctx);
+  _variables.setContext(varContext);
+
   output
 
     << "void TurtelMain(SDL_Renderer * " 
@@ -54,6 +58,10 @@ std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
     << '=' 
     << _variables.getVariableNameString(WINDOW_Y) << "/2;\n"
     ;
+
+  for (auto i : varContext) {
+    output << " " << std::get<Variable>(i).getTypeAndName() << " = 0;";
+  }
 
   //visit all the contained statments(stat)
   for(auto i : ctx->stat()) i->accept(&_topVis);
@@ -183,6 +191,7 @@ void CodeGenerator::AddGlobalVars(){
 }
 
 void CodeGenerator::AddMain(){
+  
   //main head
   output
     << "int main(int argc, const char *argv[]){\n"

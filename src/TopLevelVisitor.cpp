@@ -21,6 +21,64 @@ std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
   }
 }
 
+std::any TopLevelVisitor::visitVariable(SceneParser::VariableContext *ctx){
+  return ctx->ID()->getText();
+}
+
+std::any TopLevelVisitor::visitGlobalVariable(SceneParser::GlobalVariableContext *ctx){
+  return ctx->IncID()->getText();
+}
+
+std::any TopLevelVisitor::visitStoreVar(SceneParser::StoreVarContext *ctx){
+  output
+    << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+    << " = "
+    << UnwrapExpre(ctx->expr())
+    << ";\n"
+    ;
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitSubVar(SceneParser::SubVarContext *ctx){
+  output
+    << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+    << " -= "
+    << UnwrapExpre(ctx->expr())
+    << ";\n"
+    ;
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitDivVar(SceneParser::DivVarContext *ctx){
+  output
+    << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+    << " /= "
+    << UnwrapExpre(ctx->expr())
+    << ";\n"
+    ;
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitAddVar(SceneParser::AddVarContext *ctx){
+  output
+    << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+    << " += "
+    << UnwrapExpre(ctx->expr())
+    << ";\n"
+    ;
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitMultVar(SceneParser::MultVarContext *ctx){
+  output
+    << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+    << " *= "
+    << UnwrapExpre(ctx->expr())
+    << ";\n"
+    ;
+  return std::any();
+}
+
 std::any TopLevelVisitor::visitFinError(SceneParser::FinErrorContext *ctx){
   output 
     << "  __envfunc_fin("
