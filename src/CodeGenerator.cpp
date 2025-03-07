@@ -89,8 +89,7 @@ void CodeGenerator::AddIncludes(){
 
 void CodeGenerator::AddFunctionDeclaration(){
   output
-    << "//declaration of the Turtel Main:\n"
-    << "void TurtelMain(" << _variables.getVariableDefinition(RND_NAME) << ");\n" //TODO add needed parameters
+    << "//declaration of Turtel HelperFuncs:\n"
     << "void save_texture(const char* file_name, SDL_Renderer* renderer, SDL_Texture* texture) {\n"
     << "  SDL_Texture* target = SDL_GetRenderTarget(renderer);\n"
     << "  SDL_SetRenderTarget(renderer, texture);\n"

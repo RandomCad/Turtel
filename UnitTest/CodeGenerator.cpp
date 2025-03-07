@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "UnitTest/TestHelper.h"
 #include "src/Function.h"
 #include "src/CodeGenerator.h"
 #include "src/LLVMInterface.h"
@@ -16,6 +17,7 @@
 #include "libs/SceneLexer.h"
 #include "gtest/gtest.h"
 #include "TestSuits.h"
+#include "UnitTest/TestHelper.h"
 
 using namespace antlr4;
 
@@ -289,19 +291,26 @@ TEST(CodeGeneratorTestSuite, AddFunctionDeclaration){
   in1.clear();
   test.AddFunctionDeclaration();
 
-  std::cerr << in1.str() << std::endl;
-
-  ASSERT_TRUE(in1.str().length());
-  std::string buf;
-  std::getline(in1, buf);
-  ASSERT_EQ(buf[0], '/');
-  ASSERT_EQ(buf[1], '/');
-
-  std::regex testReg("void TurtelMain(.+);.*");
-  std::getline(in1, buf);
-  std::smatch match;
-  ASSERT_TRUE(std::regex_match(buf, match, testReg));
-  
+  std::regex defineLine(
+    "(\\s*\\/\\/.*$)"
+    "|"
+    "(\\s*void save_texture\\(const char\\* file_name, SDL_Renderer\\* renderer, SDL_Texture\\* texture\\) \\{\\s*$)"
+    "|"
+    "(\\s*  \\w+.*$|\\s*\\}\\s*$|\\s*  \\}\\w+.*$)"
+    "|"
+    "(void __envfunc_fin\\(const double ret, SDL_Renderer \\* rnd\\)\\{)"
+    "|"
+    "(void __envfunc_stop\\(const double ret, SDL_Renderer \\* rnd\\)\\{)"
+    "|"
+    "(\\s*SDL_DEINIT_LABLE:$)|(\\s*$)"
+    "|"
+    "(\\s*\\w+\\s*__usr__func_\\w+\\s*\\((\\s*\\w+\\s+\\w+\\s*|\\s*)\\)\\s*;\\s*$)"
+    "|"
+    "(\\s*void\\s+__env__func_\\w+\\s*\\(\\w+\\s+\\*\\s*\\w+\\s*\\)\\s*;\\s*$)"
+  );
+  for (std::string i; std::getline(in1, i);){
+    ASSERT_REGEX(i, defineLine);
+  }
 }
 
 TEST(CodeGeneratorTestSuite, BasicWalk){
