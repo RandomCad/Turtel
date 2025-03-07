@@ -79,7 +79,7 @@ std::any TopLevelVisitor::visitTurnRight(SceneParser::TurnRightContext *ctx){
 }
 
 ///go back to WINDOW_X/2 and WINDOW_Y which should be the middle of the bottom of the screen
-std::any TopLevelVisitor::visitWaklHome(SceneParser::WaklHomeContext *ctx){
+std::any TopLevelVisitor::visitWalkHome(SceneParser::WalkHomeContext *ctx){
   output  << "  SDL_RenderDrawLine("
           << vars.getVariableNameString(RND_NAME) 
           << ", " 

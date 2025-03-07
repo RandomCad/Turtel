@@ -9,7 +9,7 @@ calcdef : 'a';
 stat    : walk
         | save
         | jump
-        | waklHome
+        | walkHome
         | jumpHome
         | turnLeft
         | turnRight
@@ -30,7 +30,7 @@ jump      : Jump expr       #JumpFront
           | Jump Back expr  #JumpBack
           ; ///< same as walk without drawing
 save      : Save ID ; ///<Save the drawen immage to the named Bitmap
-waklHome  : Walk Home; ///< draw a line to the home position
+walkHome  : Walk Home; ///< draw a line to the home position
 jumpHome  : Jump Home; ///< jump to the home position
 turnLeft  : Turn Left expr; ///< turn x deg to the left 
 turnRight : Turn (Right)? expr; ///< turn x deg to the right 
