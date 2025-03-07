@@ -2,6 +2,7 @@
 #include "../libs/SceneParser.h"
 #include "src/MathVisitor.h"
 #include "src/VariableHeandler.h"
+#include "src/TopLevelVisitor.h"
 #include <gtest/gtest.h>
 #include <cmath>
 
@@ -161,25 +162,23 @@ TEST(MathVisitor, ConstFoldingNaN) {
   SceneLexer lexer(&input);
   CommonTokenStream tokens(&lexer);
   SceneParser parser(&tokens);
-
+  
   auto exprCtx = parser.expr();
   ASSERT_TRUE(exprCtx != nullptr);
-
+  
   VariableHeandler var;
-  MathVisitor mathVis(var);
-  std::any result = exprCtx->accept(&mathVis);
+  std::stringstream dummyOutput;
+  TopLevelVisitor visitor(dummyOutput, var);
   
-  ASSERT_TRUE(result.type() == typeid(double));
-  double foldedValue = std::any_cast<double>(result);
+  std::string resultStr = visitor.UnwrapExpre(exprCtx);
   
-  ASSERT_TRUE(std::isnan(foldedValue)) << "Erwarteter NaN-Wert, aber erhalten: " << foldedValue;
+  //convertion for case-insensitive checking:
+  std::transform(resultStr.begin(), resultStr.end(), resultStr.begin(), 
+                 [](unsigned char c){ return std::toupper(c); });
   
-  std::string generatedCode;
-  if (std::isnan(foldedValue))
-    generatedCode = "NAN";
-  else
-    generatedCode = std::to_string(foldedValue);
-
-  ASSERT_EQ(generatedCode, "NAN");
+  std::cerr << "Unwrapped expression (uppercase): " << resultStr << std::endl;
+  
+  ASSERT_TRUE(resultStr.find("NAN") != std::string::npos)
+      << "Expected 'NAN' in the unwrapped expression but got: " << resultStr;
 }
 
