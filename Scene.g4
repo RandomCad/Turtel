@@ -1,5 +1,30 @@
 grammar Scene;
 
+// Lexer rules
+Walk	: 'walk';
+Save  : 'save';
+Back  : 'back';
+Jump  : 'jump';
+Home  : 'home';
+Left  : 'left';
+Turn  : 'turn';
+Stop  : 'stop';
+Right : 'right';
+Clear : 'clear';
+Finish: 'finish';
+Direction : 'direction';
+Mark: 'mark';
+Store : 'store';
+In    : 'in';
+Step  : 'step';
+
+Num   : [0-9]+ ;
+Float : [0-9]+ '.' [0-9]+
+      | '.' [0-9]+ ;
+
+ID    : [_a-zA-Z] [_@a-zA-Z0-9]* ;
+IncID : '@' [_@a-zA-Z0-9]* ;
+
 file  : (pathdef | calcdef)* main (pathdef |calcdef)*; 
 
 main    : 'begin' stat* 'end';
@@ -21,9 +46,9 @@ if      : 'if' cond 'then' stat+ 'endif' #simpleIf
         ;
 simpFor : 'do' expr 'times' stat 'done';
 for     : 'counter' var 'from' expr 'to' expr 'do' stat+ 'done' #simpUpFor
-        | 'counter' var 'from' expr 'to' expr 'step' expr 'do' stat+ 'done' #stepUpFor
+        | 'counter' var 'from' expr 'to' expr Step expr 'do' stat+ 'done' #stepUpFor
         | 'counter' var 'from' expr 'downto' expr 'do' stat+ 'done' #simpDownFor
-        | 'counter' var 'from' expr 'downto' expr 'step' expr 'do' stat+ 'done' #stepDownFor
+        | 'counter' var 'from' expr 'downto' expr Step expr 'do' stat+ 'done' #stepDownFor
         ; //could all be implemented with stepUpFor
 while   : 'while' cond 'do' stat+ 'done';
 doWhile : 'repeat' stat+ 'untile' cond;
@@ -65,6 +90,10 @@ cond  : expr '<' expr #lesThan
       | expr '>' expr #greaterThan
       | expr '<=' expr #lesEqThan
       | expr '>=' expr #greaterEqThan
+      | '(' cond ')' #clamCond
+      | 'NOT' cond #notCond
+      | cond 'AND' cond #andCond
+      | cond 'OR' cond #orCond
       ;
 
 ///Math expressions
@@ -85,31 +114,5 @@ number: Num     #Int
 var   : ID      #Variable
       | IncID   #GlobalVariable
       ;
-
-// Lexer rules
-Walk	: 'walk';
-Save  : 'save';
-Back  : 'back';
-Jump  : 'jump';
-Home  : 'home';
-Left  : 'left';
-Turn  : 'turn';
-Stop  : 'stop';
-Right : 'right';
-Clear : 'clear';
-Finish: 'finish';
-Direction : 'direction';
-Mark: 'mark';
-Color: 'color';
-
-Store : 'store';
-In    : 'in';
-
-Num   : [0-9]+ ;
-Float : [0-9]+ '.' [0-9]+
-      | '.' [0-9]+ ;
-
-ID    : [_a-zA-Z] [_@a-zA-Z0-9]* ;
-IncID : '@' [_@a-zA-Z0-9]* ;
 
 WS : [ \t\r\n]+ -> skip ;
