@@ -291,7 +291,7 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, WalkHome){
   CommonTokenStream tokens(&lexer);
   SceneParser parser(&tokens);
   
-  auto astStart = parser.waklHome();
+  auto astStart = parser.walkHome();
   ASSERT_TRUE(astStart);
 
   std::stringstream retStream;
