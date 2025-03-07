@@ -1,3 +1,4 @@
+#pragma once
 #include <istream>
 #include <ANTLRInputStream.h>
 
@@ -24,3 +25,12 @@ retType parseStream(std::istream &in, retType (SceneParser::*method)()){
   getParser(in);
   return (parser.*method)();
 }
+
+#define ASSERT_REGEX(line, Regex) \
+  std::cerr << line << std::endl;\
+  ASSERT_TRUE(\
+      std::regex_match(\
+        line,\
+        Regex\
+        )\
+      );
