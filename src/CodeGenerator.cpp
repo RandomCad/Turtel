@@ -9,21 +9,13 @@
 #include <cmath>
 #include <iostream>
 #include <cstring>
-#include <string>
 #include <tree/ParseTreeType.h>
 
 
 std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
   std::cerr << "generating main body" << std::endl;
-  auto varContext = VarVisitor().getVariableContext(ctx);
-  _variables.setContext(varContext);
 
   output
-
-    << "void TurtelMain(SDL_Renderer * " 
-    << _variables.getVariableNameString(RND_NAME) 
-    << "){\n"
-
     ///define and set the x Position to half the window size
     << "  " << _variables.getVariableDefinition(POS_X) 
     << '=' 
@@ -58,18 +50,15 @@ std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
     << _variables.getVariableNameString(WINDOW_Y) << "/2;\n"
     ;
 
-  for (auto i : varContext) {
+  /*for (auto i : varContext) {
     output << " " << std::get<Variable>(i).getTypeAndName() << " = 0;\n";
-  }
+  }*/
 
   //visit all the contained statments(stat)
-  for(auto i : ctx->stat()) i->accept(&_topVis);
-
-  output
-    << "}\n" 
-    <<std::endl;
+  for(auto i : ctx->statList()->stat()) i->accept(&_topVis);
   return nullptr;
 }
+
 //formate of the C-File:
 //1. includes
 //2. functiondeclaration
@@ -81,7 +70,6 @@ void CodeGenerator::GenerateCode(){
   AddGlobalVars();
   AddFunctionDeclaration();
   AddMain();
-  astMain->accept(this);
   AddTurtelFunctions();
 }
 
@@ -138,14 +126,6 @@ void CodeGenerator::AddFunctionDeclaration(){
     << "  __envfunc_stop(ret, rnd);\n"
     << "}\n"
     << std::endl
-  //add pathdef Functions:
-    << "//declaration of the pathdefs\n"
-    << std::endl
-  //TODO do
-  //add calcdef Functions:
-    << "//declaration of the calcdefs\n"
-    << std::endl
-  //TODO do
     ;
 
   ///get all the function definitions
@@ -177,11 +157,12 @@ void CodeGenerator::AddGlobalVars(){
     << "Marker popMarker(void) {\n"
     << "  if (markerStackTop >= 0) {\n"
     << "    return markerStack[markerStackTop--];\n"
-    << "  } else {\n"
+    << "  }\n"
+    << "  else {\n"
     << "    fprintf(stderr, \"Fehler: Marker-Stack leer!\\n\");\n"
     << "    exit(EXIT_FAILURE);\n"
     << "  }\n"
-    << "}\n";
+    << "}\n"; //TODO move to a different position
   output 
     << _variables.getVariableDefinition(WINDOW_X) << "=800;\n"
     << _variables.getVariableDefinition(WINDOW_Y) << "=600;\n"
@@ -232,9 +213,10 @@ void CodeGenerator::AddMain(){
   //switch to correct backbuffer (internal textur)
   GenPresent(_variables, output);
   
+  ///call turtel main
+  _funcs.getFunctionCall(MAIN_FUNC, {_variables.getVariable(RND_NAME)});
+
   output
-  //call TurtelMain
-    << "  TurtelMain(" << _variables.getVariableNameString(RND_NAME) << ");\n" //TODO add the parameters
   //Implicit wait
     << "  __envfunc_fin(0, " << _variables.getVariableNameString(RND_NAME) << ");\n"
   //main end
@@ -243,7 +225,7 @@ void CodeGenerator::AddMain(){
 }
 
 void CodeGenerator::AddTurtelFunctions(){
-  _funcs.ImplementFunctions(this); 
+  _funcs.ImplementFunctions(output, this); 
 }
 
 CodeGenerator::CodeGenerator(std::ostream &outStream)
@@ -273,6 +255,11 @@ void CodeGenerator::EndeMain(){
   output 
     << "//End of Main\n"
     << "}\n//Implimentation start for funktions";
+}
+
+void CodeGenerator::ImplementFunction(std::vector<Variable> &vars, antlr4::ParserRuleContext *ctx){
+  auto varContext = VarVisitor().getVariableContext(ctx);
+  _variables.setContext(varContext);
 }
 ///file lokal
 size_t GetUniquNumber(){

@@ -136,6 +136,7 @@ set(
   UnitTest/Function.cpp
 
   UnitTest/TestHelper.cpp
+  UnitTest/FunctionHandler.cpp
   )
 
 add_executable(

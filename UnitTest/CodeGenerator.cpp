@@ -1,9 +1,7 @@
 #include <ANTLRInputStream.h>
 #include <cstdlib>
-#include <functional>
 #include <gtest/gtest.h>
 #include <istream>
-#include <iterator>
 #include <llvm/Support/Chrono.h>
 #include <regex>
 #include <string>
@@ -327,7 +325,7 @@ TEST(CodeGeneratorTestSuite, BasicWalk){
   EXPECT_EQ(astStart->calcdef().size(),0);
   EXPECT_EQ(astStart->pathdef().size(),0);
   EXPECT_FALSE(astStart->main()->isEmpty());
-  EXPECT_EQ(astStart->main()->stat().size(), 1);
+  EXPECT_EQ(astStart->main()->statList()->stat().size(), 1);
 
   CodeGenerator test(interface.llvmFile, astStart);
   ASSERT_EQ(test.astMain, astStart->main());
@@ -384,7 +382,7 @@ TEST(CodeGeneratorTestSuite, BasicJump){
   EXPECT_EQ(astStart->calcdef().size(),0);
   EXPECT_EQ(astStart->pathdef().size(),0);
   EXPECT_FALSE(astStart->main()->isEmpty());
-  EXPECT_EQ(astStart->main()->stat().size(), 2);
+  EXPECT_EQ(astStart->main()->statList()->stat().size(), 2);
 
   CodeGenerator test(interface.llvmFile, astStart);
   test.GenerateCode();
