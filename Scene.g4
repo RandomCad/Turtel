@@ -31,12 +31,13 @@ IncID : '@' [_@a-zA-Z0-9]* ;
 
 file  : (pathdef | calcdef)* main (pathdef |calcdef)*; 
 
-main    : Begin stat* End;
-pathdef : 'path' ID paramlist? stat* 'endpath' ;
-calcdef : 'calculation' ID  paramlist stat* 'returns' expr 'endcalc' ;
+main    : Begin statList End;
+pathdef : 'path' ID paramlist? statList 'endpath' ;
+calcdef : 'calculation' ID  paramlist statList 'returns' expr 'endcalc' ;
 paramlist : '(' (var ',')* var ')'
           | '(' ')'
           ;
+statList  : stat* ;
 
 stat    : walk        | save        | jump
         | waklHome    | jumpHome    | turnLeft

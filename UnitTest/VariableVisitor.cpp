@@ -1,13 +1,10 @@
 #include <ANTLRInputStream.h>
-#include <any>
 #include <gtest/gtest.h>
-#include <regex>
 #include <string>
 
 #include "gtest/gtest.h"
 #include "libs/SceneParser.h"
 #include "libs/SceneLexer.h"
-#include "src/TopLevelVisitor.h"
 #include "src/VariableVisitor.h"
 
 using  namespace antlr4;
@@ -29,36 +26,36 @@ TEST(VariableVisitor, GetVars){
   auto astStart = parser.main();
 
   ASSERT_TRUE(astStart);
-  ASSERT_EQ(astStart->stat().size(), 3);
+  ASSERT_EQ(astStart->statList()->stat().size(), 3);
   {
-    ASSERT_TRUE(astStart->stat()[0]);
-    ASSERT_TRUE(astStart->stat()[0]->walk());
-    ASSERT_FALSE(astStart->stat()[0]->storeVar());
+    ASSERT_TRUE(astStart->statList()->stat()[0]);
+    ASSERT_TRUE(astStart->statList()->stat()[0]->walk());
+    ASSERT_FALSE(astStart->statList()->stat()[0]->storeVar());
     SceneParser::WalkFrontContext *walk;
-    ASSERT_TRUE(walk = dynamic_cast<SceneParser::WalkFrontContext*>(astStart->stat()[0]->walk()));
+    ASSERT_TRUE(walk = dynamic_cast<SceneParser::WalkFrontContext*>(astStart->statList()->stat()[0]->walk()));
     ASSERT_TRUE(walk->expr());
     SceneParser::VarExprContext *varExpr;
     ASSERT_TRUE(varExpr = dynamic_cast<SceneParser::VarExprContext*>(walk->expr()));
     ASSERT_TRUE(varExpr->var());
     ASSERT_STREQ(varExpr->var()->getText().c_str(), "_step");
   }{
-    ASSERT_TRUE(astStart->stat()[1]->storeVar());
-    ASSERT_FALSE(astStart->stat()[1]->walk());
-    ASSERT_TRUE(astStart->stat()[1]->storeVar()->expr());
-    ASSERT_TRUE(astStart->stat()[1]->storeVar()->var());
-    ASSERT_STREQ(astStart->stat()[1]->storeVar()->var()->getText().c_str(), "_step");
+    ASSERT_TRUE(astStart->statList()->stat()[1]->storeVar());
+    ASSERT_FALSE(astStart->statList()->stat()[1]->walk());
+    ASSERT_TRUE(astStart->statList()->stat()[1]->storeVar()->expr());
+    ASSERT_TRUE(astStart->statList()->stat()[1]->storeVar()->var());
+    ASSERT_STREQ(astStart->statList()->stat()[1]->storeVar()->var()->getText().c_str(), "_step");
   }{
-    ASSERT_TRUE(astStart->stat()[2]->addVar());
-    ASSERT_FALSE(astStart->stat()[2]->walk());
+    ASSERT_TRUE(astStart->statList()->stat()[2]->addVar());
+    ASSERT_FALSE(astStart->statList()->stat()[2]->walk());
     {
-      ASSERT_TRUE(astStart->stat()[2]->addVar()->expr());
+      ASSERT_TRUE(astStart->statList()->stat()[2]->addVar()->expr());
       SceneParser::VarExprContext *varExpr;
-      ASSERT_TRUE(varExpr = dynamic_cast<SceneParser::VarExprContext*>(astStart->stat()[2]->addVar()->expr()));
+      ASSERT_TRUE(varExpr = dynamic_cast<SceneParser::VarExprContext*>(astStart->statList()->stat()[2]->addVar()->expr()));
       ASSERT_TRUE(varExpr->var());
       ASSERT_STREQ(varExpr->var()->getText().c_str(), "_step");
     }
-    ASSERT_TRUE(astStart->stat()[2]->addVar()->var());
-    ASSERT_STREQ(astStart->stat()[2]->addVar()->var()->getText().c_str(), "_wal5");
+    ASSERT_TRUE(astStart->statList()->stat()[2]->addVar()->var());
+    ASSERT_STREQ(astStart->statList()->stat()[2]->addVar()->var()->getText().c_str(), "_wal5");
   }
 
   VarVisitor vis;

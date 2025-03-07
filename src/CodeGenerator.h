@@ -1,6 +1,7 @@
 #ifndef MY_VISITOR_FILE
 #define MY_VISITOR_FILE
 
+#include <ParserRuleContext.h>
 #include <iostream>
 #include <ostream>
 #include <stdlib.h>
@@ -31,8 +32,6 @@ class CodeGenerator : public SceneBaseVisitor{
     VariableHeandler _variables;
     FuctionHandler _funcs;
     TopLevelVisitor _topVis;
-    //Only used for Unittesting
-    //CodeGenerator(): output(std::cout), _mathVis(_variables) {}
     CodeGenerator(std::ostream &outStream);
   public:
     CodeGenerator(std::ostream &outStream, SceneParser::FileContext *AstBase);
@@ -50,6 +49,7 @@ class CodeGenerator : public SceneBaseVisitor{
 
     void ProgrammBase();
     void EndeMain();
+    void ImplementFunction(std::vector<Variable>&, antlr4::ParserRuleContext *);
 
     FRIEND_TEST(CodeGenerator, AddMain);
     FRIEND_TEST(CodeGenerator, BasicEmptyMain);
