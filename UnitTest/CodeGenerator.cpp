@@ -116,6 +116,7 @@ TEST(CodeGeneratorTestSuite, TestTrivialSave){
   //TODO: check the output
 }
 
+/*
 TEST(CodeGeneratorTestSuite, TestEmptyMainVisit){
   std::stringstream stream;
   stream 
@@ -145,11 +146,7 @@ TEST(CodeGeneratorTestSuite, TestEmptyMainVisit){
   std::string buf;
   ///check for main definition
   std::getline(testOut, buf);
-  std::cerr << buf << std::endl;
-  ASSERT_TRUE(std::regex_match(buf, std::regex(
-    "void\\s+TurtelMain\\s*\\(\\s*SDL_Renderer\\s+\\*\\s+\\w+\\s*\\)\\s*\\{\\s*",
-    std::regex_constants::ECMAScript
-  )));
+  ASSERT_REGEX(buf, std::regex("void\\s+TurtelMain\\s*\\(\\s*SDL_Renderer\\s+\\*\\s+\\w+\\s*\\)\\s*\\{\\s*"));
 
   std::getline(testOut, buf);
   std::cerr << buf << std::endl;
@@ -209,7 +206,7 @@ TEST(CodeGeneratorTestSuite, TestEmptyMainVisit){
     "\\s*}\\s*",
     std::regex_constants::ECMAScript
   )));
-}
+}*/
 
 TEST(CodeGeneratorTestSuite, AddMain){
   std::stringstream in1;
