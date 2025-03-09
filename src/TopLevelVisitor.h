@@ -1,5 +1,7 @@
 #pragma once
 
+class FunctionHandler;
+
 #include "SceneBaseVisitor.h"
 #include "SceneParser.h"
 #include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
@@ -13,17 +15,17 @@
 class TopLevelVisitor : public SceneBaseVisitor{
     std::ostream &output; ///<The output of this class. Everything is writen to this.
     VariableHeandler &vars; ///<The variable conetext my be changed.
+    FunctionHandler &funcs;
     static int infinitLoopFlag; ///<The flag that says if infinit loops are allowed
                                 ///<0 is unknowen -> create error report
                                 ///<1 infinit loops are allowed
                                 ///<-1 infinit loops aren't allowed
+    
+    TopLevelVisitor(std::ostream &a, VariableHeandler &b, FunctionHandler &&c); 
 
   public:
-    TopLevelVisitor(std::ostream &a, VariableHeandler &b) : 
-      output(a), 
-      vars(b) 
-    {};
-
+    TopLevelVisitor(std::ostream &a, VariableHeandler &b);
+    TopLevelVisitor(std::ostream &a, VariableHeandler &b, FunctionHandler &c); 
     
   private:
     ///The visitor for a walk statment.
@@ -73,6 +75,7 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitABS(SceneParser::ABSContext *ctx) override;
     std::any visitNegate(SceneParser::NegateContext *ctx) override;
     std::any visitVarExpr(SceneParser::VarExprContext *ctx) override;
+    std::any visitFuncCall(SceneParser::FuncCallContext *ctx) override;
     ///conditions (bool)
     std::any visitLesEqThan(SceneParser::LesEqThanContext *ctx) override;
     std::any visitGreaterThan(SceneParser::GreaterThanContext *ctx) override;

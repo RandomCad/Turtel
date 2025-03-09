@@ -127,3 +127,6 @@ Der `save` befehl ermöglicht das Speicher des Momentanen Programstandes in eine
 Die umsetzung diese war nach der Implementierung eines eingene Front-buffers, welcher für die generelle funktionsweise benötigt wird, recht einfach. 
 Hierfür wurde der Code von [Czipperz](https://stackoverflow.com/users/1692584/czipperz) antwort auf eine entsprechende [stackoverflow Frage](https://stackoverflow.com/questions/34255820/save-sdl-texture-to-file) verwendet. 
 Dieser Funktioniert sehr gut und die Integration war sehr einfach.
+
+
+Zyklische dependencys im Function system haben sicherlich 2-3h Zeit geraubt.

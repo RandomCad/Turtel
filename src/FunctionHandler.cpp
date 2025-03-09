@@ -31,7 +31,7 @@ std::vector<Variable> getVars(SceneParser::ParamlistContext *ctx){
   return ret;
 }
 
-FuctionHandler::FuctionHandler(SceneParser::MainContext* mainCtx, 
+FunctionHandler::FunctionHandler(SceneParser::MainContext* mainCtx, 
                     std::vector<SceneParser::PathdefContext*> &paths,
                     std::vector<SceneParser::CalcdefContext*> &calcs){
   funcs.emplace(
@@ -59,7 +59,7 @@ FuctionHandler::FuctionHandler(SceneParser::MainContext* mainCtx,
     }
   }
 }
-FuctionHandler::FuctionHandler(SceneParser::MainContext* mainCtx, 
+FunctionHandler::FunctionHandler(SceneParser::MainContext* mainCtx, 
                     std::vector<SceneParser::PathdefContext*> &&paths,
                     std::vector<SceneParser::CalcdefContext*> &&calcs){
   funcs.emplace(
@@ -88,18 +88,18 @@ FuctionHandler::FuctionHandler(SceneParser::MainContext* mainCtx,
   }
 }
 
-std::string FuctionHandler::getFunctionDeclaration(std::string funcName){
+std::string FunctionHandler::getFunctionDeclaration(std::string funcName){
   return funcs.at(funcName).getFunctionDeclaration();
 }
 
-std::string FuctionHandler::getFunctionCall(std::string funcName, std::vector<Variable> input){
+std::string FunctionHandler::getFunctionCall(std::string funcName, std::vector<Variable> input){
 #ifndef NDEBUG
 std::cerr << __func__ << std::endl;
 #endif  
   return funcs.at(funcName).getFunctionCall(input);
 }
 
-void FuctionHandler::ImplementFunctions(std::ostream &out, CodeGenerator *vis){
+void FunctionHandler::ImplementFunctions(std::ostream &out, CodeGenerator *vis){
   for (auto i : funcs) {
     std::cerr << &i << std::endl;
     i.second.Implement(out, vis);
@@ -108,7 +108,7 @@ void FuctionHandler::ImplementFunctions(std::ostream &out, CodeGenerator *vis){
   std::cerr << "exiting" << __func__ << std::endl;
 }
 
-void FuctionHandler::getFunctionDeclarations(std::ostream &out){
+void FunctionHandler::getFunctionDeclarations(std::ostream &out){
   for (auto i : funcs) {
     out << i.second.getFunctionDeclaration();
   }
