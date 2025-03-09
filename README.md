@@ -15,16 +15,16 @@ Dieser kann zur überprüfung der korrekten Arbeitsweise SDL2 verwenden.
 
 ## Dependency
 
-* Clang-14
+* Clang-19
 * SDL2
 * SDL2-Immage
 * CMake
-* Java (13+(?))
+* Java (17+)
 * c++17
 * git
-* libclang-14-dev
-* llvm-14
-* llvm-14-dev
+* libclang-19-dev
+* llvm-19
+* llvm-19-dev
 * libsdl2-image-dev
 
 ## Compilation
