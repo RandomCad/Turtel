@@ -1,20 +1,18 @@
 #pragma once
 
-class CodeGenerator;
-
 #include <ParserRuleContext.h>
 #include <iostream>
 #include <ostream>
 #include <stdlib.h>
 #include <vector>
 
-#include "../libs/SceneParser.h"
-#include "../libs/SceneBaseVisitor.h"
+#include "libs/SceneParser.h"
+#include "libs/SceneBaseVisitor.h"
 #include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
-#include "src/TopLevelVisitor.h"
-#include "src/VariableHeandler.h"
-#include "src/FunctionHandler.h"
-#include "src/Function.h"
+#include "TopLevelVisitor.h"
+#include "VariableHeandler.h"
+#include "FunctionHandler.h"
+#include "Function.h"
 #include "UnitTest/TestSuits.h"
 
 #define CALC_POS_X(len) POSITION_X_NAME + len * cos(ROTATION_NAME)
@@ -31,7 +29,7 @@ class CodeGenerator : public SceneBaseVisitor{
     std::vector<SceneParser::PathdefContext *> astPathdef;
 
     VariableHeandler _variables;
-    FuctionHandler _funcs;
+    FunctionHandler _funcs;
     TopLevelVisitor _topVis;
     CodeGenerator(std::ostream &outStream);
   public:

@@ -2,19 +2,29 @@
 #include "SceneParser.h"
 #include "CodeGenerator.Helper.h"
 #include "src/InternalVarNames.h"
-#include "src/Variable.h"
 #include "src/VariableHeandler.h"
+#include "src/FunctionHandler.h"
 
 #include <any>
 #include <cstdint>
 #include <cstdlib>
-#include <iterator>
 #include <ostream>
 #include <string>
 #include <cmath>
 #include <cassert>
 
 int TopLevelVisitor::infinitLoopFlag = 0;
+
+TopLevelVisitor::TopLevelVisitor(std::ostream &a, VariableHeandler &b) : 
+  TopLevelVisitor(a,b,FunctionHandler())
+{}
+TopLevelVisitor::TopLevelVisitor(std::ostream &a, VariableHeandler &b, FunctionHandler &&c) : 
+  TopLevelVisitor(a,b,c) {}
+TopLevelVisitor::TopLevelVisitor(std::ostream &a, VariableHeandler &b, FunctionHandler &c) : 
+      output(a), 
+      vars(b), 
+      funcs(c)
+    {};
 
 ///define function to unpack expr return
 std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
@@ -26,6 +36,10 @@ std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
     std::cerr << "unknowen type: " << ret.type().name() << std::endl;
     throw "Error unknowen type";
   }
+}
+std::any TopLevelVisitor::visitFuncCall(SceneParser::FuncCallContext *ctx){
+  std::string funcName = ctx->ID()->getText();
+  //if(funcs.
 }
 
 std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){

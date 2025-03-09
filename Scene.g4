@@ -93,6 +93,7 @@ mark      : Mark;
 walkMark  : Walk Mark;
 jumpMark  : Jump Mark;
 colorCmd  : Color expr expr expr;
+pathCall  : 'path' ID paramlist? ;
 
 ///conditions (if)
 cond  : expr '<' expr #lesThan
@@ -117,6 +118,7 @@ expr  : ( klamKon | number) '^' (klamKon | number) #Exp
       | '-' ( number | klamKon )   #Negate
       | number	      #NumExpr	
       | var	      #VarExpr
+      | ID paramlist  #funcCall
       ;
 klamKon	: '(' expr ')' ;
 number: Num     #Int

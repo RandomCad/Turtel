@@ -36,7 +36,7 @@ TEST(FunctionHandler, CTorFailDuplicateFunctionName){
   ASSERT_TRUE(ast);
 
   ASSERT_THROW(
-      FuctionHandler test(ast->main(), ast->pathdef(), ast->calcdef()),
+      FunctionHandler test(ast->main(), ast->pathdef(), ast->calcdef()),
       const char*
       );
 }
@@ -56,7 +56,7 @@ TEST(FunctionHandler, CTor){
 
   ASSERT_TRUE(ast);
 
-  FuctionHandler test(ast->main(), ast->pathdef(), ast->calcdef());
+  FunctionHandler test(ast->main(), ast->pathdef(), ast->calcdef());
 
   ASSERT_EQ(test.funcs.size(), 7);
   ASSERT_EQ(test.funcs.at("test1").retType, VarType::VOID);
@@ -89,7 +89,7 @@ TEST(FunctionHandler, getFunctionDeclarations){
 
   ASSERT_TRUE(ast);
 
-  FuctionHandler test(ast->main(), ast->pathdef(), ast->calcdef());
+  FunctionHandler test(ast->main(), ast->pathdef(), ast->calcdef());
 
   std::stringstream testStream;
   test.getFunctionDeclarations(testStream);

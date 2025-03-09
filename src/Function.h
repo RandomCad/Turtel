@@ -1,9 +1,8 @@
 #pragma once
 
-class Function;
+class CodeGenerator;
 
 #include "libs/SceneParser.h"
-#include "src/CodeGenerator.h"
 #include "src/Variable.h"
 
 #include <ParserRuleContext.h>

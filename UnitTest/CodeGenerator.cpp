@@ -421,6 +421,62 @@ TEST(CodeGeneratorTestSuite, BasicJump){
   ASSERT_TRUE(std::filesystem::exists(testFile));
 }
 
+TEST(CodeGeneratorTestSuite, TestCalcDefCommand){
+  const char * testFile = "TestCalcDefCommand.out";
+  std::filesystem::remove(testFile);
+
+  LLVMInterface interface(testFile);
+  std::stringstream stream;
+  stream 
+    << "calculation TheNumber ()" << std::endl
+    << "  store 5 in test\n"
+    << "  store -3 in ret\n"
+    << "  add ret to test\n"  //test = 2
+    << "  mul ret by test\n"  //ret = -3 * 2 = -6
+    << "  div test by ret\n"  //test = 2 / -6 = -0,5
+    << "  store ret in test\n"//test = ret = -6
+    << "  mul ret by test\n"  //ret = 36
+    << "  returns ret" << std::endl //returns 36
+    << "endcalc" << std::endl
+    << "begin\n"
+    << "  finish TheNumber()" << std::endl //output should be 36
+    << "end\n"
+    << std::endl;
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 1);
+  EXPECT_EQ(astStart->pathdef().size(), 0);
+  
+  CodeGenerator test(interface.llvmFile, astStart);
+  test.GenerateCode();
+
+  std::istream &toTest(interface.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  interface.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  //couldn't finde a way to do this direcktly in cpp
+  int exitCode = std::system((std::string("./") + testFile /*+ std::string("\nif [ $? -eq 36 ]; then exit 0; else exit 1; fi")*/).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 36);
+  //TODO: check the output
+}//*/
+
 /*
 bool TestCodeGeneratorEmpty(TestError *&col){
   const char *testFile = TEST_OUTPUT_DIR "/EmptyCodeGenerator.out";
