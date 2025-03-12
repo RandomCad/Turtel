@@ -28,6 +28,10 @@ class TopLevelVisitor : public SceneBaseVisitor{
     TopLevelVisitor(std::ostream &a, VariableHeandler &b, FunctionHandler &c); 
     
   private:
+    //The visotr for the function implementation
+    std::any visitCalcdef(SceneParser::CalcdefContext *ctx) override;
+    std::any visitPathdef(SceneParser::PathdefContext *ctx) override;
+    std::any visitMain(SceneParser::MainContext *ctx) override;
     ///The visitor for a walk statment.
     std::any visitJumpFront(SceneParser::JumpFrontContext *ctx) override;
     std::any visitJumpBack(SceneParser::JumpBackContext *ctx) override;
@@ -76,6 +80,8 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitNegate(SceneParser::NegateContext *ctx) override;
     std::any visitVarExpr(SceneParser::VarExprContext *ctx) override;
     std::any visitFuncCall(SceneParser::FuncCallContext *ctx) override;
+    ///\return a vector with all the variables
+    std::any visitParamlist(SceneParser::ParamlistContext *ctx) override;
     ///conditions (bool)
     std::any visitLesEqThan(SceneParser::LesEqThanContext *ctx) override;
     std::any visitGreaterThan(SceneParser::GreaterThanContext *ctx) override;
@@ -90,8 +96,10 @@ class TopLevelVisitor : public SceneBaseVisitor{
     //Number
     std::any visitInt(SceneParser::IntContext *ctx) override;
     std::any visitFloat(SceneParser::FloatContext *ctx) override;
-    ///The visitor for variables
+    //The visitor for variables
+    ///\return The string of the variable
     std::any visitVariable(SceneParser::VariableContext *ctx) override;
+    ///\return The string of the variable
     std::any visitGlobalVariable(SceneParser::GlobalVariableContext *ctx) override;
     /// Helper funk to get the result of a calc expr
     std::string UnwrapExpre(SceneParser::ExprContext *ctx);

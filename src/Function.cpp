@@ -87,12 +87,11 @@ std::cerr << __func__ << std::endl;
   if(vars.size() > 0){
     //add the ')' and the ';'
     ret[ret.size()-2] = ')';
-    ret[ret.size()-1] = ';';
+    ret[ret.size()-1] = ' ';
   }
   else {
-    ret += ");";
+    ret += ")";
   }
-  //add a '\n' and return the result
   return ret;
 }
 
