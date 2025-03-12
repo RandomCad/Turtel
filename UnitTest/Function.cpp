@@ -132,7 +132,7 @@ TEST(Function, GetSimplPathCall){
     Function test("test", VarType::VOID, st);
     ASSERT_REGEX(
         test.getFunctionCall(std::vector<Variable>()),
-        std::regex("\\s*\\w+\\s*\\(\\s*\\)\\s*;\\s*")
+        std::regex("\\s*\\w+\\s*\\(\\s*\\)\\s*\\s*")
         );
   }
   std::regex declWithOneVar("\\s*void\\s*\\w+\\s*\\(\\s*\\w+\\s+__usr_func\\w+\\s*\\)\\s*;\\s*");

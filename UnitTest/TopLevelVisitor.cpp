@@ -5,8 +5,10 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <regex>
+#include <sstream>
 #include <string>
 
+#include "UnitTest/TestHelper.h"
 #include "libs/SceneParser.h"
 #include "libs/SceneLexer.h"
 #include "src/VariableHeandler.h"
@@ -17,6 +19,82 @@ std::regex matchPragmaUnrolle = std::regex("\\s*#pragma\\s+unroll\\s*");
 std::regex matchClosingCrlBracket = std::regex("\\s*\\}\\s*");
 
 using  namespace antlr4;
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, CalcDef){
+  std::stringstream stream;
+  stream
+    << "calculation TheNumber ()" << std::endl
+    << "  store 5 in test" << std::endl
+    << "  store -3 in ret" << std::endl
+    << "  add ret to test" << std::endl  //test = 2
+    << "  mul ret by test" << std::endl  //ret = -3 * 2 = -6
+    << "  div test by ret" << std::endl  //test = 2 / -6 = -0,5
+    << "  store ret in test" << std::endl//test = ret = -6
+    << "  mul ret by test" << std::endl  //ret = 36
+    << "  returns ret" << std::endl //returns 36
+    << "endcalc" << std::endl
+    ;
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.calcdef();
+
+  ASSERT_TRUE(astStart);
+  {
+    std::stringstream retStream;
+    VariableHeandler var;
+    var.setContext(VarVisitor().getVariableContext(astStart));
+    TopLevelVisitor toTest(retStream, var);
+
+    astStart->accept(&toTest);
+
+    std::regex assigne("\\s*__usr_\\w+\\s*=\\s*(-?\\d+|__usr_\\w+)\\s*;\\s*$");
+    std::regex calcAssigne("\\s*__usr_\\w+\\s*(\\+=|-=|\\*=|/=)\\s*__usr\\w+\\s*;\\s*$");
+
+    std::string line;
+    for (int i = 0; i < 2; ++i){
+      std::getline(retStream, line);
+      ASSERT_FALSE(retStream.eof());
+      ASSERT_REGEX(line, assigne);
+    }
+
+    for (int i = 0; i < 3; ++i){
+      std::getline(retStream, line);
+      ASSERT_FALSE(retStream.eof());
+      ASSERT_REGEX(line, calcAssigne);
+    }
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, assigne);
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, calcAssigne);
+
+    //return
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*return\\s+__usr_\\w+\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_TRUE(retStream.eof());
+  }
+}
+
+#define ASSERT_REGEX(Regex) \
+  std::getline(retStream, line);\
+    std::cerr << line << std::endl;\
+    ASSERT_TRUE(\
+        std::regex_match(\
+          line,\
+          Regex\
+          )\
+        );
+
 
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, SingleIf){
   std::stringstream stream;
@@ -893,15 +971,7 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, ToFor){
     TopLevelVisitor toTest(retStream, var);\
     std::any ret = astStart->accept(&toTest);\
     std::string line;
-#define ASSERT_REGEX(Regex) \
-  std::getline(retStream, line);\
-    std::cerr << line << std::endl;\
-    ASSERT_TRUE(\
-        std::regex_match(\
-          line,\
-          Regex\
-          )\
-        );
+
 
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, SimplUpFor){
   std::stringstream stream;

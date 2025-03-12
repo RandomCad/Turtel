@@ -217,7 +217,7 @@ void CodeGenerator::AddMain(){
   GenPresent(_variables, output);
   
   ///call turtel main
-  output << _funcs.getFunctionCall(MAIN_FUNC, {_variables.getVariable(RND_NAME)});
+  output << _funcs.getFunctionCall(MAIN_FUNC, {_variables.getVariable(RND_NAME)}) << ';';
 
   output
   //Implicit wait
@@ -237,7 +237,7 @@ CodeGenerator::CodeGenerator(std::ostream &outStream)
 CodeGenerator::CodeGenerator(std::ostream &outStream, SceneParser::FileContext* AstBase)
   : output(outStream), astBase(AstBase), astMain(astBase->main()), 
     astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()),
-    _funcs(astMain, astPathdef, astCalcdef), _topVis(output, _variables){
+    _funcs(astMain, astPathdef, astCalcdef), _topVis(output, _variables, _funcs){
 }
 
 void CodeGenerator::ProgrammBase(){

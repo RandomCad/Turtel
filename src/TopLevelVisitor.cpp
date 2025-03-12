@@ -1,10 +1,11 @@
 #include "src/TopLevelVisitor.h"
 #include "SceneParser.h"
-#include "CodeGenerator.Helper.h"
 #include "src/InternalVarNames.h"
 #include "src/VariableHeandler.h"
 #include "src/FunctionHandler.h"
+#include "src/CodeGenerator.Helper.h"
 
+#include <algorithm>
 #include <any>
 #include <cstdint>
 #include <cstdlib>
@@ -12,6 +13,7 @@
 #include <string>
 #include <cmath>
 #include <cassert>
+#include <vector>
 
 int TopLevelVisitor::infinitLoopFlag = 0;
 
@@ -37,9 +39,34 @@ std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
     throw "Error unknowen type";
   }
 }
+
+std::any TopLevelVisitor::visitCalcdef(SceneParser::CalcdefContext *ctx) {
+  ctx->statList()->accept(this);
+  output << "return " << UnwrapExpre(ctx->expr()) << ";\n";
+  return std::any();
+}
+std::any TopLevelVisitor::visitPathdef(SceneParser::PathdefContext *ctx){} 
+std::any TopLevelVisitor::visitMain(SceneParser::MainContext *ctx){} 
+
 std::any TopLevelVisitor::visitFuncCall(SceneParser::FuncCallContext *ctx){
   std::string funcName = ctx->ID()->getText();
-  //if(funcs.
+  if(!funcs.Conatains(funcName)){
+    std::cout << "using function " << funcName << " which wasn't defined in the file" << std::endl;
+    funcs.getFunctionDeclarations(std::cout);
+    throw "Error"; //TODO;
+  }
+  return funcs.getFunctionCall(funcName, std::any_cast<std::vector<Variable>>(ctx->paramlist()->accept(this)));
+}
+std::any TopLevelVisitor::visitParamlist(SceneParser::ParamlistContext *ctx){
+  return [&]() -> std::vector<Variable> {
+  std::vector<Variable> ret;
+  std::transform(ctx->var().begin(), ctx->var().end(),
+                 std::back_inserter(ret),
+                 [this](auto i) {
+                   return vars.getVariable(std::any_cast<std::string>(i->accept(this)));
+                 });
+  return ret;
+}();
 }
 
 std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){

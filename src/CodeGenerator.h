@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <vector>
 
-#include "libs/SceneParser.h"
-#include "libs/SceneBaseVisitor.h"
+#include "../libs/SceneParser.h"
+#include "../libs/SceneBaseVisitor.h"
 #include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
 #include "TopLevelVisitor.h"
 #include "VariableHeandler.h"
