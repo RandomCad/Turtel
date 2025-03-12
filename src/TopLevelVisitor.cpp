@@ -47,6 +47,9 @@ std::any TopLevelVisitor::visitCalcdef(SceneParser::CalcdefContext *ctx) {
 }
 std::any TopLevelVisitor::visitPathdef(SceneParser::PathdefContext *ctx){} 
 std::any TopLevelVisitor::visitMain(SceneParser::MainContext *ctx){} 
+std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
+
+}
 
 std::any TopLevelVisitor::visitFuncCall(SceneParser::FuncCallContext *ctx){
   std::string funcName = ctx->ID()->getText();

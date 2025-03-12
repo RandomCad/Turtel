@@ -26,6 +26,8 @@ class TopLevelVisitor : public SceneBaseVisitor{
   public:
     TopLevelVisitor(std::ostream &a, VariableHeandler &b);
     TopLevelVisitor(std::ostream &a, VariableHeandler &b, FunctionHandler &c); 
+    ///entry point for code generation
+    std::any visitFile(SceneParser::FileContext *ctx) override;
     
   private:
     //The visotr for the function implementation
