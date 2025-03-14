@@ -5,7 +5,7 @@ project("Turtel")
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # compiler must be at least 17
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 #emit clangd data
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -85,14 +85,11 @@ SET(LLVM_LIBS
 #---------------------------------------#
 # Creat CodeGenerator variable 
 set(CodeGeneration 
-  src/CodeGenerator.cpp 
-  src/CodeGenerator.Helper.cpp 
-  src/Variable.cpp 
-  src/VariableHeandler.cpp
   src/TopLevelVisitor.cpp
   src/VariableVisitor.cpp
-  src/FunctionHandler.cpp
   src/Function.cpp
+  src/Variable.cpp
+  src/GlobalVarVisitor.cpp
   )
 # Creat LLVM Interface variable
 set(LLVM_Interface src/LLVMInterface.cpp)
