@@ -95,9 +95,11 @@ std::cerr << __func__ << std::endl;
   return ret;
 }
 
-void Function::Implement(std::ostream &out, CodeGenerator *vis){
+std::string Function::Implement(){
   //prepere the variable part of the string
-  std::string ret = "(";
+  std::string ret = VarTypeNS::getTypeName(retType);
+  ret += name;
+  ret += "(";
   for (auto i : vars) {
     ret += i.getTypeAndName() + ", ";
   }
@@ -106,28 +108,5 @@ void Function::Implement(std::ostream &out, CodeGenerator *vis){
     ret[ret.size() - 1] = '{';
   }
   else ret += "){";
-
-  ///output the head of the function 
-  out << VarTypeNS::getTypeName(retType)
-      << name
-      << ret
-      << '\n'
-      ;
-  for (auto i : varCtx) {
-    bool isDefined = false;
-    for (auto y : vars) {
-      if (i.second.name == y.name){
-        isDefined = true;
-        break;
-      }
-    }
-    if(!isDefined){
-      out << "  "
-          <<i.second.getTypeAndName()
-          << " = 0;\n"
-          ;
-    }
-  }
-  vis->ImplementFunction(varCtx, ctx);
-  out << "}\n";
+  return ret;
 }
