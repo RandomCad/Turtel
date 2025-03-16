@@ -1,8 +1,6 @@
 #include "src/Function.h"
 #include "SceneParser.h"
-#include "src/CodeGenerator.h"
 #include "src/InternalVarNames.h"
-#include "src/TopLevelVisitor.h"
 #include "src/Variable.h"
 #include "src/VariableVisitor.h"
 #include <iostream>
@@ -42,11 +40,6 @@ Function::Function(const std::string nm, VarType retT, SceneParser::CalcdefConte
 }
 Function::Function(const std::string nm, VarType retT, SceneParser::MainContext *CTX) 
       : retType(retT), name(nm), ctx(CTX) {
-  vars.reserve(1);
-  vars.push_back(Variable(VarType::RENDERER,"__env_rnd")); 
-  varCtx.insert({RND_NAME, Variable(VarType::RENDERER,"__env_rnd")}); 
-  
-  varCtx.merge(VarVisitor().getVariableContext(CTX->statList()));
 }
 ///returns the function declaration for this function
 std::string Function::getFunctionDeclaration(){

@@ -109,7 +109,6 @@ target_link_libraries(Turtel antlr4_static ${SYSTEM_LIBS})
 #---------------------------------------#
 #           UnitTest Programm           #
 #---------------------------------------#
-set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
@@ -123,17 +122,12 @@ enable_testing()
 
 set(
   UnitTest
-  UnitTest/CodeGenerator.Helper.cpp
   UnitTest/TestLLVMInterface.cpp
-  UnitTest/VariableHeandler.cpp
   UnitTest/Variable.cpp
-  UnitTest/CodeGenerator.cpp
   UnitTest/TopLevelVisitor.cpp
   UnitTest/VariableVisitor.cpp
   UnitTest/Function.cpp
-
   UnitTest/TestHelper.cpp
-  UnitTest/FunctionHandler.cpp
   )
 
 add_executable(

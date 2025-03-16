@@ -6,8 +6,8 @@
 #include "FunctionHandler.h"
 #include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
 #include "src/Function.h"
+#include "src/LLVMInterface.h"
 #include "src/Variable.h"
-#include "src/VariableHeandler.h"
 #include <ostream>
 #include <unordered_map>
 /**
@@ -16,6 +16,9 @@
  *It outputs direcktly to an ostream.
  */
 class TopLevelVisitor : public SceneBaseVisitor{
+  public:
+    LLVMInterface llvm;
+  private:
     std::ostream &output; ///<The output of this class. Everything is writen to this.
     std::unordered_map<std::string, Variable> envVar;
     std::unordered_map<std::string, Variable> ctxVar;
@@ -25,7 +28,7 @@ class TopLevelVisitor : public SceneBaseVisitor{
                                 ///<1 infinit loops are allowed
                                 ///<-1 infinit loops aren't allowed
   public:
-    TopLevelVisitor(std::ostream &a);
+    TopLevelVisitor(const char * const);
     ///entry point for code generation
     std::any visitFile(SceneParser::FileContext *ctx) override;
     

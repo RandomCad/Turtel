@@ -3,11 +3,8 @@
 #include "GlobalVarVisitor.h"
 #include "VariableVisitor.h"
 #include "src/InternalVarNames.h"
-#include "src/VariableHeandler.h"
-#include "src/FunctionHandler.h"
-#include "src/CodeGenerator.Helper.h"
+#include "src/LLVMInterface.h"
 
-#include <algorithm>
 #include <any>
 #include <cstdint>
 #include <cstdlib>
@@ -27,7 +24,8 @@
 
 int TopLevelVisitor::infinitLoopFlag = 0;
 
-TopLevelVisitor::TopLevelVisitor(std::ostream &a): output(a) {}
+TopLevelVisitor::TopLevelVisitor(const char * const fileName = "file") 
+  : llvm(LLVMInterface(fileName)), output(llvm.llvmFile) {}
 
 ///define function to unpack expr return
 std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
@@ -72,6 +70,7 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     }
   }
 
+  ///add the static envirment Variables
   envVar = std::unordered_map<std::string, Variable>({
     {std::string(RND_NAME),Variable(VarType::RENDERER,"__env_rnd")},
     {std::string(WINDOW_X), Variable(VarType::CONST_DOUBLE, "__env_wx")},
@@ -88,7 +87,7 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     {std::string(WINDOW_NAME), Variable(VarType::WINDOW, "__env_window")},
     {std::string(EVENT_NAME), Variable(VarType::EVENT, "__env_event")},
   });
-  //TODO add the real env Vars!
+  ///add the User Global varibales
   {
     auto i = GlobalVarVisitor().getVariableContext(ctx);
     envVar.insert(i.begin(), i.end());
@@ -114,11 +113,15 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     << "#define MARKER_STACK_CAPACITY 4096\n\n"
     << "static Marker markerStack[MARKER_STACK_CAPACITY];\n"
     << "static int markerStackTop = -1;\n"
-    << envVar.at(WINDOW_X).getTypeAndName() << "=800;\n"
-    << envVar.at(WINDOW_Y).getTypeAndName() << "=600;\n"
-    << envVar.at(TEXTURE_NAME).getTypeAndName() << ";\n"
-    << envVar.at(WINDOW_NAME).getTypeAndName() << ";\n"
-    << envVar.at(EVENT_NAME).getTypeAndName() << ";\n"
+    ;
+
+  for (auto i : envVar){
+    output << i.second.getTypeAndName() << ";\n";
+  }
+
+  output
+    //<< envVar.at(WINDOW_X).getTypeAndName() << "=800;\n"
+    //<< envVar.at(WINDOW_Y).getTypeAndName() << "=600;\n" add to main -> set them
     << std::endl
     ///function declarations
     << "//declaration of Turtel HelperFuncs\n"
@@ -134,37 +137,33 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
   output 
     << std::endl
     ///add the main function
-    << "intmain(int argc, const char *argv[]){\n"///<sdl init
-    << "  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"///<creat window
+    << "int main(int argc, const char *argv[]){\n"///<sdl init
+    << "SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"///<creat window
     ///define the window
-    << "  "
-    << envVar.at(WINDOW_NAME).getTypeAndName()
+    << envVar.at(WINDOW_NAME).getName()
     << "= SDL_CreateWindow( \"Main Window\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, "
-    << envVar.at(WINDOW_X).getTypeAndName() << ',' 
-    << envVar.at(WINDOW_Y).getTypeAndName() << ','
+    << envVar.at(WINDOW_X).getName() << ',' 
+    << envVar.at(WINDOW_Y).getName() << ','
     << "SDL_WINDOW_SHOWN );\n"
     ///Define renderer
-    << "  " 
-    << envVar.at(RND_NAME).getTypeAndName() 
+    << envVar.at(RND_NAME).getName() 
     << " = SDL_CreateRenderer("
-    << envVar.at(WINDOW_NAME).getTypeAndName()
+    << envVar.at(WINDOW_NAME).getName()
     << ", -1, SDL_RENDERER_ACCELERATED);\n"
     ///define the texture
-    << "  " 
-    << envVar.at(TEXTURE_NAME).getTypeAndName() 
+    << envVar.at(TEXTURE_NAME).getName() 
     << " = SDL_CreateTexture( " 
-    << envVar.at(RND_NAME).getTypeAndName() 
+    << envVar.at(RND_NAME).getName() 
     << ", SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, " 
-    << envVar.at(WINDOW_X).getTypeAndName() 
+    << envVar.at(WINDOW_X).getName() 
     << ", " 
-    << envVar.at(WINDOW_Y).getTypeAndName() 
+    << envVar.at(WINDOW_Y).getName() 
     << ");\n"
-    ///define events
-    << "  SDL_Event events;\n"
     //switch to correct backbuffer (internal textur)
     << GenPresent
-    << funcs.at(MAIN_FUNC).getFunctionCall({envVar.at(RND_NAME)}) << ';'///<call Turtel main
-    << "  __envfunc_fin(0, " << envVar.at(RND_NAME).getTypeAndName() << ");\n"///<call the end functions
+    << funcs.at(MAIN_FUNC).getFunctionCall({}) << ';'///<call Turtel main
+    << '\n'
+    << "__envfunc_fin(0, " << envVar.at(RND_NAME).getName() << ");\n"///<call the end functions
   //main end
     << "}\n"
     << std::endl
@@ -175,8 +174,8 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
 #ifndef NDEBUG
     << "    printf(\"Event Loop\\n\");\n"
 #endif
-    << "    SDL_WaitEvent(&" << envVar.at(EVENT_NAME).getTypeAndName() << ");\n"
-    << "    switch ("<< envVar.at(EVENT_NAME).getTypeAndName() << ".type){\n"
+    << "    SDL_WaitEvent(&" << envVar.at(EVENT_NAME).getName() << ");\n"
+    << "    switch ("<< envVar.at(EVENT_NAME).getName() << ".type){\n"
     << "      case SDL_KEYDOWN:\n"
     << "      case SDL_QUIT: goto SDL_DEINIT_LABLE;\n"
     << "      default: break;\n"
@@ -188,7 +187,7 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     << "}\n"
     << "void __envfunc_fin(const double ret, SDL_Renderer * rnd){\n" 
     << "  SDL_DestroyRenderer(rnd);\n"
-    << "  SDL_DestroyWindow( " << envVar.at(WINDOW_NAME).getTypeAndName() << ");\n"
+    << "  SDL_DestroyWindow( " << envVar.at(WINDOW_NAME).getName() << ");\n"
     << "  SDL_Quit();\n"
     << "  exit((int) ret);\n"
     << "}\n"
