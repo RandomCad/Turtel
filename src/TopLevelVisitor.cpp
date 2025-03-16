@@ -198,7 +198,7 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     << "  SDL_QueryTexture(texture, NULL, NULL, &width, &height);\n"
     << "  SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);\n"
     << "  SDL_RenderReadPixels(renderer, NULL, surface->format->format, surface->pixels, surface->pitch);\n"
-    << "  IMG_SavePNG(surface, file_name);\n"
+    << "  if (IMG_SavePNG(surface, file_name)) printf(\"The picture could not be saved\");\n"
     << "  SDL_FreeSurface(surface);\n"
     << "  SDL_SetRenderTarget(renderer, target);\n"
     << "}\n"
@@ -242,6 +242,7 @@ std::any TopLevelVisitor::visitMain(SceneParser::MainContext *ctx){
   output
     ///output the function header
     << funcs.at(MAIN_FUNC).Implement()
+    << std::endl
     ;
   ctxVar = VarVisitor().getVariableContext(ctx); 
   ///define all the Variables

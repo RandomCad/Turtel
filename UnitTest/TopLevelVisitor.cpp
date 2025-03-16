@@ -18,7 +18,7 @@ std::regex matchClosingCrlBracket = std::regex("\\s*\\}\\s*");
 
 using  namespace antlr4;
 
-TEST(CodeGeneratorTestSuite, TestCalcDefCommand){
+TEST(TopLevelVisitor, TestCalcDefCommand){
   const char * testFile = "TestCalcDefCommand.out";
   std::filesystem::remove(testFile);
 
@@ -67,11 +67,253 @@ TEST(CodeGeneratorTestSuite, TestCalcDefCommand){
   
   ASSERT_TRUE(std::filesystem::exists(testFile));
 
-  //couldn't finde a way to do this direcktly in cpp
-  int exitCode = std::system((std::string("./") + testFile /*+ std::string("\nif [ $? -eq 36 ]; then exit 0; else exit 1; fi")*/).c_str());
+  int exitCode = std::system((std::string("./") + testFile).c_str());
   ASSERT_EQ(WEXITSTATUS(exitCode), 36);
-  //TODO: check the output
-}//*/
+}
+
+TEST(TopLevelVisitor, TestVarCommands){
+  const char * testFile = "TestVarCommand.out";
+  std::filesystem::remove(testFile);
+
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  store 5 in test\n"
+    << "  store -3 in ret\n"
+    << "  add ret to test\n"  //test = 2
+    << "  mul ret by test\n"  //ret = -3 * 2 = -6
+    << "  div test by ret\n"  //test = 2 / -6 = -0,5
+    << "  store ret in test\n"//test = ret = -6
+    << "  mul ret by test\n"  //ret = 36
+    << "  finish ret\n"
+    << "end\n"
+    << std::endl;
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 0);
+  EXPECT_EQ(astStart->pathdef().size(), 0);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int exitCode = std::system((std::string("./") + testFile).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 36);
+}
+
+TEST(TopLevelVisitor, TestTrivialSave){
+  const char * testFile = "TestTrivialSave.out";
+  std::filesystem::remove(testFile);
+
+  LLVMInterface interface(testFile);
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  save test\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 0);
+  EXPECT_EQ(astStart->pathdef().size(), 0);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int exitCode = std::system((std::string("./") + testFile).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 0);
+  ASSERT_TRUE(std::filesystem::exists("test.png"));
+}
+TEST(TopLevelVisitor, BasicEmptyMain){
+  const char * testFile = "EmptyMainTest.out";
+  std::filesystem::remove(testFile);
+
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 0);
+  EXPECT_EQ(astStart->pathdef().size(), 0);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+}
+TEST(TopLevelVisitor, BasicWalk){
+  const char *testFile = "BasicWalkTest.out";
+  std::filesystem::remove(testFile);
+
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  walk 50\n"
+    << "end\n"
+    << std::endl;
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(),0);
+  EXPECT_EQ(astStart->pathdef().size(),0);
+  EXPECT_FALSE(astStart->main()->isEmpty());
+  EXPECT_EQ(astStart->main()->statList()->stat().size(), 1);
+
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::regex checkForDraw(
+          "\\s+SDL_RenderDrawLine\\s*\\("
+          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
+          ")\\s*;\\s*");
+  std::string line;
+  int ret = 0;
+  while (std::getline(test.llvm.llvmFile, line)) {
+    std::cerr << line ;
+    if(std::regex_match(line, checkForDraw)){
+      ret++;
+      std::cerr << "//found";
+    }
+    std::cerr << std::endl;
+  }
+
+  test.llvm.llvmFile.seekg(0);
+  
+  ASSERT_EQ(ret, 1);
+
+  test.llvm.CallLLVM();
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+}
+TEST(TopLevelVisitor, BasicJump){
+  const char *testFile = "BasicWalkTest.out";
+  std::filesystem::remove(testFile);
+
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  jump 50\n"
+    << "  walk 50\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(),0);
+  EXPECT_EQ(astStart->pathdef().size(),0);
+  EXPECT_FALSE(astStart->main()->isEmpty());
+  EXPECT_EQ(astStart->main()->statList()->stat().size(), 2);
+
+TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::regex checkForDraw(
+          "\\s+SDL_RenderDrawLine\\s*\\("
+          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
+          ")\\s*;\\s*");
+  std::string line;
+  int ret = 0;
+  while (std::getline(test.llvm.llvmFile, line)) {
+    std::cerr << line ;
+    if(std::regex_match(line, checkForDraw)){
+      ret++;
+      std::cerr << "//found";
+    }
+    std::cerr << std::endl;
+  }
+
+  test.llvm.llvmFile.seekg(0);
+  
+  ASSERT_EQ(ret, 1);
+
+  test.llvm.CallLLVM();
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+}
 
 #if FALSE
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, CalcDef){
