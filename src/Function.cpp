@@ -1,8 +1,6 @@
 #include "src/Function.h"
 #include "SceneParser.h"
-#include "src/CodeGenerator.h"
 #include "src/InternalVarNames.h"
-#include "src/TopLevelVisitor.h"
 #include "src/Variable.h"
 #include "src/VariableVisitor.h"
 #include <iostream>
@@ -42,11 +40,6 @@ Function::Function(const std::string nm, VarType retT, SceneParser::CalcdefConte
 }
 Function::Function(const std::string nm, VarType retT, SceneParser::MainContext *CTX) 
       : retType(retT), name(nm), ctx(CTX) {
-  vars.reserve(1);
-  vars.push_back(Variable(VarType::RENDERER,"__env_rnd")); 
-  varCtx.insert({RND_NAME, Variable(VarType::RENDERER,"__env_rnd")}); 
-  
-  varCtx.merge(VarVisitor().getVariableContext(CTX->statList()));
 }
 ///returns the function declaration for this function
 std::string Function::getFunctionDeclaration(){
@@ -95,9 +88,11 @@ std::cerr << __func__ << std::endl;
   return ret;
 }
 
-void Function::Implement(std::ostream &out, CodeGenerator *vis){
+std::string Function::Implement(){
   //prepere the variable part of the string
-  std::string ret = "(";
+  std::string ret = VarTypeNS::getTypeName(retType);
+  ret += name;
+  ret += "(";
   for (auto i : vars) {
     ret += i.getTypeAndName() + ", ";
   }
@@ -106,28 +101,5 @@ void Function::Implement(std::ostream &out, CodeGenerator *vis){
     ret[ret.size() - 1] = '{';
   }
   else ret += "){";
-
-  ///output the head of the function 
-  out << VarTypeNS::getTypeName(retType)
-      << name
-      << ret
-      << '\n'
-      ;
-  for (auto i : varCtx) {
-    bool isDefined = false;
-    for (auto y : vars) {
-      if (i.second.name == y.name){
-        isDefined = true;
-        break;
-      }
-    }
-    if(!isDefined){
-      out << "  "
-          <<i.second.getTypeAndName()
-          << " = 0;\n"
-          ;
-    }
-  }
-  vis->ImplementFunction(varCtx, ctx);
-  out << "}\n";
+  return ret;
 }

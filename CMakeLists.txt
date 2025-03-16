@@ -5,7 +5,7 @@ project("Turtel")
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # compiler must be at least 17
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 #emit clangd data
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -85,14 +85,11 @@ SET(LLVM_LIBS
 #---------------------------------------#
 # Creat CodeGenerator variable 
 set(CodeGeneration 
-  src/CodeGenerator.cpp 
-  src/CodeGenerator.Helper.cpp 
-  src/Variable.cpp 
-  src/VariableHeandler.cpp
   src/TopLevelVisitor.cpp
   src/VariableVisitor.cpp
-  src/FunctionHandler.cpp
   src/Function.cpp
+  src/Variable.cpp
+  src/GlobalVarVisitor.cpp
   )
 # Creat LLVM Interface variable
 set(LLVM_Interface src/LLVMInterface.cpp)
@@ -112,7 +109,6 @@ target_link_libraries(Turtel antlr4_static ${SYSTEM_LIBS})
 #---------------------------------------#
 #           UnitTest Programm           #
 #---------------------------------------#
-set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
@@ -126,17 +122,12 @@ enable_testing()
 
 set(
   UnitTest
-  UnitTest/CodeGenerator.Helper.cpp
   UnitTest/TestLLVMInterface.cpp
-  UnitTest/VariableHeandler.cpp
   UnitTest/Variable.cpp
-  UnitTest/CodeGenerator.cpp
   UnitTest/TopLevelVisitor.cpp
   UnitTest/VariableVisitor.cpp
   UnitTest/Function.cpp
-
   UnitTest/TestHelper.cpp
-  UnitTest/FunctionHandler.cpp
   )
 
 add_executable(

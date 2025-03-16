@@ -1,31 +1,36 @@
 #pragma once
 
-class FunctionHandler;
 
 #include "SceneBaseVisitor.h"
 #include "SceneParser.h"
+#include "FunctionHandler.h"
 #include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
-#include "src/VariableHeandler.h"
+#include "src/Function.h"
+#include "src/LLVMInterface.h"
+#include "src/Variable.h"
 #include <ostream>
+#include <unordered_map>
 /**
  *This class is the Top Level visitor.
  *It should only be used to visit the stat and direckt childs.
  *It outputs direcktly to an ostream.
  */
 class TopLevelVisitor : public SceneBaseVisitor{
+  public:
+    LLVMInterface llvm;
+  private:
     std::ostream &output; ///<The output of this class. Everything is writen to this.
-    VariableHeandler &vars; ///<The variable conetext my be changed.
-    FunctionHandler &funcs;
+    std::unordered_map<std::string, Variable> envVar;
+    std::unordered_map<std::string, Variable> ctxVar;
+    std::unordered_map<std::string, Function> funcs;
     static int infinitLoopFlag; ///<The flag that says if infinit loops are allowed
                                 ///<0 is unknowen -> create error report
                                 ///<1 infinit loops are allowed
                                 ///<-1 infinit loops aren't allowed
-    
-    TopLevelVisitor(std::ostream &a, VariableHeandler &b, FunctionHandler &&c); 
-
   public:
-    TopLevelVisitor(std::ostream &a, VariableHeandler &b);
-    TopLevelVisitor(std::ostream &a, VariableHeandler &b, FunctionHandler &c); 
+    TopLevelVisitor(const char * const);
+    ///entry point for code generation
+    std::any visitFile(SceneParser::FileContext *ctx) override;
     
   private:
     //The visotr for the function implementation

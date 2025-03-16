@@ -1,11 +1,10 @@
 #include "src/TopLevelVisitor.h"
 #include "SceneParser.h"
+#include "GlobalVarVisitor.h"
+#include "VariableVisitor.h"
 #include "src/InternalVarNames.h"
-#include "src/VariableHeandler.h"
-#include "src/FunctionHandler.h"
-#include "src/CodeGenerator.Helper.h"
+#include "src/LLVMInterface.h"
 
-#include <algorithm>
 #include <any>
 #include <cstdint>
 #include <cstdlib>
@@ -15,47 +14,313 @@
 #include <cassert>
 #include <vector>
 
+#define GenPresent \
+     "SDL_SetRenderTarget(" << envVar[RND_NAME].getName() << ", NULL);\n" \
+    << "SDL_RenderClear( " << envVar[RND_NAME].getName() << ");\n" \
+    << "SDL_RenderCopy(" << envVar[RND_NAME].getName() << ", " << envVar[TEXTURE_NAME].getName() << ", NULL, NULL);\n"\
+    << "SDL_RenderPresent( " << envVar[RND_NAME].getName() << ");\n" \
+    << "SDL_SetRenderTarget(" << envVar[RND_NAME].getName() << ", " << envVar[TEXTURE_NAME].getName() << ");\n" 
+
+
 int TopLevelVisitor::infinitLoopFlag = 0;
 
-TopLevelVisitor::TopLevelVisitor(std::ostream &a, VariableHeandler &b) : 
-  TopLevelVisitor(a,b,FunctionHandler())
-{}
-TopLevelVisitor::TopLevelVisitor(std::ostream &a, VariableHeandler &b, FunctionHandler &&c) : 
-  TopLevelVisitor(a,b,c) {}
-TopLevelVisitor::TopLevelVisitor(std::ostream &a, VariableHeandler &b, FunctionHandler &c) : 
-      output(a), 
-      vars(b), 
-      funcs(c)
-    {};
+TopLevelVisitor::TopLevelVisitor(const char * const fileName = "file") 
+  : llvm(LLVMInterface(fileName)), output(llvm.llvmFile) {}
 
 ///define function to unpack expr return
 std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
   std::any ret = ctx->accept(this);
   if(ret.type() == typeid(std::string))     return std::any_cast<std::string>(ret);
   else if (ret.type() == typeid(int64_t))   return std::to_string(std::any_cast<int64_t>(ret));
-  else if (ret.type() == typeid(double))   return std::to_string(std::any_cast<double>(ret));
+  else if (ret.type() == typeid(double))    return std::to_string(std::any_cast<double>(ret));
   else{
     std::cerr << "unknowen type: " << ret.type().name() << std::endl;
     throw "Error unknowen type";
   }
 }
 
-std::any TopLevelVisitor::visitCalcdef(SceneParser::CalcdefContext *ctx) {
-  ctx->statList()->accept(this);
-  output << "return " << UnwrapExpre(ctx->expr()) << ";\n";
+///is the main antrypoint in to the code generation
+std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
+  ///do the preperation
+  ///create the function Table
+  {
+    funcs.emplace(
+        MAIN_FUNC, 
+        Function(TURTEL_MAIN_FUNC_NAME, VarType::VOID, ctx->main())
+        );
+    for (auto i : ctx->pathdef()) {
+      if(!funcs .emplace( i->ID()->getText(), 
+                  Function( USR_FUNC_PREFIX + i->ID()->getText(),
+                  VarType::VOID,
+                  i)
+                )
+                .second){
+        throw "duplicate function names"; //TODO better error
+      }
+    }
+    for (auto i : ctx->calcdef()) {
+      if(!funcs .emplace ( i->ID()->getText(), 
+                  Function( USR_FUNC_PREFIX + i->ID()->getText(),
+                  VarType::DOUBLE,
+                  i)
+                )
+                .second){
+        throw "duplicate function names"; //TODO better error
+      }
+    }
+  }
+
+  ///add the static envirment Variables
+  envVar = std::unordered_map<std::string, Variable>({
+    {std::string(RND_NAME),Variable(VarType::RENDERER,"__env_rnd")},
+    {std::string(WINDOW_X), Variable(VarType::CONST_DOUBLE, "__env_wx")},
+    {std::string(WINDOW_Y), Variable(VarType::CONST_DOUBLE, "__env_wy")},
+    {std::string(POS_X),Variable(VarType::DOUBLE,"__env_posX")},
+    {std::string(POS_Y),Variable(VarType::DOUBLE,"__env_posY")},
+    {std::string(MAX_X),Variable(VarType::CONST_DOUBLE,"__env_maxX")},
+    {std::string(MAX_Y),Variable(VarType::CONST_DOUBLE,"__env_maxY")},
+    {std::string(ROTATION),Variable(VarType::DOUBLE,"__env_rot")},
+    {std::string(COLOR_R),Variable(VarType::DOUBLE,"__env_red")},
+    {std::string(COLOR_G),Variable(VarType::DOUBLE,"__env_green")},
+    {std::string(COLOR_B),Variable(VarType::DOUBLE,"__env_blue")},
+    {std::string(TEXTURE_NAME), Variable(VarType::TESXTUR, "__env_textur")},
+    {std::string(WINDOW_NAME), Variable(VarType::WINDOW, "__env_window")},
+    {std::string(EVENT_NAME), Variable(VarType::EVENT, "__env_event")},
+  });
+  ///add the User Global varibales
+  {
+    auto i = GlobalVarVisitor().getVariableContext(ctx);
+    envVar.insert(i.begin(), i.end());
+  }
+  ///start generation of the output code
+  output
+    ///add includes
+    << "//standart includes\n"
+    << "#include <SDL2/SDL.h>\n"
+    << "#include <SDL2/SDL_image.h>\n"
+    << "#include <math.h>\n"
+    << "#include <stdio.h>\n"
+    << "#include <stdlib.h>\n"
+    << std::endl
+    ///add struct definitions
+    << "typedef struct {\n"
+    << "  double posX;\n"
+    << "  double posY;\n"
+    << "  double rotation;\n"
+    << "} Marker;\n"
+    << std::endl
+    ///add gloabal vars
+    << "#define MARKER_STACK_CAPACITY 4096\n\n"
+    << "static Marker markerStack[MARKER_STACK_CAPACITY];\n"
+    << "static int markerStackTop = -1;\n"
+    ;
+
+  for (auto i : envVar){
+    output << i.second.getTypeAndName() << ";\n";
+  }
+
+  output
+    //<< envVar.at(WINDOW_X).getTypeAndName() << "=800;\n"
+    //<< envVar.at(WINDOW_Y).getTypeAndName() << "=600;\n" add to main -> set them
+    << std::endl
+    ///function declarations
+    << "//declaration of Turtel HelperFuncs\n"
+    << "void save_texture(const char* file_name, SDL_Renderer* renderer, SDL_Texture* texture);\n"
+    << "void __envfunc_fin(const double ret, SDL_Renderer * rnd);\n" 
+    << "void __envfunc_stop(const double ret, SDL_Renderer * rnd);\n"
+    ;
+  ///get all the usr function definitions
+  for (auto i : funcs) {
+    output << i.second.getFunctionDeclaration();
+  }
+
+  output 
+    << std::endl
+    ///add the main function
+    << "int main(int argc, const char *argv[]){\n"///<sdl init
+    << "SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"///<creat window
+    ///define the window
+    << envVar.at(WINDOW_NAME).getName()
+    << "= SDL_CreateWindow( \"Main Window\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, "
+    << envVar.at(WINDOW_X).getName() << ',' 
+    << envVar.at(WINDOW_Y).getName() << ','
+    << "SDL_WINDOW_SHOWN );\n"
+    ///Define renderer
+    << envVar.at(RND_NAME).getName() 
+    << " = SDL_CreateRenderer("
+    << envVar.at(WINDOW_NAME).getName()
+    << ", -1, SDL_RENDERER_ACCELERATED);\n"
+    ///define the texture
+    << envVar.at(TEXTURE_NAME).getName() 
+    << " = SDL_CreateTexture( " 
+    << envVar.at(RND_NAME).getName() 
+    << ", SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, " 
+    << envVar.at(WINDOW_X).getName() 
+    << ", " 
+    << envVar.at(WINDOW_Y).getName() 
+    << ");\n"
+    //switch to correct backbuffer (internal textur)
+    << GenPresent
+    << funcs.at(MAIN_FUNC).getFunctionCall({}) << ';'///<call Turtel main
+    << '\n'
+    << "__envfunc_fin(0, " << envVar.at(RND_NAME).getName() << ");\n"///<call the end functions
+  //main end
+    << "}\n"
+    << std::endl
+    ///add env Functions
+    << "void __envfunc_stop(const double ret, SDL_Renderer * rnd){\n"
+#ifndef UNIT_TEST
+    << "  do{\n"
+#ifndef NDEBUG
+    << "    printf(\"Event Loop\\n\");\n"
+#endif
+    << "    SDL_WaitEvent(&" << envVar.at(EVENT_NAME).getName() << ");\n"
+    << "    switch ("<< envVar.at(EVENT_NAME).getName() << ".type){\n"
+    << "      case SDL_KEYDOWN:\n"
+    << "      case SDL_QUIT: goto SDL_DEINIT_LABLE;\n"
+    << "      default: break;\n"
+    << "    }\n"
+    << "  }while(1);\n"
+#endif
+    << "SDL_DEINIT_LABLE:\n"
+    << "  __envfunc_stop(ret, rnd);\n"
+    << "}\n"
+    << "void __envfunc_fin(const double ret, SDL_Renderer * rnd){\n" 
+    << "  SDL_DestroyRenderer(rnd);\n"
+    << "  SDL_DestroyWindow( " << envVar.at(WINDOW_NAME).getName() << ");\n"
+    << "  SDL_Quit();\n"
+    << "  exit((int) ret);\n"
+    << "}\n"
+    << "void save_texture(const char* file_name, SDL_Renderer* renderer, SDL_Texture* texture) {\n"
+    << "  SDL_Texture* target = SDL_GetRenderTarget(renderer);\n"
+    << "  SDL_SetRenderTarget(renderer, texture);\n"
+    << "  int width, height;\n"
+    << "  SDL_QueryTexture(texture, NULL, NULL, &width, &height);\n"
+    << "  SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);\n"
+    << "  SDL_RenderReadPixels(renderer, NULL, surface->format->format, surface->pixels, surface->pitch);\n"
+    << "  if (IMG_SavePNG(surface, file_name)) printf(\"The picture could not be saved\");\n"
+    << "  SDL_FreeSurface(surface);\n"
+    << "  SDL_SetRenderTarget(renderer, target);\n"
+    << "}\n"
+    << "void pushMarker(Marker m) {\n"
+    << "  if (markerStackTop < MARKER_STACK_CAPACITY - 1) {\n"
+    << "    markerStack[++markerStackTop] = m;\n"
+    << "  } else {\n"
+    << "    fprintf(stderr, \"Fehler: Marker-Stack überlaufen!\\n\");\n"
+    << "    exit(EXIT_FAILURE);\n"
+    << "  }\n"
+    << "}\n"
+    << "Marker popMarker(void) {\n"
+    << "  if (markerStackTop >= 0) {\n"
+    << "    return markerStack[markerStackTop--];\n"
+    << "  }\n"
+    << "  else {\n"
+    << "    fprintf(stderr, \"Fehler: Marker-Stack leer!\\n\");\n"
+    << "    exit(EXIT_FAILURE);\n"
+    << "  }\n"
+    << "}\n"
+    << std::endl
+    ;
+  ///generate Turtel main
+  ctx->main()->accept(this);
+  output << std::endl;
+  ///generate all the calcdefs
+  for (auto i : ctx->calcdef()) {
+    i->accept(this);
+  }
+  output << std::endl;
+  ///generate all the pathdefs
+  for (auto i : ctx->pathdef()) {
+    i->accept(this);
+  }
+  output << std::endl;
+
   return std::any();
 }
-std::any TopLevelVisitor::visitPathdef(SceneParser::PathdefContext *ctx){} 
-std::any TopLevelVisitor::visitMain(SceneParser::MainContext *ctx){} 
+
+std::any TopLevelVisitor::visitMain(SceneParser::MainContext *ctx){
+  output
+    ///output the function header
+    << funcs.at(MAIN_FUNC).Implement()
+    << std::endl
+    ;
+  ctxVar = VarVisitor().getVariableContext(ctx); 
+  ///define all the Variables
+  for (auto i : ctxVar) {
+    output << i.second.getTypeAndName();
+    bool isHeaderDefine = false;
+    for (auto j : funcs.at(MAIN_FUNC).getHeaderVars()) {
+      if(i.second.name == j.name){
+        isHeaderDefine = true;
+        output << " = " << j.getName() << " ;\n";
+      }
+    }
+    if (!isHeaderDefine) output << " = 0;\n";
+  }
+  ///implement all the commands
+  ctx->statList()->accept(this);
+  ///add the closing bracket
+  output << "}\n";
+  return std::any();
+} 
+std::any TopLevelVisitor::visitCalcdef(SceneParser::CalcdefContext *ctx) {
+  output
+    ///output the function header
+    << funcs.at(ctx->ID()->getText()).Implement()
+    ;
+  ctxVar = VarVisitor().getVariableContext(ctx); 
+  ///define all the Variables
+  for (auto i : ctxVar) {
+    output << i.second.getTypeAndName();
+    bool isHeaderDefine = false;
+    for (auto j : funcs.at(ctx->ID()->getText()).getHeaderVars()) {
+      if(i.second.name == j.name){
+        isHeaderDefine = true;
+        output << " = " << j.getName() << " ;\n";
+      }
+    }
+    if (!isHeaderDefine) output << " = 0;\n";
+  }
+  ///implement all the commands
+  ctx->statList()->accept(this);
+  ///add the return statment
+  output << "return " << UnwrapExpre(ctx->expr()) << ";\n";
+  ///add the closing bracket
+  output << "}\n";
+  return std::any();
+}
+std::any TopLevelVisitor::visitPathdef(SceneParser::PathdefContext *ctx){
+  output
+    ///output the function header
+    << funcs.at(ctx->ID()->getText()).Implement()
+    ;
+  ctxVar = VarVisitor().getVariableContext(ctx); 
+  ///define all the Variables
+  for (auto i : ctxVar) {
+    output << i.second.getTypeAndName();
+    bool isHeaderDefine = false;
+    for (auto j : funcs.at(ctx->ID()->getText()).getHeaderVars()) {
+      if(i.second.name == j.name){
+        isHeaderDefine = true;
+        output << " = " << j.getName() << " ;\n";
+      }
+    }
+    if (!isHeaderDefine) output << " = 0;\n";
+  }
+  ///implement all the commands
+  ctx->statList()->accept(this);
+  ///add the closing bracket
+  output << "}\n";
+  return std::any();
+} 
 
 std::any TopLevelVisitor::visitFuncCall(SceneParser::FuncCallContext *ctx){
   std::string funcName = ctx->ID()->getText();
-  if(!funcs.Conatains(funcName)){
+  if(!funcs.contains(funcName)){
     std::cout << "using function " << funcName << " which wasn't defined in the file" << std::endl;
-    funcs.getFunctionDeclarations(std::cout);
     throw "Error"; //TODO;
   }
-  return funcs.getFunctionCall(funcName, std::any_cast<std::vector<Variable>>(ctx->paramlist()->accept(this)));
+  return funcs.at(funcName).getFunctionCall(std::any_cast<std::vector<Variable>>(ctx->paramlist()->accept(this)));
 }
 std::any TopLevelVisitor::visitParamlist(SceneParser::ParamlistContext *ctx){
   return [&]() -> std::vector<Variable> {
@@ -63,7 +328,7 @@ std::any TopLevelVisitor::visitParamlist(SceneParser::ParamlistContext *ctx){
   std::transform(ctx->var().begin(), ctx->var().end(),
                  std::back_inserter(ret),
                  [this](auto i) {
-                   return vars.getVariable(std::any_cast<std::string>(i->accept(this)));
+                   return envVar.at(std::any_cast<std::string>(i->accept(this)));
                  });
   return ret;
 }();
@@ -112,7 +377,6 @@ std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){
     throw "todo"; //TODO
   }
 }
-
 std::any TopLevelVisitor::visitWhile(SceneParser::WhileContext *ctx){
   std::any ret = ctx->cond()->accept(this);
   if(ret.type() == typeid(bool)){
@@ -174,7 +438,6 @@ std::any TopLevelVisitor::visitWhile(SceneParser::WhileContext *ctx){
   }
   return std::any();
 }
-
 std::any TopLevelVisitor::visitDoUntil(SceneParser::DoUntilContext *ctx){
   std::cerr << __func__ << std::endl;
   std::any ret = ctx->cond()->accept(this);
@@ -242,7 +505,6 @@ std::any TopLevelVisitor::visitDoUntil(SceneParser::DoUntilContext *ctx){
   }
   return std::any();
 }
-
 std::any TopLevelVisitor::visitToFor(SceneParser::ToForContext *ctx) { //TODO case to is negativ!
   std::any ret = ctx->expr()->accept(this);
   if(ret.type() == typeid(double)) ret = (int64_t)std::ceil(std::any_cast<double>(ret));
@@ -268,7 +530,6 @@ std::any TopLevelVisitor::visitToFor(SceneParser::ToForContext *ctx) { //TODO ca
   }
   return std::any();
 }
-
 std::any TopLevelVisitor::visitSimpUpFor(SceneParser::SimpUpForContext *ctx){
   std::cerr << "ctx1:" << std::endl;
   std::any from = ctx->children[3]->accept(this);
@@ -281,15 +542,15 @@ std::any TopLevelVisitor::visitSimpUpFor(SceneParser::SimpUpForContext *ctx){
     output << "#pragma unroll\n";
   }
   output  << "  for ( " 
-          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+          << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
           << " = "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[3]))
           << "; "
-          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+          << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
           << " < "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[5]))
           << "; ++"
-          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+          << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
           << "){\n"
           ;
 
@@ -310,15 +571,15 @@ std::any TopLevelVisitor::visitSimpDownFor(SceneParser::SimpDownForContext *ctx)
     output << "#pragma unroll\n";
   }
   output  << "  for ( " 
-          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+          << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
           << " = "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[3]))
           << "; "
-          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+          << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
           << " > "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[5]))
           << "; --"
-          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+          << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
           << "){\n"
           ;
 
@@ -341,15 +602,15 @@ std::any TopLevelVisitor::visitStepDownFor(SceneParser::StepDownForContext *ctx)
     output << "#pragma unroll\n";
   }
   output  << "  for ( " 
-          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+          << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
           << " = "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[3]))
           << "; "
-          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+          << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
           << " > "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[5]))
           << "; "
-          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+          << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
           << " -= "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[7]))
           << "){\n"
@@ -374,15 +635,15 @@ std::any TopLevelVisitor::visitStepUpFor(SceneParser::StepUpForContext *ctx){
     output << "#pragma unroll\n";
   }
   output  << "  for ( " 
-          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+          << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
           << " = "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[3]))
           << "; "
-          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+          << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
           << " < "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[5]))
           << "; "
-          << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+          << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
           << " += "
           << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[7]))
           << "){\n"
@@ -396,120 +657,113 @@ std::any TopLevelVisitor::visitStepUpFor(SceneParser::StepUpForContext *ctx){
 
   return std::any();
 }
-
+///\return the corresponding Varible object or an error is thrown
 std::any TopLevelVisitor::visitVariable(SceneParser::VariableContext *ctx){
   std::cerr << __func__ << std::endl;
-  return ctx->ID()->getText();
+  std::string nm = ctx->ID()->getText();
+  if(ctxVar.contains(nm)) return ctxVar.at(nm);
+  return envVar.at(nm);
 }
+///\return the corresponding Varible object or an error is thrown
 std::any TopLevelVisitor::visitGlobalVariable(SceneParser::GlobalVariableContext *ctx){
   std::cerr << __func__ << std::endl;
-  return ctx->IncID()->getText();
+  std::string nm = ctx->IncID()->getText();
+  if(ctxVar.contains(nm)) return ctxVar.at(nm);
+  return envVar.at(nm);
 }
-
 std::any TopLevelVisitor::visitStoreVar(SceneParser::StoreVarContext *ctx){
   std::cerr << __func__ << std::endl;
   output
-    << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+    << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
     << " = "
     << UnwrapExpre(ctx->expr())
     << ";\n"
     ;
   return std::any();
 }
-
 std::any TopLevelVisitor::visitSubVar(SceneParser::SubVarContext *ctx){
   std::cerr << __func__ << std::endl;
   output
-    << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+    << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
     << " -= "
     << UnwrapExpre(ctx->expr())
     << ";\n"
     ;
   return std::any();
 }
-
 std::any TopLevelVisitor::visitDivVar(SceneParser::DivVarContext *ctx){
   std::cerr << __func__ << std::endl;
   output
-    << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+    << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
     << " /= "
     << UnwrapExpre(ctx->expr())
     << ";\n"
     ;
   return std::any();
 }
-
 std::any TopLevelVisitor::visitAddVar(SceneParser::AddVarContext *ctx){
   std::cerr << __func__ << std::endl;
   output
-    << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+    << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
     << " += "
     << UnwrapExpre(ctx->expr())
     << ";\n"
     ;
   return std::any();
 }
-
 std::any TopLevelVisitor::visitMultVar(SceneParser::MultVarContext *ctx){
   output
-    << vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)))
+    << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
     << " *= "
     << UnwrapExpre(ctx->expr())
     << ";\n"
     ;
   return std::any();
 }
-
 std::any TopLevelVisitor::visitFinError(SceneParser::FinErrorContext *ctx){
   output 
     << "  __envfunc_fin("
     << UnwrapExpre(ctx->expr())
-    <<", " << vars.getVariableNameString(RND_NAME) << ");\n";
+    <<", " << envVar.at(RND_NAME).getName() << ");\n";
   return std::any();
 
 }
-
 std::any TopLevelVisitor::visitFinOK(SceneParser::FinOKContext *ctx){
   output 
-    << "  __envfunc_fin(0, " << vars.getVariableNameString(RND_NAME) << ");\n";
+    << "  __envfunc_fin(0, " << envVar.at(RND_NAME).getName() << ");\n";
   return std::any();
 }
-
 std::any TopLevelVisitor::visitStopOK(SceneParser::StopOKContext *ctx){
   output 
-    << "  __envfunc_stop(0, " << vars.getVariableNameString(RND_NAME) << ");\n";
+    << "  __envfunc_stop(0, " << envVar.at(RND_NAME).getName() << ");\n";
   return std::any();
 }
-
 std::any TopLevelVisitor::visitStopError(SceneParser::StopErrorContext *ctx){
   output 
     << "  __envfunc_stop("
     << UnwrapExpre(ctx->expr())
-    <<", " << vars.getVariableNameString(RND_NAME) << ");\n";
+    <<", " << envVar.at(RND_NAME).getName() << ");\n";
   return std::any();
 }
-
 std::any TopLevelVisitor::visitClear(SceneParser::ClearContext *ctx){
   output  << "  SDL_RenderClear("
-          << vars.getVariableNameString(RND_NAME)
+          << envVar.at(RND_NAME).getName()
           << ");\n"
           ;
   return std::any();
 }
-
 std::any TopLevelVisitor::visitDirection(SceneParser::DirectionContext *ctx){
   output  << "  " 
-          << vars.getVariableNameString(ROTATION) 
+          << envVar.at(ROTATION).getName() 
           << " = ("
           << UnwrapExpre(ctx->expr())
           << ") * (M_PI/180);\n"
           ;
   return std::any();
 }
-
 std::any TopLevelVisitor::visitTurnRight(SceneParser::TurnRightContext *ctx){
   output  << "  " 
-          << vars.getVariableNameString(ROTATION) 
+          << envVar.at(ROTATION).getName() 
           << " += ("
           << UnwrapExpre(ctx->expr())
           << ") * (M_PI/180);\n"
@@ -518,207 +772,163 @@ std::any TopLevelVisitor::visitTurnRight(SceneParser::TurnRightContext *ctx){
 }
 std::any TopLevelVisitor::visitTurnLeft(SceneParser::TurnLeftContext *ctx){
   output  << "  " 
-          << vars.getVariableNameString(ROTATION) 
+          << envVar.at(ROTATION).getName() 
           << " -= ("
           << UnwrapExpre(ctx->expr())
           << ") * (M_PI/180);\n"
           ;
   return std::any();
 }
-
 ///go back to WINDOW_X/2 and WINDOW_Y which should be the middle of the bottom of the screen
 std::any TopLevelVisitor::visitWaklHome(SceneParser::WaklHomeContext *ctx){
   output  << "  SDL_RenderDrawLine("
-          << vars.getVariableNameString(RND_NAME) 
+          << envVar.at(RND_NAME).getName() 
           << ", " 
-          << vars.getVariableNameString(POS_X) 
+          << envVar.at(POS_X).getName() 
           << ", "
-          << vars.getVariableNameString(POS_Y) 
+          << envVar.at(POS_Y).getName() 
           << ", "
-          << vars.getVariableNameString(WINDOW_X) << " / 2, "
-          << vars.getVariableNameString(WINDOW_Y) 
+          << envVar.at(WINDOW_X).getName() << " / 2, "
+          << envVar.at(WINDOW_Y).getName() 
           << ");\n"
           
-          << vars.getVariableNameString(POS_X) 
+          << envVar.at(POS_X).getName() 
           << " = " 
-          << vars.getVariableNameString(WINDOW_X) 
+          << envVar.at(WINDOW_X).getName() 
           << " / 2;\n"
 
-          << vars.getVariableNameString(POS_Y) 
+          << envVar.at(POS_Y).getName() 
           << " = " 
-          << vars.getVariableNameString(WINDOW_Y) 
+          << envVar.at(WINDOW_Y).getName() 
           << ";\n"
           ;
 
   return std::any();
 }
-
 ///go back to WINDOW_X/2 and WINDOW_Y which should be the middle of the bottom of the screen
 std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
-  output  << vars.getVariableNameString(POS_X) 
+  output  << envVar.at(POS_X).getName() 
           << " = " 
-          << vars.getVariableNameString(WINDOW_X) 
+          << envVar.at(WINDOW_X).getName() 
           << " / 2;\n"
 
-          << vars.getVariableNameString(POS_Y) 
+          << envVar.at(POS_Y).getName() 
           << " = " 
-          << vars.getVariableNameString(WINDOW_Y) 
+          << envVar.at(WINDOW_Y).getName() 
           << ";\n"
           ;
 
   return std::any();
 }
-
 ///File local funtion to move POS_X and POS_Y
-void MovePositions(VariableHeandler &vars, std::ostream &output, std::string &&ret){
-  output << "  " << vars.getVariableNameString(POS_X) << " = ";
-  CalcPosX(ret, output, vars);
-  output 
-    << ";\n"
-    
-    << "  " << vars.getVariableNameString(POS_Y) << " = ";
-  CalcPosY(ret, output, vars);
-  output << ";\n";
-}
-void MovePositions(VariableHeandler &vars, std::ostream &output, std::any &ret){
-  if(ret.type() == typeid(std::string)){
-    output << "  " << vars.getVariableNameString(POS_X) << " = ";
-    CalcPosX(std::any_cast<std::string>(ret), output, vars);
-    output 
-      << ";\n"
-      
-      << "  " << vars.getVariableNameString(POS_Y) << " = ";
-    CalcPosY(std::any_cast<std::string>(ret), output, vars);
-    output << ";\n";
-  }
-  else if (ret.type() == typeid(int64_t)){
-    output << "  " << vars.getVariableNameString(POS_X) << " = ";
-    std::cout << "got an int" << std::endl;
-    CalcPosX(std::any_cast<int64_t>(ret), output, vars);
-    output 
-      << ";\n"
-      
-      << "  " << vars.getVariableNameString(POS_Y) << " = ";
-    CalcPosY(std::any_cast<int64_t>(ret), output, vars);
-    output << ";\n";
-  }
-  else if (ret.type() == typeid(double)){
-    output << "  " << vars.getVariableNameString(POS_X) << " = ";
-    CalcPosX(std::any_cast<double>(ret), output, vars);
-    output 
-      << ";\n"
-      
-      << "  " << vars.getVariableNameString(POS_Y) << " = ";
-    CalcPosY(std::any_cast<double>(ret), output, vars);
-    output << ";\n";
-  }
-  else{
-    throw "Error unknowen type";
-  }
-}
+#define CalcPosX(len) \
+  envVar.at(POS_X).getName() << " + " << (len) << " * cos(" << envVar.at(ROTATION).getName() << ')'
+#define CalcPosY(len) \
+  envVar.at(POS_X).getName() << " + " << (len) << " * sin(" << envVar.at(ROTATION).getName() << ')'
+#define MovePositions(len) \
+  envVar.at(POS_X).getName() << " = "\
+  << CalcPosX((len))\
+  << ";\n"\
+  << "  " << envVar.at(POS_Y).getName() << " = "\
+  << CalcPosY((len))\
+  << ";\n"
 /**
  *Expected output:
  *SDL_RenderDrawLine(@renderVar, @x, @y, @x + divx, @y + divy
  * */
 std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
-  std::any ret = ctx->expr()->accept(this);
-  output  << "  SDL_RenderDrawLine("
-          << vars.getVariableNameString(RND_NAME) 
-          << ", " 
-          << vars.getVariableNameString(POS_X) 
-          << ", "
-          << vars.getVariableNameString(POS_Y) 
-          << ", "
-          ;
-  CalcPosX(UnwrapExpre(ctx->expr()), output, vars);
-  output  << ",";
-  CalcPosY(UnwrapExpre(ctx->expr()), output, vars);
-  output  << ");\n";
-  MovePositions(vars, output, ret);
-  GenPresent(vars, output);
+  output  
+    << "  SDL_RenderDrawLine("
+    << envVar.at(RND_NAME).getName() 
+    << ", " 
+    << envVar.at(POS_X).getName() 
+    << ", "
+    << envVar.at(POS_Y).getName() 
+    << ", "
+    << CalcPosX(UnwrapExpre(ctx->expr()))
+    << ","
+    << CalcPosY(UnwrapExpre(ctx->expr()))
+    << ");\n"
+
+    << MovePositions(UnwrapExpre(ctx->expr()))
+    << GenPresent
+    ;
   return std::any();
 }
 std::any TopLevelVisitor::visitWalkBack(SceneParser::WalkBackContext *ctx){
-  output  << "  SDL_RenderDrawLine("
-          << vars.getVariableNameString(RND_NAME) 
-          << ", " 
-          << vars.getVariableNameString(POS_X) 
-          << ", "
-          << vars.getVariableNameString(POS_Y) 
-          << ", "
-          ;
-  CalcPosX("-(" + UnwrapExpre(ctx->expr()) + ')', output, vars);
-  output  << ",";
-  CalcPosY("-(" + UnwrapExpre(ctx->expr()) + ')', output, vars);
-  output  << ");\n";
-  MovePositions(vars, output, "-(" + UnwrapExpre(ctx->expr()) + ')');
-  GenPresent(vars, output);
+  output  
+    << "  SDL_RenderDrawLine("
+    << envVar.at(RND_NAME).getName() 
+    << ", " 
+    << envVar.at(POS_X).getName() 
+    << ", "
+    << envVar.at(POS_Y).getName() 
+    << ", "
+    << CalcPosX("-(" + UnwrapExpre(ctx->expr()) + ')')
+    << ","
+    << CalcPosY("-(" + UnwrapExpre(ctx->expr()) + ')')
+    << ");\n"
+
+    << MovePositions("-(" + UnwrapExpre(ctx->expr()) + ')')
+    << GenPresent
+    ;
   return std::any();
 }
-
 std::any TopLevelVisitor::visitJumpFront(SceneParser::JumpFrontContext *ctx){
-  std::any ret = ctx->expr()->accept(this);
-  MovePositions(vars, output, ret);
-  
+  output << MovePositions(UnwrapExpre(ctx->expr()));
   return std::any();
 }
 std::any TopLevelVisitor::visitJumpBack(SceneParser::JumpBackContext *ctx){
-  MovePositions(vars, output, "-(" + UnwrapExpre(ctx->expr()) + ')');
-  
+  output << MovePositions("-(" + UnwrapExpre(ctx->expr()) + ')');
   return std::any();
 }
-
 std::any TopLevelVisitor::visitSave(SceneParser::SaveContext *ctx){
   output
     << "  save_texture(\"" 
       << ctx->ID()->getText() << ".png\", "
-      << vars.getVariableNameString(RND_NAME) << ", "
-      << vars.getVariableNameString(TEXTURE_NAME) 
+      << envVar.at(RND_NAME).getName() << ", "
+      << envVar.at(TEXTURE_NAME).getName() 
     << ");\n"
     ;
   return  std::any();
 }
-
 std::any TopLevelVisitor::visitMark(SceneParser::MarkContext *ctx) {
   output << "  pushMarker((Marker){ "
-         << vars.getVariableNameString(POS_X) << ", "
-         << vars.getVariableNameString(POS_Y) << ", "
-         << vars.getVariableNameString(ROTATION)
+         << envVar.at(POS_X).getName() << ", "
+         << envVar.at(POS_Y).getName() << ", "
+         << envVar.at(ROTATION).getName()
          << " });\n";
   return std::any();
 }
-
 std::any TopLevelVisitor::visitWalkMark(SceneParser::WalkMarkContext *ctx) {
   output << "  if (markerStackTop >= 0) {\n"
   	     << "      Marker m = popMarker();\n"
   	     << "      SDL_RenderDrawLine(" 
-  	     << vars.getVariableNameString(RND_NAME) << ", "
-  	     << vars.getVariableNameString(POS_X) << ", "
-  	     << vars.getVariableNameString(POS_Y) << ", "
+  	     << envVar.at(RND_NAME).getName() << ", "
+  	     << envVar.at(POS_X).getName() << ", "
+  	     << envVar.at(POS_Y).getName() << ", "
   	     << "m.posX, m.posY);\n"
-  	     << "      " << vars.getVariableNameString(POS_X) << " = m.posX;\n"
-  	     << "      " << vars.getVariableNameString(POS_Y) << " = m.posY;\n"
-  	     << "      " << vars.getVariableNameString(ROTATION) << " = m.rotation;\n"
+  	     << "      " << envVar.at(POS_X).getName() << " = m.posX;\n"
+  	     << "      " << envVar.at(POS_Y).getName() << " = m.posY;\n"
+  	     << "      " << envVar.at(ROTATION).getName() << " = m.rotation;\n"
   	     << "  } else {\n"
   	     << "      fprintf(stderr, \"Fehler: Marker-Stack leer!\\n\");\n"
   	     << "      exit(EXIT_FAILURE);\n"
   	     << "  }\n";
   return std::any();
 }
-
 std::any TopLevelVisitor::visitJumpMark(SceneParser::JumpMarkContext *ctx) {
   output << "  if (markerStackTop >= 0) {\n"
          << "      Marker m = popMarker();\n"
-         << "      " << vars.getVariableNameString(POS_X) << " = m.posX;\n"
-         << "      " << vars.getVariableNameString(POS_Y) << " = m.posY;\n"
-         << "      " << vars.getVariableNameString(ROTATION) << " = m.rotation;\n"
+         << "      " << envVar.at(POS_X).getName() << " = m.posX;\n"
+         << "      " << envVar.at(POS_Y).getName() << " = m.posY;\n"
+         << "      " << envVar.at(ROTATION).getName() << " = m.rotation;\n"
          << "  } else {\n"
          << "      fprintf(stderr, \"Fehler: Marker-Stack leer!\\n\");\n"
          << "      exit(EXIT_FAILURE);\n"
          << "  }\n";
   return std::any();
 }
-
 std::any TopLevelVisitor::visitColorCmd(SceneParser::ColorCmdContext *ctx) {
 
   std::string rValue = UnwrapExpre(ctx->expr(0));
@@ -726,28 +936,23 @@ std::any TopLevelVisitor::visitColorCmd(SceneParser::ColorCmdContext *ctx) {
   std::string bValue = UnwrapExpre(ctx->expr(2));
 
   output << "  SDL_SetRenderDrawColor(" 
-         << vars.getVariableNameString(RND_NAME) << ", "
+         << envVar.at(RND_NAME).getName() << ", "
          << rValue << ", "
          << gValue << ", "
          << bValue << ", 255);\n";
   
-  output << "  " << vars.getVariableNameString(COLOR_R) << " = " << rValue << ";\n"
-         << "  " << vars.getVariableNameString(COLOR_G) << " = " << gValue << ";\n"
-         << "  " << vars.getVariableNameString(COLOR_B) << " = " << bValue << ";\n";
+  output << "  " << envVar.at(COLOR_R).getName() << " = " << rValue << ";\n"
+         << "  " << envVar.at(COLOR_G).getName() << " = " << gValue << ";\n"
+         << "  " << envVar.at(COLOR_B).getName() << " = " << bValue << ";\n";
 
   return std::any();
 }
-
-
-
-
 std::any TopLevelVisitor::visitInt(SceneParser::IntContext *ctx){
   std::cerr << __func__ << std::endl;
   int64_t ret = std::stol(ctx->Num()->getSymbol()->getText());
   std::cerr << ret << std::endl;
   return ret;
 }
-
 std::any TopLevelVisitor::visitFloat(SceneParser::FloatContext *ctx){
   std::cerr << __func__ << std::endl;
   return std::stod(ctx->Float()->getSymbol()->getText());
@@ -787,27 +992,22 @@ std::any TopLevelVisitor::visitUnequal(SceneParser::UnequalContext *ctx){
 std::any TopLevelVisitor::visitEqual(SceneParser::EqualContext *ctx){
   OperationMacro(==);  
 }
-
-///returns a string or bool
+///\return a string or bool
 std::any TopLevelVisitor::visitLesEqThan(SceneParser::LesEqThanContext *ctx){
   OperationMacro(<=);  
 }
-
-///returns a string or bool
+///\return a string or bool
 std::any TopLevelVisitor::visitGreaterThan(SceneParser::GreaterThanContext *ctx){
   OperationMacro(>);  
 }
-
-///returns a string or bool
+///\return a string or bool
 std::any TopLevelVisitor::visitLesThan(SceneParser::LesThanContext *ctx){
   OperationMacro(<);  
 }
-
-///returns a string or bool
+///\return a string or bool
 std::any TopLevelVisitor::visitGreaterEqThan(SceneParser::GreaterEqThanContext *ctx){
   OperationMacro(>=);  
 }
-
 std::any TopLevelVisitor::visitClamCond(SceneParser::ClamCondContext *ctx){
   std::cerr << __func__ << std::endl;
   std::any ret = ctx->cond()->accept(this);
@@ -818,7 +1018,6 @@ std::any TopLevelVisitor::visitClamCond(SceneParser::ClamCondContext *ctx){
   else
    throw "TODO"; //TODO:
 }
-
 std::any TopLevelVisitor::visitNotCond(SceneParser::NotCondContext *ctx){
   std::any ret = ctx->cond()->accept(this);
   if (ret.type() == typeid(bool))
@@ -828,7 +1027,6 @@ std::any TopLevelVisitor::visitNotCond(SceneParser::NotCondContext *ctx){
   else
    throw "TODO"; //TODO:
 }
-
 std::any TopLevelVisitor::visitAndCond(SceneParser::AndCondContext *ctx){
   std::cerr << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -854,7 +1052,6 @@ std::any TopLevelVisitor::visitAndCond(SceneParser::AndCondContext *ctx){
   else
    throw "todo"; //TODO
 }
-
 std::any TopLevelVisitor::visitOrCond(SceneParser::OrCondContext *ctx){
   std::cerr << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -880,7 +1077,6 @@ std::any TopLevelVisitor::visitOrCond(SceneParser::OrCondContext *ctx){
   else
    throw "todo"; //TODO
 }
-
 std::any TopLevelVisitor::visitABS(SceneParser::ABSContext *ctx){
   std::any ret = ctx->expr()->accept(this);
   if (ret.type() == typeid(int64_t))
@@ -892,7 +1088,6 @@ std::any TopLevelVisitor::visitABS(SceneParser::ABSContext *ctx){
   else
     throw std::runtime_error("todo:"); //TODO:
 }
-
 std::any TopLevelVisitor::visitNegate(SceneParser::NegateContext *ctx){
   assert(ctx->children.size() == 2);
   std::any number = ctx->children[1]->accept(this);
@@ -909,12 +1104,10 @@ std::any TopLevelVisitor::visitNegate(SceneParser::NegateContext *ctx){
     throw std::runtime_error("coudn't cast number context to number");
   }
 }
-
 std::any TopLevelVisitor::visitNumExpr(SceneParser::NumExprContext *ctx){
   std::cout << __func__ << std::endl;
   return ctx->number()->accept(this);
 }
-
 std::any TopLevelVisitor::visitAdd(SceneParser::AddContext *ctx){
   std::cout << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -942,7 +1135,6 @@ std::any TopLevelVisitor::visitAdd(SceneParser::AddContext *ctx){
     throw std::runtime_error("todo:"); //TODO:
   }
 }
-
 std::any TopLevelVisitor::visitExp(SceneParser::ExpContext *ctx){
   std::cout << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -970,7 +1162,6 @@ std::any TopLevelVisitor::visitExp(SceneParser::ExpContext *ctx){
     throw std::runtime_error("todo:"); //TODO:
   }
 }
-
 std::any TopLevelVisitor::visitDim(SceneParser::DimContext *ctx){
   std::cout << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -998,7 +1189,6 @@ std::any TopLevelVisitor::visitDim(SceneParser::DimContext *ctx){
     throw std::runtime_error("todo:"); //TODO:
   }
 }
-
 std::any TopLevelVisitor::visitDife(SceneParser::DifeContext *ctx){
   std::cout << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -1026,7 +1216,6 @@ std::any TopLevelVisitor::visitDife(SceneParser::DifeContext *ctx){
     throw std::runtime_error("todo:"); //TODO:
   }
 }
-
 std::any TopLevelVisitor::visitMult(SceneParser::MultContext *ctx){
   std::cout << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -1054,7 +1243,7 @@ std::any TopLevelVisitor::visitMult(SceneParser::MultContext *ctx){
     throw std::runtime_error("todo:"); //TODO:
   }
 }
-
+///\return returns the string to acces the variable
 std::any TopLevelVisitor::visitVarExpr(SceneParser::VarExprContext *ctx){
-  return vars.getVariableNameString(std::any_cast<std::string>(ctx->var()->accept(this)));
+  return std::any_cast<Variable>(ctx->var()->accept(this)).getName();
 }

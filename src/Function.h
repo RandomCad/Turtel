@@ -25,7 +25,7 @@ class Function{
     Function(const std::string nm, VarType retT, SceneParser::MainContext *CTX);
     std::string getFunctionDeclaration();
     std::string getFunctionCall(const std::vector<Variable> var);
-    void Implement(std::ostream &out, CodeGenerator *vis);
-
+    std::string Implement();
+    const std::vector<Variable> getHeaderVars() { return vars; }
     FRIEND_TEST(FunctionHandler, CTor);
 };
