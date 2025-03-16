@@ -112,7 +112,7 @@ TEST(Function, GetMainDeclaration){
     Function test("test", VarType::RENDERER, st);
     ASSERT_REGEX(
         test.getFunctionDeclaration(),
-        std::regex("\\s*SDL_Renderer\\s+\\*\\s*\\w+\\s*\\(\\s*\\w+\\s+\\*\\s*\\w+\\s*\\)\\s*;\\s*")
+        std::regex("\\s*SDL_Renderer\\s+\\*\\s*\\w+\\s*\\(\\s*\\)\\s*;\\s*")
         );
   }
 }
@@ -214,7 +214,7 @@ TEST(Function, GetMainCall){
     Function test("test", VarType::RENDERER, st);
     ASSERT_REGEX(
         test.getFunctionDeclaration(),
-        std::regex("\\s*SDL_Renderer\\s+\\*\\s*\\w+\\s*\\(\\s*\\w+\\s+\\*\\s*\\w+\\s*\\)\\s*;\\s*")
+        std::regex("\\s*SDL_Renderer\\s+\\*\\s*\\w+\\s*\\(\\s*\\)\\s*;\\s*")
         );
   }
 }
