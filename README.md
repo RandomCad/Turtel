@@ -26,6 +26,7 @@ Dieser kann zur überprüfung der korrekten Arbeitsweise SDL2 verwenden.
 * llvm-19
 * llvm-19-dev
 * libsdl2-image-dev
+* libgtest-dev
 
 ## Compilation
 
