@@ -23,6 +23,15 @@
 
 //std::vector<std::string> LLVMInterface::sdlArgs;
 
+/**
+ * @brief Creates a temporary file.
+ * 
+ * This function creates a temporary file using the provided template string and opens it.
+ * 
+ * @param templateStr The template string for the temporary file.
+ * @param ret The fstream object to open the temporary file.
+ * @return True if the file creation failed, false otherwise.
+ */
 bool CreatTempFile(char *templateStr, std::fstream &ret){
   int fd = mkstemp(templateStr);
 
@@ -35,6 +44,11 @@ bool CreatTempFile(char *templateStr, std::fstream &ret){
 
 }
 
+/**
+ * @brief Creates a temporary file for LLVM intermediate output.
+ * 
+ * This function creates a temporary file for LLVM intermediate output and retries if it fails.
+ */
 void LLVMInterface::CreatTempFile(){
   const char *templateForFile ="/tmp/TurtelCOutXXXXXX";
   std::strcpy(llvmFileName, templateForFile);
@@ -44,12 +58,22 @@ void LLVMInterface::CreatTempFile(){
   }
 }
 
+/**
+ * @brief Destructor for LLVMInterface.
+ * 
+ * This function closes the temporary file and removes it.
+ */
 LLVMInterface::~LLVMInterface(){
   llvmFile.close();
   std::remove(llvmFileName);
   fileDescriptor = 0;
 }
 
+/**
+ * @brief Calls the LLVM compiler.
+ * 
+ * This function sets up the arguments and calls the LLVM compiler to compile the code.
+ */
 void LLVMInterface::CallLLVM(){
   auto sdlArgs = LLVMInterface::getSdlArguments();
   
@@ -117,6 +141,13 @@ void LLVMInterface::CallLLVM(){
   }
 }
 
+/**
+ * @brief Gets the SDL arguments.
+ * 
+ * This function retrieves the SDL arguments using the sdl2-config command.
+ * 
+ * @return A vector of SDL arguments.
+ */
 //static bool wasUsed = false;
 std::vector<std::string> LLVMInterface::getSdlArguments(){
   static std::vector<std::string> sdlArgs;

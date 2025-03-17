@@ -5,6 +5,15 @@
 #include "SceneLexer.h"
 #include "SceneParser.h"
 
+/**
+ * @brief Visits a JumpBack context and rewrites it to a JumpFront context with a negated expression.
+ * 
+ * This function takes a JumpBack context, negates its expression, and replaces the JumpBack context
+ * with a JumpFront context in the AST.
+ * 
+ * @param ctx The JumpBack context to visit and rewrite.
+ * @return The result of accepting the rewritten JumpFront context.
+ */
 std::any AstRewriteVisitor::visitJumpBack(SceneParser::JumpBackContext *ctx) {
     // Get the expression to negate
     SceneParser::ExprContext *expr = ctx->expr();
@@ -45,6 +54,15 @@ std::any AstRewriteVisitor::visitJumpBack(SceneParser::JumpBackContext *ctx) {
     return invertJump->accept(this);
 }
 
+/**
+ * @brief Visits a WalkBack context and rewrites it to a WalkFront context with a negated expression.
+ * 
+ * This function takes a WalkBack context, negates its expression, and replaces the WalkBack context
+ * with a WalkFront context in the AST.
+ * 
+ * @param ctx The WalkBack context to visit and rewrite.
+ * @return The result of accepting the rewritten WalkFront context.
+ */
 std::any AstRewriteVisitor::visitWalkBack(SceneParser::WalkBackContext *ctx){
   // Get the expression to negate
   SceneParser::ExprContext *expr = ctx->expr();

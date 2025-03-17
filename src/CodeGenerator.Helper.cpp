@@ -1,5 +1,15 @@
 #include "CodeGenerator.Helper.h"
 #include "src/VariableHeandler.h"
+
+/**
+ * @brief Generates the code for presenting the rendered content.
+ * 
+ * This function sets the render target, clears the renderer, copies the texture to the renderer,
+ * presents the renderer, and then sets the render target back to the texture.
+ * 
+ * @param var The VariableHeandler object containing variable names.
+ * @param output The output stream to write the generated code to.
+ */
 void GenPresent(VariableHeandler &var, std::ostream & output){
   output
     << "  SDL_SetRenderTarget("

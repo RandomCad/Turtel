@@ -12,7 +12,12 @@
 #include <string>
 #include <tree/ParseTreeType.h>
 
-
+/**
+ * @brief Visits the main context and generates the main body of the code.
+ * 
+ * @param ctx The main context to visit.
+ * @return The result of visiting the main context.
+ */
 std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
   std::cerr << "generating main body" << std::endl;
   output
@@ -79,6 +84,9 @@ void CodeGenerator::GenerateCode(){
   AddTurtelFunctions();
 }
 
+/**
+ * @brief Adds the necessary includes to the output stream.
+ */
 void CodeGenerator::AddIncludes(){
   output 
     << "//standart includes\n"
@@ -91,6 +99,9 @@ void CodeGenerator::AddIncludes(){
   //add potential further includes
 }
 
+/**
+ * @brief Adds the function declarations to the output stream.
+ */
 void CodeGenerator::AddFunctionDeclaration(){
   output
     << "//declaration of the Turtel Main:\n"
@@ -143,6 +154,9 @@ void CodeGenerator::AddFunctionDeclaration(){
     ;
 }
 
+/**
+ * @brief Adds the global variables to the output stream.
+ */
 void CodeGenerator::AddGlobalVars(){
   output 
     // Marker-Struct
@@ -182,6 +196,9 @@ void CodeGenerator::AddGlobalVars(){
   ///Global programed _variables
 }
 
+/**
+ * @brief Adds the main function to the output stream.
+ */
 void CodeGenerator::AddMain(){
   //main head
   output
@@ -234,15 +251,30 @@ void CodeGenerator::AddMain(){
 void CodeGenerator::AddTurtelFunctions(){
   //TODO:
 }
+
+/**
+ * @brief Constructs a CodeGenerator object.
+ * 
+ * @param outStream The output stream to write the generated code to.
+ */
 CodeGenerator::CodeGenerator(std::ostream &outStream)
   : output(outStream), astBase(nullptr), _topVis(output, _variables), _mathVis(_variables) {}
 
+/**
+ * @brief Constructs a CodeGenerator object with an AST base.
+ * 
+ * @param outStream The output stream to write the generated code to.
+ * @param AstBase The AST base to use for code generation.
+ */
 CodeGenerator::CodeGenerator(std::ostream &outStream, SceneParser::FileContext* AstBase)
   : output(outStream), astBase(AstBase), astMain(astBase->main()), 
     astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()),
     _topVis(output, _variables), _mathVis(_variables){
 }
 
+/**
+ * @brief Generates the base of the program.
+ */
 void CodeGenerator::ProgrammBase(){
   //Headers
   output 
