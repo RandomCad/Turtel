@@ -2,7 +2,9 @@
 #include "../libs/SceneParser.h"
 #include "src/MathVisitor.h"
 #include "src/VariableHeandler.h"
+#include "src/TopLevelVisitor.h"
 #include <gtest/gtest.h>
+#include <cmath>
 
 using namespace antlr4;
 
@@ -152,3 +154,31 @@ bool TestVariableParsing(TestError *&ret){
 }
 
 #endif
+
+TEST(MathVisitor, ConstFoldingNaN) {
+  std::stringstream stream;
+  stream << "0.0 / 0.0";
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  auto exprCtx = parser.expr();
+  ASSERT_TRUE(exprCtx != nullptr);
+  
+  VariableHeandler var;
+  std::stringstream dummyOutput;
+  TopLevelVisitor visitor(dummyOutput, var);
+  
+  std::string resultStr = visitor.UnwrapExpre(exprCtx);
+  
+  //convertion for case-insensitive checking:
+  std::transform(resultStr.begin(), resultStr.end(), resultStr.begin(), 
+                 [](unsigned char c){ return std::toupper(c); });
+  
+  std::cerr << "Unwrapped expression (uppercase): " << resultStr << std::endl;
+  
+  ASSERT_TRUE(resultStr.find("NAN") != std::string::npos)
+      << "Expected 'NAN' in the unwrapped expression but got: " << resultStr;
+}
+

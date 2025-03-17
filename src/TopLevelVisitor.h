@@ -40,11 +40,10 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitWalkMark(SceneParser::WalkMarkContext *ctx) override;
     std::any visitJumpMark(SceneParser::JumpMarkContext *ctx) override;
     std::any visitColorCmd(SceneParser::ColorCmdContext *ctx) override;
-
-
-  private:
     std::string UnwrapExpre(SceneParser::ExprContext *ctx);
 
+  private:
+  
     ///The folowing commented out functions must be implimented by a preprocessing step by rewriteing the AST
     //std::any visitWalkBack(SceneParser::WalkBackContext *ctx) override;
     //std::any visitJumpBack(SceneParser::JumpBackContext *ctx) override;
