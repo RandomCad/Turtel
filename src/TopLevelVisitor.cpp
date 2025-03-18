@@ -339,7 +339,9 @@ std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){
   std::any ret = ctx->cond()->accept(this);
   if(ret.type() == typeid(bool)){
     if(!std::any_cast<bool>(ret)){
+      std::cerr << "if was constfolded to " << false << std::endl;
       if(ctx->else_()){
+        std::cerr << "else branch is outputted" << std::endl;
         output << "//if was optimiced out cond was false only generating else branche\n";
         ///inlinded visit else
         for (auto i : ctx->else_()->stat()) {
@@ -352,6 +354,7 @@ std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){
       return std::any();
     }
     else{
+      std::cerr << "if was constfolded to" << true << std::endl;
       output << "//if was optimiced out cond was true else branch is irrelevant\n";
       for (auto i : ctx->stat()) {
         i->accept(this);

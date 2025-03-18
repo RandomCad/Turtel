@@ -4,6 +4,7 @@
 #include "src/TopLevelVisitor.h"
 #include "libs/SceneLexer.h"
 #include "libs/SceneParser.h"
+#include <ParserRuleContext.h>
 #include <sstream>
 #include <gtest/gtest.h>
 #include <ANTLRInputStream.h>
@@ -26,5 +27,6 @@ class TopLevelVisitorTest : public testing::Test {
     SceneParser *parser;
     void SetFunction(std::unordered_map<std::string, Function> &);
     void SetFunction(std::unordered_map<std::string, Function> && a) {SetFunction(a);}
+    void SetVariables(antlr4::ParserRuleContext *);
     void SetupParser();
 };

@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 #include <ANTLRInputStream.h>
 #include <CommonTokenStream.h>
+#include <ParserRuleContext.h>
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <regex>
@@ -36,6 +37,9 @@ TopLevelVisitorTest::~TopLevelVisitorTest() {
   delete lexer;
   delete tokens;
   delete parser;
+}
+void TopLevelVisitorTest::SetVariables(antlr4::ParserRuleContext *a){
+  toTest.ctxVar = VarVisitor().getVariableContext(a);
 }
 
 using  namespace antlr4;
@@ -408,150 +412,93 @@ TEST_F(TopLevelVisitorTest, CalcDef){
   }
 }
 
-TEST_F(TopLevelVisitorTest, SingleIf){
-  std::stringstream stream;
-  stream 
+TEST_F(TopLevelVisitorTest, SingleIfOptimizeTrue){
+  inputStream
     << "if 5 = 5 then\n"
     << "  store 5 in zwi\n"
     << "endif\n"
+    << std::endl;
+
+  TopLevelVisitorTest::SetupParser();
+  
+  //pars the test
+  auto astStart = parser->if_();
+  ASSERT_TRUE(astStart);
+
+  TopLevelVisitorTest::SetVariables(astStart);
+
+  std::any ret = astStart->accept(&toTest);
+  
+  std::string line;
+  std::getline(retStream, line);
+  ASSERT_REGEX(line, matchKomment);
+
+  std::getline(retStream, line);
+  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
+
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(retStream.eof());
+  ASSERT_STREQ(line.c_str(), "");
+}
+TEST_F(TopLevelVisitorTest, SingleIfOptimizeFalse){
+  inputStream
     << "if 5 <> 5 then\n"
     << "  store 5 in zwi\n"
     << "endif\n"
+    << std::endl;
+
+  TopLevelVisitorTest::SetupParser();
+
+  //pars the test
+  auto astStart = parser->if_();
+  ASSERT_TRUE(astStart);
+
+  TopLevelVisitorTest::SetVariables(astStart);
+
+  std::any ret = astStart->accept(&toTest);
+  
+  std::string line;
+  std::getline(retStream, line);
+  ASSERT_REGEX(line, matchKomment);
+
+  //TODO add this lines to most of the other tests!
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(retStream.eof());
+  ASSERT_STREQ(line.c_str(), "");
+}
+TEST_F(TopLevelVisitorTest, SingleIfNoOptimize){
+  inputStream
     << "if 5 = zwi then\n"
     << "  store 5 in zwi\n"
     << "endif\n"
     << std::endl;
-  ANTLRInputStream input(stream);
-  SceneLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  SceneParser parser(&tokens);
+
+  TopLevelVisitorTest::SetupParser();
+
+  //pars the test
+  auto astStart = parser->if_();
+  ASSERT_TRUE(astStart);
+
+  TopLevelVisitorTest::SetVariables(astStart);
+
+  std::any ret = astStart->accept(&toTest);
   
-  {
-    std::cerr << __func__ << " Test1" << std::endl;
-    //pars the test
-    auto astStart = parser.if_();
-    ASSERT_TRUE(astStart);
+  std::string line;
+  std::getline(retStream, line);
+  ASSERT_REGEX(line, std::regex("\\s*if\\s*\\(\\s*\\d+\\s*==\\s*__usr\\w+\\s*\\)\\s*\\{\\s*"));
+  
+  std::getline(retStream, line);
+  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
 
-    std::stringstream retStream;
-    VariableHeandler var;
-    var.setContext(VarVisitor().getVariableContext(astStart));
-    TopLevelVisitor toTest(retStream, var);
+  std::getline(retStream, line);
+  ASSERT_REGEX(line, matchClosingCrlBracket);
 
-    std::any ret = astStart->accept(&toTest);
-    
-    std::string line;
-    std::getline(retStream, line);
-    std::cerr << line << std::endl;
-    ASSERT_TRUE(
-        std::regex_match(
-          line,
-          std::regex(
-            "\\/\\/.*$"
-            )
-          )
-        );
-
-    std::getline(retStream, line);
-    std::cerr << line << std::endl;
-    ASSERT_TRUE(
-        std::regex_match(
-          line,
-          std::regex(
-            "\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"
-            )
-          )
-        );
-
-    //TODO add this lines to most of the other tests!
-    std::getline(retStream, line);
-    std::cerr << line << std::endl;
-    ASSERT_TRUE(retStream.eof());
-    ASSERT_STREQ(line.c_str(), "");
-  }
-  {
-    std::cerr << __func__ << " Test2" << std::endl;
-    //pars the test
-    auto astStart = parser.if_();
-    ASSERT_TRUE(astStart);
-
-    std::stringstream retStream;
-    VariableHeandler var;
-    var.setContext(VarVisitor().getVariableContext(astStart));
-    TopLevelVisitor toTest(retStream, var);
-
-    std::any ret = astStart->accept(&toTest);
-    
-    std::string line;
-    std::getline(retStream, line);
-    std::cerr << line << std::endl;
-    ASSERT_TRUE(
-        std::regex_match(
-          line,
-          std::regex(
-            "\\/\\/.*$"
-            )
-          )
-        );
-
-    //TODO add this lines to most of the other tests!
-    std::getline(retStream, line);
-    std::cerr << line << std::endl;
-    ASSERT_TRUE(retStream.eof());
-    ASSERT_STREQ(line.c_str(), "");
-  }
-  {
-    std::cerr << __func__ << " Test3" << std::endl;
-    //pars the test
-    auto astStart = parser.if_();
-    ASSERT_TRUE(astStart);
-
-    std::stringstream retStream;
-    VariableHeandler var;
-    var.setContext(VarVisitor().getVariableContext(astStart));
-    TopLevelVisitor toTest(retStream, var);
-
-    std::any ret = astStart->accept(&toTest);
-    
-    std::string line;
-    std::getline(retStream, line);
-    std::cerr << line << std::endl;
-    ASSERT_TRUE(
-        std::regex_match(
-          line,
-          std::regex(
-            "\\s*if\\s*\\(\\s*\\d+\\s*==\\s*__usr\\w+\\s*\\)\\s*\\{\\s*"
-            )
-          )
-        );
-    
-    std::getline(retStream, line);
-    std::cerr << line << std::endl;
-    ASSERT_TRUE(
-        std::regex_match(
-          line,
-          std::regex(
-            "\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"
-            )
-          )
-        );
-
-    std::getline(retStream, line);
-    std::cerr << line << std::endl;
-    ASSERT_TRUE(
-        std::regex_match(
-          line,
-          std::regex(
-            "\\s*\\}\\s*"
-            )
-          )
-        );
-
-    //TODO add this lines to most of the other tests!
-    std::getline(retStream, line);
-    std::cerr << line << std::endl;
-    ASSERT_TRUE(retStream.eof());
-    ASSERT_STREQ(line.c_str(), "");
-  }
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(retStream.eof());
+  ASSERT_STREQ(line.c_str(), "");
 }
 #if FALSE
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, ElseIf){
