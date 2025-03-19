@@ -29,4 +29,5 @@ class TopLevelVisitorTest : public testing::Test {
     void SetFunction(std::unordered_map<std::string, Function> && a) {SetFunction(a);}
     void SetVariables(antlr4::ParserRuleContext *);
     void SetupParser();
+    void SetInfLoopFlag(int);
 };
