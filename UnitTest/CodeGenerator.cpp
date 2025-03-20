@@ -73,7 +73,6 @@ TEST(CodeGeneratorTestSuite, TestVarCommands){
   ASSERT_EQ(WEXITSTATUS(exitCode), 36);
   //TODO: check the output
 }//*/
-
 TEST(CodeGeneratorTestSuite, TestTrivialSave){
   const char * testFile = "TestTrivialSave.out";
   std::filesystem::remove(testFile);
@@ -115,6 +114,158 @@ TEST(CodeGeneratorTestSuite, TestTrivialSave){
 
   //TODO: check the output
 }
+TEST(CodeGeneratorTestSuite, BasicEmptyMain){
+  const char * testFile = "EmptyMainTest.out";
+  std::filesystem::remove(testFile);
+
+  LLVMInterface interface(testFile);
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 0);
+  EXPECT_EQ(astStart->pathdef().size(), 0);
+  
+  CodeGenerator test(interface.llvmFile, astStart);
+  test.GenerateCode();
+
+  /*std::regex reg("(?:.|\\n)*(?:#include\\s+<\\w*\\.h>(?:.|\\n)*){2,}(?:.|\\n)*int main\\(int argc, const char \\*argv\\[\\]\\)\\s*\\{(?:.|\\n)*");
+  EXPECT_TRUE(std::regex_match())
+*/
+  test.output.flush();
+  std::istream &toTest(interface.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  interface.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+}
+TEST(CodeGeneratorTestSuite, BasicWalk){
+  const char *testFile = "BasicWalkTest.out";
+  std::filesystem::remove(testFile);
+  LLVMInterface interface(testFile);
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  walk 50\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(),0);
+  EXPECT_EQ(astStart->pathdef().size(),0);
+  EXPECT_FALSE(astStart->main()->isEmpty());
+  EXPECT_EQ(astStart->main()->statList()->stat().size(), 1);
+
+  CodeGenerator test(interface.llvmFile, astStart);
+  ASSERT_EQ(test.astMain, astStart->main());
+  test.GenerateCode();
+  
+  interface.llvmFile.seekg(0);
+  std::regex checkForDraw(
+          "\\s+SDL_RenderDrawLine\\s*\\("
+          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
+          ")\\s*;\\s*");
+
+  std::string line;
+  int ret = 0;
+  while (std::getline(interface.llvmFile, line)) {
+    std::cerr << line ;
+    if(std::regex_match(line, checkForDraw)){
+      ret++;
+      std::cerr << "//found";
+    }
+    std::cerr << std::endl;
+  }
+
+  interface.llvmFile.seekg(0);
+  
+  ASSERT_EQ(ret, 1);
+
+  interface.CallLLVM();
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+}
+TEST(CodeGeneratorTestSuite, BasicJump){
+  const char *testFile = "BasicWalkTest.out";
+  std::filesystem::remove(testFile);
+  LLVMInterface interface(testFile);
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  jump 50\n"
+    << "  walk 50\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(),0);
+  EXPECT_EQ(astStart->pathdef().size(),0);
+  EXPECT_FALSE(astStart->main()->isEmpty());
+  EXPECT_EQ(astStart->main()->statList()->stat().size(), 2);
+
+  CodeGenerator test(interface.llvmFile, astStart);
+  test.GenerateCode();
+  
+  interface.llvmFile.seekg(0);
+  std::regex checkForDraw(
+          "\\s+SDL_RenderDrawLine\\s*\\("
+          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
+          ")\\s*;\\s*");
+
+  std::string line;
+  int ret = 0;
+  while (std::getline(interface.llvmFile, line)) {
+    std::cerr << line ;
+    if(std::regex_match(line, checkForDraw)){
+      ret++;
+      std::cerr << "//found";
+    }
+    std::cerr << std::endl;
+  }
+
+  interface.llvmFile.seekg(0);
+  
+  ASSERT_EQ(ret, 1);
+
+  interface.CallLLVM();
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+}
+
 
 /*
 TEST(CodeGeneratorTestSuite, TestEmptyMainVisit){
@@ -207,276 +358,6 @@ TEST(CodeGeneratorTestSuite, TestEmptyMainVisit){
     std::regex_constants::ECMAScript
   )));
 }*/
-
-TEST(CodeGeneratorTestSuite, AddMain){
-  std::stringstream in1;
-  
-  std::stringstream stream;
-  stream 
-    << "begin\n"
-    << "end\n"
-    << std::endl;
-  ANTLRInputStream input(stream);
-  SceneLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  SceneParser parser(&tokens);
-  auto in2 = parser.file();
-  CodeGenerator test(in1, in2);
-  ASSERT_EXIT((test.AddMain(), exit(0)), ::testing::ExitedWithCode(0), ".*");
-}
-
-TEST(CodeGeneratorTestSuite, BasicEmptyMain){
-  const char * testFile = "EmptyMainTest.out";
-  std::filesystem::remove(testFile);
-
-  LLVMInterface interface(testFile);
-  std::stringstream stream;
-  stream 
-    << "begin\n"
-    << "end\n"
-    << std::endl;
-  ANTLRInputStream input(stream);
-  SceneLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  SceneParser parser(&tokens);
-
-  auto astStart = parser.file();
-  EXPECT_TRUE(astStart);
-  EXPECT_TRUE(astStart->main());
-  EXPECT_EQ(astStart->calcdef().size(), 0);
-  EXPECT_EQ(astStart->pathdef().size(), 0);
-  
-  CodeGenerator test(interface.llvmFile, astStart);
-  test.GenerateCode();
-
-  /*std::regex reg("(?:.|\\n)*(?:#include\\s+<\\w*\\.h>(?:.|\\n)*){2,}(?:.|\\n)*int main\\(int argc, const char \\*argv\\[\\]\\)\\s*\\{(?:.|\\n)*");
-  EXPECT_TRUE(std::regex_match())
-*/
-  test.output.flush();
-  std::istream &toTest(interface.llvmFile);
-
-  toTest.seekg(0);
-
-  std::string line;
-  while (std::getline(toTest, line)) {
-    std::cerr << line << std::endl;
-  }
-
-  toTest.seekg(0);
-  interface.CallLLVM();
-  
-  ASSERT_TRUE(std::filesystem::exists(testFile));
-}
-
-TEST(CodeGeneratorTestSuite, AddFunctionDeclaration){
-  std::stringstream in1;
-  
-  std::stringstream stream;
-  stream 
-    << "begin\n"
-    << "end\n"
-    << std::endl;
-  ANTLRInputStream input(stream);
-  SceneLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  SceneParser parser(&tokens);
-  auto in2 = parser.file();
-  CodeGenerator test(in1, in2);
-
-  ASSERT_EXIT((test.AddFunctionDeclaration(), exit(0)), ::testing::ExitedWithCode(0), ".*");
-
-  in1.clear();
-  test.AddFunctionDeclaration();
-
-  std::regex defineLine(
-    "(\\s*\\/\\/.*$)"
-    "|"
-    "(\\s*void save_texture\\(const char\\* file_name, SDL_Renderer\\* renderer, SDL_Texture\\* texture\\) \\{\\s*$)"
-    "|"
-    "(\\s*  \\w+.*$|\\s*\\}\\s*$|\\s*  \\}\\w+.*$)"
-    "|"
-    "(void __envfunc_fin\\(const double ret, SDL_Renderer \\* rnd\\)\\{)"
-    "|"
-    "(void __envfunc_stop\\(const double ret, SDL_Renderer \\* rnd\\)\\{)"
-    "|"
-    "(\\s*SDL_DEINIT_LABLE:$)|(\\s*$)"
-    "|"
-    "(\\s*\\w+\\s*__usr__func_\\w+\\s*\\((\\s*\\w+\\s+\\w+\\s*|\\s*)\\)\\s*;\\s*$)"
-    "|"
-    "(\\s*void\\s+__env__func_\\w+\\s*\\(\\w+\\s+\\*\\s*\\w+\\s*\\)\\s*;\\s*$)"
-  );
-  for (std::string i; std::getline(in1, i);){
-    ASSERT_REGEX(i, defineLine);
-  }
-}
-
-TEST(CodeGeneratorTestSuite, BasicWalk){
-  const char *testFile = "BasicWalkTest.out";
-  std::filesystem::remove(testFile);
-  LLVMInterface interface(testFile);
-  std::stringstream stream;
-  stream 
-    << "begin\n"
-    << "  walk 50\n"
-    << "end\n"
-    << std::endl;
-  ANTLRInputStream input(stream);
-  SceneLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  SceneParser parser(&tokens);
-
-  auto astStart = parser.file();
-
-  EXPECT_TRUE(astStart);
-  EXPECT_TRUE(astStart->main());
-  EXPECT_EQ(astStart->calcdef().size(),0);
-  EXPECT_EQ(astStart->pathdef().size(),0);
-  EXPECT_FALSE(astStart->main()->isEmpty());
-  EXPECT_EQ(astStart->main()->statList()->stat().size(), 1);
-
-  CodeGenerator test(interface.llvmFile, astStart);
-  ASSERT_EQ(test.astMain, astStart->main());
-  test.GenerateCode();
-  
-  interface.llvmFile.seekg(0);
-  std::regex checkForDraw(
-          "\\s+SDL_RenderDrawLine\\s*\\("
-          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
-          ")\\s*;\\s*");
-
-  std::string line;
-  int ret = 0;
-  while (std::getline(interface.llvmFile, line)) {
-    std::cerr << line ;
-    if(std::regex_match(line, checkForDraw)){
-      ret++;
-      std::cerr << "//found";
-    }
-    std::cerr << std::endl;
-  }
-
-  interface.llvmFile.seekg(0);
-  
-  ASSERT_EQ(ret, 1);
-
-  interface.CallLLVM();
-  ASSERT_TRUE(std::filesystem::exists(testFile));
-
-}
-
-TEST(CodeGeneratorTestSuite, BasicJump){
-  const char *testFile = "BasicWalkTest.out";
-  std::filesystem::remove(testFile);
-  LLVMInterface interface(testFile);
-  std::stringstream stream;
-  stream 
-    << "begin\n"
-    << "  jump 50\n"
-    << "  walk 50\n"
-    << "end\n"
-    << std::endl;
-  ANTLRInputStream input(stream);
-  SceneLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  SceneParser parser(&tokens);
-
-  auto astStart = parser.file();
-
-  EXPECT_TRUE(astStart);
-  EXPECT_TRUE(astStart->main());
-  EXPECT_EQ(astStart->calcdef().size(),0);
-  EXPECT_EQ(astStart->pathdef().size(),0);
-  EXPECT_FALSE(astStart->main()->isEmpty());
-  EXPECT_EQ(astStart->main()->statList()->stat().size(), 2);
-
-  CodeGenerator test(interface.llvmFile, astStart);
-  test.GenerateCode();
-  
-  interface.llvmFile.seekg(0);
-  std::regex checkForDraw(
-          "\\s+SDL_RenderDrawLine\\s*\\("
-          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
-          ")\\s*;\\s*");
-
-  std::string line;
-  int ret = 0;
-  while (std::getline(interface.llvmFile, line)) {
-    std::cerr << line ;
-    if(std::regex_match(line, checkForDraw)){
-      ret++;
-      std::cerr << "//found";
-    }
-    std::cerr << std::endl;
-  }
-
-  interface.llvmFile.seekg(0);
-  
-  ASSERT_EQ(ret, 1);
-
-  interface.CallLLVM();
-  ASSERT_TRUE(std::filesystem::exists(testFile));
-}
-
-TEST(CodeGeneratorTestSuite, TestCalcDefCommand){
-  const char * testFile = "TestCalcDefCommand.out";
-  std::filesystem::remove(testFile);
-
-  LLVMInterface interface(testFile);
-  std::stringstream stream;
-  stream 
-    << "calculation TheNumber ()" << std::endl
-    << "  store 5 in test\n"
-    << "  store -3 in ret\n"
-    << "  add ret to test\n"  //test = 2
-    << "  mul ret by test\n"  //ret = -3 * 2 = -6
-    << "  div test by ret\n"  //test = 2 / -6 = -0,5
-    << "  store ret in test\n"//test = ret = -6
-    << "  mul ret by test\n"  //ret = 36
-    << "  returns ret" << std::endl //returns 36
-    << "endcalc" << std::endl
-    << "begin\n"
-    << "  finish TheNumber()" << std::endl //output should be 36
-    << "end\n"
-    << std::endl;
-
-  ANTLRInputStream input(stream);
-  SceneLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  SceneParser parser(&tokens);
-
-  auto astStart = parser.file();
-  EXPECT_TRUE(astStart);
-  EXPECT_TRUE(astStart->main());
-  EXPECT_EQ(astStart->calcdef().size(), 1);
-  EXPECT_EQ(astStart->pathdef().size(), 0);
-  
-  CodeGenerator test(interface.llvmFile, astStart);
-  test.GenerateCode();
-
-  std::istream &toTest(interface.llvmFile);
-
-  toTest.seekg(0);
-
-  std::string line;
-  while (std::getline(toTest, line)) {
-    std::cerr << line << std::endl;
-  }
-
-  toTest.seekg(0);
-  interface.CallLLVM();
-  
-  ASSERT_TRUE(std::filesystem::exists(testFile));
-
-  //couldn't finde a way to do this direcktly in cpp
-  int exitCode = std::system((std::string("./") + testFile /*+ std::string("\nif [ $? -eq 36 ]; then exit 0; else exit 1; fi")*/).c_str());
-  ASSERT_EQ(WEXITSTATUS(exitCode), 36);
-  //TODO: check the output
-}//*/
-
 /*
 bool TestCodeGeneratorEmpty(TestError *&col){
   const char *testFile = TEST_OUTPUT_DIR "/EmptyCodeGenerator.out";

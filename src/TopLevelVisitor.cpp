@@ -267,6 +267,7 @@ std::any TopLevelVisitor::visitCalcdef(SceneParser::CalcdefContext *ctx) {
   output
     ///output the function header
     << funcs.at(ctx->ID()->getText()).Implement()
+    << std::endl
     ;
   ctxVar = VarVisitor().getVariableContext(ctx); 
   ///define all the Variables
@@ -657,12 +658,15 @@ std::any TopLevelVisitor::visitStepUpFor(SceneParser::StepUpForContext *ctx){
 
   return std::any();
 }
-///\return the corresponding Varible object or an error is thrown
+///@return the corresponding Varible object or an error is thrown
+///@throw out_of_range exception if the variable is unknowen this should be imposible except for test cases and is an indication of a mayor Programming error
 std::any TopLevelVisitor::visitVariable(SceneParser::VariableContext *ctx){
   std::cerr << __func__ << std::endl;
   std::string nm = ctx->ID()->getText();
   if(ctxVar.contains(nm)) return ctxVar.at(nm);
-  return envVar.at(nm);
+  if(envVar.contains(nm)) return envVar.at(nm);
+  std::cerr << "Unknown variable named: " << nm << " found at: " << std::endl;
+  throw std::out_of_range("Var dosn't exist");
 }
 ///\return the corresponding Varible object or an error is thrown
 std::any TopLevelVisitor::visitGlobalVariable(SceneParser::GlobalVariableContext *ctx){

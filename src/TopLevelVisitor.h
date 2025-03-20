@@ -1,5 +1,6 @@
 #pragma once
 
+class TopLevelVisitorTest;
 
 #include "SceneBaseVisitor.h"
 #include "SceneParser.h"
@@ -27,6 +28,8 @@ class TopLevelVisitor : public SceneBaseVisitor{
                                 ///<0 is unknowen -> create error report
                                 ///<1 infinit loops are allowed
                                 ///<-1 infinit loops aren't allowed
+    ///for UnitTesting
+    TopLevelVisitor(std::ostream &a) : llvm(""), output(a){}
   public:
     TopLevelVisitor(const char * const);
     ///entry point for code generation
@@ -110,7 +113,8 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::string UnwrapExpre(SceneParser::ExprContext *ctx);
 
   private:
-  
+    friend class TopLevelVisitorTest;
+
     FRIEND_TEST(TOP_LEVEL_VISITOR_TEST_SUITE, While);
     FRIEND_TEST(TOP_LEVEL_VISITOR_TEST_SUITE, DoUntil);
 

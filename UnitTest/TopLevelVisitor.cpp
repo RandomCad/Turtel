@@ -1,6 +1,7 @@
 #include "src/TopLevelVisitor.h"
 #include "gtest/gtest.h"
 #include <ANTLRInputStream.h>
+#include <CommonTokenStream.h>
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <regex>
@@ -8,13 +9,34 @@
 #include <string>
 
 #include "UnitTest/TestHelper.h"
+#include "UnitTest/TopLevelVisitor.h"
 #include "libs/SceneParser.h"
 #include "libs/SceneLexer.h"
+#include "src/Variable.h"
 #include "src/VariableVisitor.h"
 
 std::regex matchKomment = std::regex("\\s*\\/\\/.*$");
 std::regex matchPragmaUnrolle = std::regex("\\s*#pragma\\s+unroll\\s*");
 std::regex matchClosingCrlBracket = std::regex("\\s*\\}\\s*");
+std::regex matchFuncHead = std::regex("\\s*\\w+\\s+\\w+\\s*\\(\\s*\\)\\s*\\{\\s*$");
+
+void TopLevelVisitorTest::SetFunction(std::unordered_map<std::string, Function> &a){
+  toTest.funcs = a;
+}
+TopLevelVisitorTest::TopLevelVisitorTest() :
+  toTest(retStream)
+{}
+void TopLevelVisitorTest::SetupParser(){
+  input = ANTLRInputStream(inputStream);
+  lexer = new SceneLexer(&input);
+  tokens = new CommonTokenStream(lexer);
+  parser = new SceneParser(tokens);
+}
+TopLevelVisitorTest::~TopLevelVisitorTest() {
+  delete lexer;
+  delete tokens;
+  delete parser;
+}
 
 using  namespace antlr4;
 
@@ -315,10 +337,8 @@ TopLevelVisitor test(testFile);
   ASSERT_TRUE(std::filesystem::exists(testFile));
 }
 
-#if FALSE
-TEST(TOP_LEVEL_VISITOR_TEST_SUITE, CalcDef){
-  std::stringstream stream;
-  stream
+TEST_F(TopLevelVisitorTest, CalcDef){
+  inputStream
     << "calculation TheNumber ()" << std::endl
     << "  store 5 in test" << std::endl
     << "  store -3 in ret" << std::endl
@@ -331,24 +351,29 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, CalcDef){
     << "endcalc" << std::endl
     ;
 
-  ANTLRInputStream input(stream);
-  SceneLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  SceneParser parser(&tokens);
+  TopLevelVisitorTest::SetupParser();
 
-  auto astStart = parser.calcdef();
+  auto astStart = parser->calcdef();
+  TopLevelVisitorTest::SetFunction({{"TheNumber", Function("TheNumber", VarType::DOUBLE, astStart)}});
 
   ASSERT_TRUE(astStart);
-  {
-    std::stringstream retStream;
-    TopLevelVisitor toTest(retStream);
 
+  {
     astStart->accept(&toTest);
 
     std::regex assigne("\\s*__usr_\\w+\\s*=\\s*(-?\\d+|__usr_\\w+)\\s*;\\s*$");
     std::regex calcAssigne("\\s*__usr_\\w+\\s*(\\+=|-=|\\*=|/=)\\s*__usr\\w+\\s*;\\s*$");
 
     std::string line;
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, matchFuncHead);
+
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*double\\s+__usr_\\w+\\s*=\\s*0\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*double\\s+__usr_\\w+\\s*=\\s*0\\s*;\\s*$"));
+
     for (int i = 0; i < 2; ++i){
       std::getline(retStream, line);
       ASSERT_FALSE(retStream.eof());
@@ -375,22 +400,15 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, CalcDef){
     ASSERT_REGEX(line, std::regex("\\s*return\\s+__usr_\\w+\\s*;\\s*$"));
 
     std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, matchClosingCrlBracket);
+
+    std::getline(retStream, line);
     ASSERT_TRUE(retStream.eof());
   }
 }
 
-#define ASSERT_REGEX(Regex) \
-  std::getline(retStream, line);\
-    std::cerr << line << std::endl;\
-    ASSERT_TRUE(\
-        std::regex_match(\
-          line,\
-          Regex\
-          )\
-        );
-
-
-TEST(TOP_LEVEL_VISITOR_TEST_SUITE, SingleIf){
+TEST_F(TopLevelVisitorTest, SingleIf){
   std::stringstream stream;
   stream 
     << "if 5 = 5 then\n"
@@ -535,6 +553,7 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, SingleIf){
     ASSERT_STREQ(line.c_str(), "");
   }
 }
+#if FALSE
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, ElseIf){
   std::stringstream stream;
   stream 
