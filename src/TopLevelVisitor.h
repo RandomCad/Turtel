@@ -2,6 +2,7 @@
 
 #include "SceneBaseVisitor.h"
 #include "SceneParser.h"
+#include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
 #include "src/VariableHeandler.h"
 #include <ostream>
 /**
@@ -12,6 +13,10 @@
 class TopLevelVisitor : public SceneBaseVisitor{
     std::ostream &output; ///<The output of this class. Everything is writen to this.
     VariableHeandler &vars; ///<The variable conetext my be changed.
+    static int infinitLoopFlag; ///<The flag that says if infinit loops are allowed
+                                ///<0 is unknowen -> create error report
+                                ///<1 infinit loops are allowed
+                                ///<-1 infinit loops aren't allowed
 
   public:
     TopLevelVisitor(std::ostream &a, VariableHeandler &b) : 
@@ -47,6 +52,16 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitDivVar(SceneParser::DivVarContext *ctx) override;
     std::any visitAddVar(SceneParser::AddVarContext *ctx) override;
     std::any visitMultVar(SceneParser::MultVarContext *ctx) override;
+    ///The visitor for conditional operations
+    std::any visitIf(SceneParser::IfContext *ctx) override;
+    ///std::any visitElse(SceneParser::ElseContext *ctx) override; is inlined in the if!
+    std::any visitWhile(SceneParser::WhileContext *ctx) override;
+    std::any visitDoUntil(SceneParser::DoUntilContext *ctx) override;
+    std::any visitToFor(SceneParser::ToForContext *ctx) override;
+    std::any visitSimpUpFor(SceneParser::SimpUpForContext *ctx) override;
+    std::any visitSimpDownFor(SceneParser::SimpDownForContext *ctx) override;
+    std::any visitStepUpFor(SceneParser::StepUpForContext *ctx) override;
+    std::any visitStepDownFor(SceneParser::StepDownForContext *ctx) override;
 
     //The visitor for the calcExpre
     std::any visitNumExpr(SceneParser::NumExprContext *ctx) override;
@@ -58,7 +73,6 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitABS(SceneParser::ABSContext *ctx) override;
     std::any visitNegate(SceneParser::NegateContext *ctx) override;
     std::any visitVarExpr(SceneParser::VarExprContext *ctx) override;
-
     ///conditions (bool)
     std::any visitLesEqThan(SceneParser::LesEqThanContext *ctx) override;
     std::any visitGreaterThan(SceneParser::GreaterThanContext *ctx) override;
@@ -81,6 +95,9 @@ class TopLevelVisitor : public SceneBaseVisitor{
 
   private:
   
+    FRIEND_TEST(TOP_LEVEL_VISITOR_TEST_SUITE, While);
+    FRIEND_TEST(TOP_LEVEL_VISITOR_TEST_SUITE, DoUntil);
+
     ///The folowing commented out functions must be implimented by a preprocessing step by rewriteing the AST
     //std::any visitWalkBack(SceneParser::WalkBackContext *ctx) override;
     //std::any visitJumpBack(SceneParser::JumpBackContext *ctx) override;

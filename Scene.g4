@@ -17,6 +17,8 @@ Mark: 'mark';
 Store : 'store';
 In    : 'in';
 Step  : 'step';
+While : 'while';
+Untile: 'untile';
 
 Num   : [0-9]+ ;
 Float : [0-9]+ '.' [0-9]+
@@ -37,21 +39,22 @@ stat    : walk        | save        | jump
         | stop        | finish      | storeVar
         | addVar      | subVar      | divVar
         | multVar     | walkMark    | jumpMark
-        | mark        | colorCmd
+        | mark        | colorCmd    | if
+        | toFor
+        | for         | while       | doUntil
         ;
 
 ///conditions/loops
-if      : 'if' cond 'then' stat+ 'endif' #simpleIf
-        | 'if' cond 'then' stat+ 'else' stat+ 'endif' #elseIf
-        ;
-simpFor : 'do' expr 'times' stat 'done';
+if      : 'if' cond 'then' stat+ else? 'endif' ;
+else    : 'else' stat+ ; //helper for if;
+toFor   : 'do' expr 'times' stat+ 'done';
 for     : 'counter' var 'from' expr 'to' expr 'do' stat+ 'done' #simpUpFor
         | 'counter' var 'from' expr 'to' expr Step expr 'do' stat+ 'done' #stepUpFor
         | 'counter' var 'from' expr 'downto' expr 'do' stat+ 'done' #simpDownFor
         | 'counter' var 'from' expr 'downto' expr Step expr 'do' stat+ 'done' #stepDownFor
         ; //could all be implemented with stepUpFor
-while   : 'while' cond 'do' stat+ 'done';
-doWhile : 'repeat' stat+ 'untile' cond;
+while   : While cond 'do' stat+ 'done';
+doUntil : 'repeat' stat+ Untile cond;
 
 ///Variable commands
 storeVar: 'store' expr 'in' var ;

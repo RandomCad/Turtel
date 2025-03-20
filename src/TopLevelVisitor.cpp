@@ -7,11 +7,14 @@
 
 #include <any>
 #include <cstdint>
+#include <cstdlib>
 #include <iterator>
 #include <ostream>
 #include <string>
 #include <cmath>
 #include <cassert>
+
+int TopLevelVisitor::infinitLoopFlag = 0;
 
 ///define function to unpack expr return
 std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
@@ -23,6 +26,334 @@ std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
     std::cerr << "unknowen type: " << ret.type().name() << std::endl;
     throw "Error unknowen type";
   }
+}
+
+std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){
+  std::any ret = ctx->cond()->accept(this);
+  if(ret.type() == typeid(bool)){
+    if(!std::any_cast<bool>(ret)){
+      if(ctx->else_()){
+        output << "//if was optimiced out cond was false only generating else branche\n";
+        ///inlinded visit else
+        for (auto i : ctx->else_()->stat()) {
+          i->accept(this);
+        }
+      }
+      else{
+        output << "//if was optimiced out cond was false no else branch\n";
+      }
+      return std::any();
+    }
+    else{
+      output << "//if was optimiced out cond was true else branch is irrelevant\n";
+      for (auto i : ctx->stat()) {
+        i->accept(this);
+      }
+      return std::any();
+    }
+  }
+  else if (ret.type() == typeid(std::string)){
+    output << "  if (" << std::any_cast<std::string>(ret) << "){\n";
+    for (auto i : ctx->stat()) {
+      i->accept(this);
+    }
+    if(ctx->else_()){
+      output  << "  }\n"
+              << "  else{\n";
+      for (auto i : ctx->else_()->stat()) {
+        i->accept(this);
+      }
+    }
+    output  << "  }\n";
+    return std::any();
+  }
+  else{
+    throw "todo"; //TODO
+  }
+}
+
+std::any TopLevelVisitor::visitWhile(SceneParser::WhileContext *ctx){
+  std::any ret = ctx->cond()->accept(this);
+  if(ret.type() == typeid(bool)){
+    if(std::any_cast<bool>(ret)){
+      std::string usrInput;
+      switch (infinitLoopFlag) {
+        case 1:
+          usrInput = "y";
+          break;;
+        case 0:
+          do{ //TODO add flagsupport
+            std::cerr 
+              << "you created an infinit loop at line: " 
+              << ctx->getTokens(SceneParser::While)[0]->getSymbol()->getLine() 
+              << "starting with character: "
+              << ctx->getTokens(SceneParser::While)[0]->getSymbol()->getCharPositionInLine()
+              << ".\n"
+              
+              << "This while wil not be excaped once enterde.\n"
+              << "Continue generating? (y/n)" 
+              << std::endl;
+            std::cin >> usrInput;
+          } while(usrInput.length() == 2);
+          break;
+        case -1:
+          usrInput = "n";
+          break;
+      }
+      switch (usrInput[0]) {
+        case 'n':
+          std::cerr << "Ending programm" << std::endl;
+          std::exit(1);
+        default:
+          ///retry is hopfully optimized
+          return ctx->accept(this);
+        case 'y':
+          output  << "  //user wants an infinit loop!\n"
+                  << " while (1) {\n";
+          for (auto i : ctx->stat()) {
+            i->accept(this);
+          }
+          output << "  }\n";
+          return std::any();
+      }
+    }
+    else{
+      output << "//while was optimized out the condition was false\n";
+    }
+  }
+  else if(ret.type() == typeid(std::string)){
+    output << "  while (" << std::any_cast<std::string>(ret) << "){\n";
+    for (auto i : ctx->stat()) {
+      i->accept(this);
+    }
+    output << "  }\n";
+  }
+  else{
+    throw "TODO"; //TODO
+  }
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitDoUntil(SceneParser::DoUntilContext *ctx){
+  std::cerr << __func__ << std::endl;
+  std::any ret = ctx->cond()->accept(this);
+  if(ret.type() == typeid(bool)){
+    if(!std::any_cast<bool>(ret)){
+      std::string usrInput;
+      switch (infinitLoopFlag) {
+        case 1:
+          usrInput = "y";
+          break;;
+        case 0:
+          do{ //TODO add flagsupport
+            std::cerr 
+              << "you created an infinit loop at line: " 
+              << ctx->getTokens(SceneParser::Untile)[0]->getSymbol()->getLine() 
+              << "starting with character: "
+              << ctx->getTokens(SceneParser::Untile)[0]->getSymbol()->getCharPositionInLine()
+              << ".\n"
+              
+              << "This repeat untill wil not be escaped once enterde.\n"
+              << "Continue generating? (y/n)" 
+              << std::endl;
+            std::cin >> usrInput;
+          } while(usrInput.length() == 2);
+
+          break;
+        case -1:
+          usrInput = "n";
+          break;
+      }
+      
+      switch (usrInput[0]) {
+        case 'n':
+          std::cerr << "Ending programm" << std::endl;
+          std::exit(1);
+        default:
+          ///retry is hopfully optimized
+          return ctx->accept(this);
+        case 'y':
+          output  << "  //user wants an infinit loop!\n"
+                  << " do {\n";
+          for (auto i : ctx->stat()) {
+            i->accept(this);
+          }
+          output << "  }while(1);\n";
+          return std::any();
+      }
+    }
+    else{
+      for (auto i : ctx->stat()) {
+        i->accept(this);
+      }
+      output << "//repeat until was optimized out the condition was true\n";
+    }
+  }
+  else if(ret.type() == typeid(std::string)){
+    output << "  do{\n";
+    for (auto i : ctx->stat()) {
+      i->accept(this);
+    }
+    output << "  }while (!(" << std::any_cast<std::string>(ret) << "));\n";
+  }
+  else{
+    throw "TODO"; //TODO
+  }
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitToFor(SceneParser::ToForContext *ctx) { //TODO case to is negativ!
+  std::any ret = ctx->expr()->accept(this);
+  if(ret.type() == typeid(double)) ret = (int64_t)std::ceil(std::any_cast<double>(ret));
+  if (ret.type() == typeid(int64_t)){
+    output  << "#pragma unroll\n"
+            << "  for (size_t i = 0; i <" << std::any_cast<int64_t>(ret) << " ; ++i){\n"
+            ;
+    for (auto i : ctx->stat()) {
+      i->accept(this);
+    }
+    output  << "}\n";
+  }
+  else if (ret. type() == typeid(std::string)){
+    output  << "  for (size_t i = 0; i <" << std::any_cast<std::string>(ret) << " ; ++i){\n"
+            ;
+    for (auto i : ctx->stat()) {
+      i->accept(this);
+    }
+    output  << "}\n";
+  }
+  else{
+    throw "TODO"; //TODO;
+  }
+  return std::any();
+}
+
+std::any TopLevelVisitor::visitSimpUpFor(SceneParser::SimpUpForContext *ctx){
+  std::cerr << "ctx1:" << std::endl;
+  std::any from = ctx->children[3]->accept(this);
+  std::cerr << "ctx1:" << std::endl;
+  std::any to = ctx->children[5]->accept(this);
+  std::cerr << "rest" << std::endl;
+
+  if( (from.type() == typeid(double) || from.type() == typeid(int64_t)) &&
+      (to.type() == typeid(double) || to.type() == typeid(int64_t))){
+    output << "#pragma unroll\n";
+  }
+  output  << "  for ( " 
+          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << " = "
+          << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[3]))
+          << "; "
+          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << " < "
+          << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[5]))
+          << "; ++"
+          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << "){\n"
+          ;
+
+  for (auto i : ctx->stat()) {
+    i->accept(this);
+  }
+
+  output  << "  }\n";
+
+  return std::any();
+}
+std::any TopLevelVisitor::visitSimpDownFor(SceneParser::SimpDownForContext *ctx){
+  std::any from = ctx->children[3]->accept(this);
+  std::any to = ctx->children[5]->accept(this);
+
+  if( (from.type() == typeid(double) || from.type() == typeid(int64_t)) &&
+      (to.type() == typeid(double) || to.type() == typeid(int64_t))){
+    output << "#pragma unroll\n";
+  }
+  output  << "  for ( " 
+          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << " = "
+          << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[3]))
+          << "; "
+          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << " > "
+          << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[5]))
+          << "; --"
+          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << "){\n"
+          ;
+
+  for (auto i : ctx->stat()) {
+    i->accept(this);
+  }
+
+  output  << "  }\n";
+
+  return std::any();
+}
+std::any TopLevelVisitor::visitStepDownFor(SceneParser::StepDownForContext *ctx){
+  std::any from = ctx->children[3]->accept(this);
+  std::any to = ctx->children[5]->accept(this);
+  std::any step = ctx->children[7]->accept(this);
+
+  if( (from.type() == typeid(double) || from.type() == typeid(int64_t)) &&
+      (to.type() == typeid(double) || to.type() == typeid(int64_t)) &&
+      (step.type() == typeid(double) || step.type() == typeid(int64_t))){
+    output << "#pragma unroll\n";
+  }
+  output  << "  for ( " 
+          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << " = "
+          << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[3]))
+          << "; "
+          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << " > "
+          << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[5]))
+          << "; "
+          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << " -= "
+          << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[7]))
+          << "){\n"
+          ;
+
+  for (auto i : ctx->stat()) {
+    i->accept(this);
+  }
+
+  output  << "  }\n";
+
+  return std::any();
+}
+std::any TopLevelVisitor::visitStepUpFor(SceneParser::StepUpForContext *ctx){
+  std::any from = ctx->children[3]->accept(this);
+  std::any to = ctx->children[5]->accept(this);
+  std::any step = ctx->children[7]->accept(this);
+
+  if( (from.type() == typeid(double) || from.type() == typeid(int64_t)) &&
+      (to.type() == typeid(double) || to.type() == typeid(int64_t)) &&
+      (step.type() == typeid(double) || step.type() == typeid(int64_t))){
+    output << "#pragma unroll\n";
+  }
+  output  << "  for ( " 
+          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << " = "
+          << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[3]))
+          << "; "
+          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << " < "
+          << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[5]))
+          << "; "
+          << std::any_cast<std::string>(ctx->var()->accept(this))
+          << " += "
+          << UnwrapExpre(dynamic_cast<SceneParser::ExprContext*>(ctx->children[7]))
+          << "){\n"
+          ;
+
+  for (auto i : ctx->stat()) {
+    i->accept(this);
+  }
+
+  output  << "  }\n";
+
+  return std::any();
 }
 
 std::any TopLevelVisitor::visitVariable(SceneParser::VariableContext *ctx){
