@@ -6,12 +6,213 @@
 #include <regex>
 #include <string>
 
-#include "../libs/SceneParser.h"
-#include "../libs/SceneLexer.h"
+#include "libs/SceneParser.h"
+#include "libs/SceneLexer.h"
 #include "src/VariableHeandler.h"
 #include "src/AstRewriteVisitor.h"
+#include "src/VariableVisitor.h"
 
 using  namespace antlr4;
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, AddVar){
+  std::stringstream stream;
+  stream 
+    << "add 5 to test"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  //pars the test
+  auto astStart = parser.addVar();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  var.setContext(VarVisitor().getVariableContext(astStart));
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\_\\_usr\\_\\w+\\s*\\+=\\s*5\\s*;\\s*"
+          )
+        )
+      );
+
+  //TODO add this lines to most of the other tests!
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(retStream.eof());
+  ASSERT_STREQ(line.c_str(), "");
+}
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, MultVar){
+  std::stringstream stream;
+  stream 
+    << "mul test by 5"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  //pars the test
+  auto astStart = parser.multVar();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  var.setContext(VarVisitor().getVariableContext(astStart));
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\_\\_usr\\_\\w+\\s*\\*=\\s*5\\s*;\\s*"
+          )
+        )
+      );
+
+  //TODO add this lines to most of the other tests!
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(retStream.eof());
+  ASSERT_STREQ(line.c_str(), "");
+}
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, DivVar){
+  std::stringstream stream;
+  stream 
+    << "div test by 5"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  //pars the test
+  auto astStart = parser.divVar();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  var.setContext(VarVisitor().getVariableContext(astStart));
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\_\\_usr\\_\\w+\\s*/=\\s*5\\s*;\\s*"
+          )
+        )
+      );
+
+  //TODO add this lines to most of the other tests!
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(retStream.eof());
+  ASSERT_STREQ(line.c_str(), "");
+}
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, SubVar){
+  std::stringstream stream;
+  stream 
+    << "sub 5 from test"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  //pars the test
+  auto astStart = parser.subVar();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  var.setContext(VarVisitor().getVariableContext(astStart));
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\_\\_usr\\_\\w+\\s*-=\\s*5\\s*;\\s*"
+          )
+        )
+      );
+
+  //TODO add this lines to most of the other tests!
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(retStream.eof());
+  ASSERT_STREQ(line.c_str(), "");
+}
+
+TEST(TOP_LEVEL_VISITOR_TEST_SUITE, StoreVar){
+  std::stringstream stream;
+  stream 
+    << "store 5 in test"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+  
+  //pars the test
+  auto astStart = parser.storeVar();
+  ASSERT_TRUE(astStart);
+
+  std::stringstream retStream;
+  VariableHeandler var;
+  var.setContext(VarVisitor().getVariableContext(astStart));
+  TopLevelVisitor toTest(retStream, var);
+
+  std::any ret = astStart->accept(&toTest);
+
+  std::string line;
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(
+      std::regex_match(
+        line,
+        std::regex(
+          "\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"
+          )
+        )
+      );
+
+  //TODO add this lines to most of the other tests!
+  std::getline(retStream, line);
+  std::cerr << line << std::endl;
+  ASSERT_TRUE(retStream.eof());
+  ASSERT_STREQ(line.c_str(), "");
+}
 
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, StopNOK){
   std::stringstream stream;
@@ -77,7 +278,6 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, StopOK){
       );
 }
 
-
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, FinishNOK){
   std::stringstream stream;
   stream 
@@ -141,7 +341,6 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, FinishOK){
         )
       );
 }
-
 
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, Clear){
   std::stringstream stream;
@@ -786,6 +985,4 @@ TEST(TOP_LEVEL_VISITOR_TEST_SUITE, save){
   callRet = astStart->accept(&toTest);
     
   ASSERT_FALSE(callRet.has_value());
-
-
 }
