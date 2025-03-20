@@ -60,7 +60,7 @@ std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
     ;
 
   for (auto i : varContext) {
-    output << " " << std::get<Variable>(i).getTypeAndName() << " = 0;";
+    output << " " << std::get<Variable>(i).getTypeAndName() << " = 0;\n";
   }
 
   //visit all the contained statments(stat)
@@ -115,14 +115,14 @@ void CodeGenerator::AddFunctionDeclaration(){
     << "  SDL_SetRenderTarget(renderer, target);\n"
     << "}\n"
   ///define the finsih function
-    << "void __envfunc_stop(const double ret, SDL_Renderer * rnd){\n" 
+    << "void __envfunc_fin(const double ret, SDL_Renderer * rnd){\n" 
     << "  SDL_DestroyRenderer(rnd);\n"
     << "  SDL_DestroyWindow( " << _variables.getVariableNameString(WINDOW_NAME) << ");\n"
     << "  SDL_Quit();\n"
     << "  exit((int) ret);\n"
-    << "}"
+    << "}\n"
   ///define the stop function
-    << "void __envfunc_fin(const double ret, SDL_Renderer * rnd){\n"
+    << "void __envfunc_stop(const double ret, SDL_Renderer * rnd){\n"
 #ifndef UNIT_TEST
     << "  do{\n"
 #ifndef NDEBUG
@@ -137,7 +137,7 @@ void CodeGenerator::AddFunctionDeclaration(){
     << "  }while(1);\n"
 #endif
     << "SDL_DEINIT_LABLE:\n"
-    << "  __envfunc_stop(0, rnd);\n"
+    << "  __envfunc_stop(ret, rnd);\n"
     << "}\n"
     << std::endl
   //add pathdef Functions:
