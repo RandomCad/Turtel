@@ -1981,7 +1981,7 @@ TEST_F(TopLevelVisitorTest, WalkHome){
 
   TopLevelVisitorTest::SetupParser();
 
-  auto astStart = parser->waklHome();
+  auto astStart = parser->walkHome();
   ASSERT_TRUE(astStart);
 
   TopLevelVisitorTest::SetVariables(astStart);

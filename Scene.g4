@@ -21,6 +21,7 @@ While : 'while'         ;
 Untile: 'untile'        ;
 Begin : 'begin'         ;
 End   : 'end'           ;
+Color : 'color'         ;
 
 Num   : [0-9]+ ;
 Float : [0-9]+ '.' [0-9]+
@@ -40,7 +41,7 @@ paramlist : '(' (var ',')* var ')'
 statList  : stat* ;
 
 stat    : walk        | save        | jump
-        | waklHome    | jumpHome    | turnLeft
+        | walkHome    | jumpHome    | turnLeft
         | turnRight   | direction   | clear
         | stop        | finish      | storeVar
         | addVar      | subVar      | divVar
