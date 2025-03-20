@@ -29,7 +29,11 @@
 
 
 //also define functionNames
-///the name of the save immage function
-#define IMMAGE_FUNC "\%Immage"
-#define END_FUNC "\%End"
-#define FINISH_FUNC "\%Fin"
+///define the compiler internal name for the main function
+#define MAIN_FUNC "\%TurtelMain"
+///define the Turtelmain function name
+#define TURTEL_MAIN_FUNC_NAME ENV_FUNC_PREFIX "TurtelMain"
+///defines the prefix of all user functions
+#define USR_FUNC_PREFIX "__usr__func_"
+///defines the prefix of all env functions
+#define ENV_FUNC_PREFIX "__env__func_"

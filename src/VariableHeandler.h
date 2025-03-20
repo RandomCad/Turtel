@@ -1,18 +1,20 @@
 #pragma once
 
 #include "Variable.h"
-#include <map>
+#include <string>
 #include <unordered_map>
-#include <vector>
 
 class VariableHeandler{
   private:
-    static const std::unordered_map<std::string, Variable> enviornment; 
-    std::vector<std::map<std::string, Variable>> contextStack;
+    std::unordered_map<std::string, Variable> enviornment; 
+    std::unordered_map<std::string, Variable> ctx;
 
   public:
+    VariableHeandler(std::unordered_map<std::string, Variable> &&);
+    VariableHeandler() {}
     const std::string getVariableNameString(const std::string&);
     const std::string getVariableDefinition(const std::string&);
     Variable getVariable(const std::string&);
+    void setContext(const std::unordered_map<std::string, Variable> &);
   
 };
