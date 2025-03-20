@@ -126,8 +126,8 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     ///function declarations
     << "//declaration of Turtel HelperFuncs\n"
     << "void save_texture(const char* file_name, SDL_Renderer* renderer, SDL_Texture* texture);\n"
-    << "void __envfunc_fin(const double ret, SDL_Renderer * rnd);\n" 
-    << "void __envfunc_stop(const double ret, SDL_Renderer * rnd);\n"
+    << "void __envfunc_fin(const double ret);\n" 
+    << "void __envfunc_stop(const double ret);\n"
     ;
   ///get all the usr function definitions
   for (auto i : funcs) {
@@ -163,12 +163,12 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     << GenPresent
     << funcs.at(MAIN_FUNC).getFunctionCall({}) << ';'///<call Turtel main
     << '\n'
-    << "__envfunc_fin(0, " << envVar.at(RND_NAME).getName() << ");\n"///<call the end functions
+    << "__envfunc_stop(0);\n"///<call the end functions
   //main end
     << "}\n"
     << std::endl
     ///add env Functions
-    << "void __envfunc_stop(const double ret, SDL_Renderer * rnd){\n"
+    << "void __envfunc_stop(const double ret){\n"
 #ifndef UNIT_TEST
     << "  do{\n"
 #ifndef NDEBUG
@@ -177,16 +177,15 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     << "    SDL_WaitEvent(&" << envVar.at(EVENT_NAME).getName() << ");\n"
     << "    switch ("<< envVar.at(EVENT_NAME).getName() << ".type){\n"
     << "      case SDL_KEYDOWN:\n"
-    << "      case SDL_QUIT: goto SDL_DEINIT_LABLE;\n"
+    << "      case SDL_QUIT: __envfunc_stop(ret);\n"
     << "      default: break;\n"
     << "    }\n"
     << "  }while(1);\n"
 #endif
-    << "SDL_DEINIT_LABLE:\n"
-    << "  __envfunc_stop(ret, rnd);\n"
+    << "  __envfunc_fin(ret);\n"
     << "}\n"
-    << "void __envfunc_fin(const double ret, SDL_Renderer * rnd){\n" 
-    << "  SDL_DestroyRenderer(rnd);\n"
+    << "void __envfunc_fin(const double ret){\n" 
+    << "  SDL_DestroyRenderer(" << envVar.at(RND_NAME).getName() <<" );\n"
     << "  SDL_DestroyWindow( " << envVar.at(WINDOW_NAME).getName() << ");\n"
     << "  SDL_Quit();\n"
     << "  exit((int) ret);\n"
@@ -731,25 +730,25 @@ std::any TopLevelVisitor::visitFinError(SceneParser::FinErrorContext *ctx){
   output 
     << "  __envfunc_fin("
     << UnwrapExpre(ctx->expr())
-    <<", " << envVar.at(RND_NAME).getName() << ");\n";
+    <<");\n";
   return std::any();
 
 }
 std::any TopLevelVisitor::visitFinOK(SceneParser::FinOKContext *ctx){
   output 
-    << "  __envfunc_fin(0, " << envVar.at(RND_NAME).getName() << ");\n";
+    << "  __envfunc_fin(0);\n";
   return std::any();
 }
 std::any TopLevelVisitor::visitStopOK(SceneParser::StopOKContext *ctx){
   output 
-    << "  __envfunc_stop(0, " << envVar.at(RND_NAME).getName() << ");\n";
+    << "  __envfunc_stop(0);\n";
   return std::any();
 }
 std::any TopLevelVisitor::visitStopError(SceneParser::StopErrorContext *ctx){
   output 
     << "  __envfunc_stop("
     << UnwrapExpre(ctx->expr())
-    <<", " << envVar.at(RND_NAME).getName() << ");\n";
+    << ");\n";
   return std::any();
 }
 std::any TopLevelVisitor::visitClear(SceneParser::ClearContext *ctx){

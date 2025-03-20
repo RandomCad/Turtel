@@ -137,6 +137,7 @@ add_executable(
   ${CodeGeneration} 
   ${LLVM_Interface}
 )
+target_compile_definitions(Tests PRIVATE UNIT_TEST=1)
 target_link_libraries(
   Tests
   GTest::gtest_main
