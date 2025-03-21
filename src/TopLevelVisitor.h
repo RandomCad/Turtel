@@ -31,7 +31,8 @@ class TopLevelVisitor : public SceneBaseVisitor{
     ///for UnitTesting
     TopLevelVisitor(std::ostream &a) : llvm(""), output(a){}
   public:
-    TopLevelVisitor(const char * const);
+    ///\param fileName sets the name of the output file. Has a standart value.
+    TopLevelVisitor(const char * const fileName = "file");
     ///entry point for code generation
     std::any visitFile(SceneParser::FileContext *ctx) override;
     

@@ -24,7 +24,7 @@
 
 int TopLevelVisitor::infinitLoopFlag = 0;
 
-TopLevelVisitor::TopLevelVisitor(const char * const fileName = "file") 
+TopLevelVisitor::TopLevelVisitor(const char * const fileName) 
   : llvm(LLVMInterface(fileName)), output(llvm.llvmFile) {}
 
 ///define function to unpack expr return

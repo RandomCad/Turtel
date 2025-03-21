@@ -85,6 +85,7 @@ SET(LLVM_LIBS
 #---------------------------------------#
 # Creat CodeGenerator variable 
 set(CodeGeneration 
+  src/antlr.cpp 
   src/TopLevelVisitor.cpp
   src/VariableVisitor.cpp
   src/Function.cpp
@@ -95,7 +96,6 @@ set(CodeGeneration
 set(LLVM_Interface src/LLVMInterface.cpp)
 
 add_executable(Turtel 
-  src/antlr.cpp 
   ${ANTLR_SceneGrammarParser_CXX_OUTPUTS} 
   ${CodeGeneration} 
   ${LLVM_Interface}
@@ -137,7 +137,9 @@ add_executable(
   ${CodeGeneration} 
   ${LLVM_Interface}
 )
+
 target_compile_definitions(Tests PRIVATE UNIT_TEST=1)
+
 target_link_libraries(
   Tests
   GTest::gtest_main
@@ -148,3 +150,11 @@ target_link_libraries(
 include(GoogleTest)
 gtest_discover_tests(Tests)
 
+# Ensure the UnitTest/TestData directory is copied BEFORE running the tests
+add_custom_target(copy_test_data
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/UnitTest/TestData ${CMAKE_CURRENT_BINARY_DIR}/TestData
+  COMMENT "Copying UnitTest/TestData to output directory"
+)
+
+# Ensure Tests depends on copy_test_data (copies test data before running tests)
+add_dependencies(Tests copy_test_data)
