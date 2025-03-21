@@ -1,11 +1,15 @@
 #include <ANTLRInputStream.h>
 #include <ios>
 #include <istream>
+#include <sstream>
 #include <streambuf>
 
 #include "libs/SceneLexer.h"
 #include "libs/SceneParser.h"
+#include "libs/CommandlineLexer.h"
+#include "libs/CommandlineParser.h"
 #include "src/TopLevelVisitor.h"
+#include "src/CommandLineListener.h"
 
 /**
  * @param argv hase the formate Turtel [Options] <turtel-file> [Options] [ -- [Turtel-Options]] 
@@ -20,27 +24,25 @@ int main(int argc, const char* argv[]) {
 #else
 int progMain(int argc, const char *argv[]){
 #endif
-  const char *inputFile;
-  bool foundFile = false;
-  for (const char *i = *argv + 2; i; ++i) {
-    if(!i[0]) continue;
-    else if(i[0] == '-'){
-      if(i[0] != '-') throw "error"; //TODO
-      else {
-
-      }
-    }
-    else{
-      if(!foundFile) {
-        inputFile = i;
-        foundFile = true;
-      }
-      else throw "error"; //TODO
-    }
+  std::stringstream argvStream;
+  for (const char **i = argv; *i; ++i){
+    argvStream << *i << ' ';
   }
 
+  antlr4::ANTLRInputStream argInput(argvStream);
+  CommandlineLexer argLex(&argInput);
+  antlr4::CommonTokenStream argTokens(&argLex);
+  CommandlineParser argPars(&argTokens);
+
+  CommandLineListener argLis;
+  argPars.addParseListener(&argLis);
+
+  argPars.args();
+  
+  Comandline::options opt = argLis.GetOptions();
+
   std::filebuf fb;
-  if(!fb.open(inputFile, std::ios::in)){
+  if(!fb.open(opt.inputFile, std::ios::in)){
     throw  "error"; //TODO;
   }
 
@@ -52,7 +54,7 @@ int progMain(int argc, const char *argv[]){
 
   SceneParser::FileContext *file = parser.file();
 
-  TopLevelVisitor vis;
+  TopLevelVisitor vis(opt.outputFile.c_str());
 
   file->accept(&vis);
 
