@@ -24,10 +24,22 @@
 
 int TopLevelVisitor::infinitLoopFlag = 0;
 
+/**
+ * @brief Constructs a TopLevelVisitor object.
+ * 
+ * @param fileName The name of the file to use for LLVM interface.
+ */
 TopLevelVisitor::TopLevelVisitor(const char * const fileName = "file") 
   : llvm(LLVMInterface(fileName)), output(llvm.llvmFile) {}
 
-///define function to unpack expr return
+/**
+ * @brief Unwraps the expression and returns its string representation.
+ * 
+ * This function accepts an expression context, evaluates it, and returns its string representation.
+ * 
+ * @param ctx The expression context to unwrap.
+ * @return The string representation of the expression.
+ */
 std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
   std::any ret = ctx->accept(this);
   if(ret.type() == typeid(std::string))     return std::any_cast<std::string>(ret);
@@ -39,7 +51,15 @@ std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
   }
 }
 
-///is the main antrypoint in to the code generation
+/**
+ * @brief Visits the file context and generates the code.
+ * 
+ * This function is the main entry point for code generation. It prepares the function table,
+ * adds static environment variables, user global variables, and starts generating the output code.
+ * 
+ * @param ctx The file context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
   ///do the preperation
   ///create the function Table
@@ -237,6 +257,14 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
   return std::any();
 }
 
+/**
+ * @brief Visits the main context and generates the main function code.
+ * 
+ * This function generates the main function code, defines all variables, and implements all commands.
+ * 
+ * @param ctx The main context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitMain(SceneParser::MainContext *ctx){
   output
     ///output the function header
@@ -262,6 +290,16 @@ std::any TopLevelVisitor::visitMain(SceneParser::MainContext *ctx){
   output << "}\n";
   return std::any();
 } 
+
+/**
+ * @brief Visits the calcdef context and generates the function code.
+ * 
+ * This function generates the function code for a calculation definition, defines all variables,
+ * implements all commands, and adds the return statement.
+ * 
+ * @param ctx The calcdef context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitCalcdef(SceneParser::CalcdefContext *ctx) {
   output
     ///output the function header
@@ -289,6 +327,16 @@ std::any TopLevelVisitor::visitCalcdef(SceneParser::CalcdefContext *ctx) {
   output << "}\n";
   return std::any();
 }
+
+/**
+ * @brief Visits the pathdef context and generates the function code.
+ * 
+ * This function generates the function code for a path definition, defines all variables,
+ * and implements all commands.
+ * 
+ * @param ctx The pathdef context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitPathdef(SceneParser::PathdefContext *ctx){
   output
     ///output the function header
@@ -314,6 +362,14 @@ std::any TopLevelVisitor::visitPathdef(SceneParser::PathdefContext *ctx){
   return std::any();
 } 
 
+/**
+ * @brief Visits the function call context and generates the function call code.
+ * 
+ * This function generates the function call code for a given function name and input variables.
+ * 
+ * @param ctx The function call context to visit.
+ * @return The function call code as a string.
+ */
 std::any TopLevelVisitor::visitFuncCall(SceneParser::FuncCallContext *ctx){
   std::string funcName = ctx->ID()->getText();
   if(!funcs.contains(funcName)){
@@ -322,6 +378,15 @@ std::any TopLevelVisitor::visitFuncCall(SceneParser::FuncCallContext *ctx){
   }
   return funcs.at(funcName).getFunctionCall(std::any_cast<std::vector<Variable>>(ctx->paramlist()->accept(this)));
 }
+
+/**
+ * @brief Visits the parameter list context and retrieves the variables.
+ * 
+ * This function extracts variables from the given parameter list context and returns them as a vector of Variable objects.
+ * 
+ * @param ctx The parameter list context to visit.
+ * @return A vector of Variable objects.
+ */
 std::any TopLevelVisitor::visitParamlist(SceneParser::ParamlistContext *ctx){
   return [&]() -> std::vector<Variable> {
   std::vector<Variable> ret;
@@ -334,6 +399,14 @@ std::any TopLevelVisitor::visitParamlist(SceneParser::ParamlistContext *ctx){
 }();
 }
 
+/**
+ * @brief Visits the if context and generates the if statement code.
+ * 
+ * This function generates the if statement code, including the else branch if present.
+ * 
+ * @param ctx The if context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){
   std::any ret = ctx->cond()->accept(this);
   if(ret.type() == typeid(bool)){
@@ -380,6 +453,15 @@ std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){
     throw "todo"; //TODO
   }
 }
+
+/**
+ * @brief Visits the while context and generates the while loop code.
+ * 
+ * This function generates the while loop code, including handling of infinite loops.
+ * 
+ * @param ctx The while context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitWhile(SceneParser::WhileContext *ctx){
   std::any ret = ctx->cond()->accept(this);
   if(ret.type() == typeid(bool)){
@@ -441,6 +523,15 @@ std::any TopLevelVisitor::visitWhile(SceneParser::WhileContext *ctx){
   }
   return std::any();
 }
+
+/**
+ * @brief Visits the do-until context and generates the do-until loop code.
+ * 
+ * This function generates the do-until loop code, including handling of infinite loops.
+ * 
+ * @param ctx The do-until context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitDoUntil(SceneParser::DoUntilContext *ctx){
   std::cerr << __func__ << std::endl;
   std::any ret = ctx->cond()->accept(this);
@@ -508,6 +599,15 @@ std::any TopLevelVisitor::visitDoUntil(SceneParser::DoUntilContext *ctx){
   }
   return std::any();
 }
+
+/**
+ * @brief Visits the to-for context and generates the for loop code.
+ * 
+ * This function generates the for loop code for a given range.
+ * 
+ * @param ctx The to-for context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitToFor(SceneParser::ToForContext *ctx) { //TODO case to is negativ!
   std::any ret = ctx->expr()->accept(this);
   if(ret.type() == typeid(double)) ret = (int64_t)std::ceil(std::any_cast<double>(ret));
@@ -533,6 +633,15 @@ std::any TopLevelVisitor::visitToFor(SceneParser::ToForContext *ctx) { //TODO ca
   }
   return std::any();
 }
+
+/**
+ * @brief Visits the simple up-for context and generates the for loop code.
+ * 
+ * This function generates the for loop code for a simple incrementing range.
+ * 
+ * @param ctx The simple up-for context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitSimpUpFor(SceneParser::SimpUpForContext *ctx){
   std::cerr << "ctx1:" << std::endl;
   std::any from = ctx->children[3]->accept(this);
@@ -565,6 +674,15 @@ std::any TopLevelVisitor::visitSimpUpFor(SceneParser::SimpUpForContext *ctx){
 
   return std::any();
 }
+
+/**
+ * @brief Visits the simple down-for context and generates the for loop code.
+ * 
+ * This function generates the for loop code for a simple decrementing range.
+ * 
+ * @param ctx The simple down-for context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitSimpDownFor(SceneParser::SimpDownForContext *ctx){
   std::any from = ctx->children[3]->accept(this);
   std::any to = ctx->children[5]->accept(this);
@@ -594,6 +712,15 @@ std::any TopLevelVisitor::visitSimpDownFor(SceneParser::SimpDownForContext *ctx)
 
   return std::any();
 }
+
+/**
+ * @brief Visits the step down-for context and generates the for loop code.
+ * 
+ * This function generates the for loop code for a decrementing range with a step value.
+ * 
+ * @param ctx The step down-for context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitStepDownFor(SceneParser::StepDownForContext *ctx){
   std::any from = ctx->children[3]->accept(this);
   std::any to = ctx->children[5]->accept(this);
@@ -627,6 +754,15 @@ std::any TopLevelVisitor::visitStepDownFor(SceneParser::StepDownForContext *ctx)
 
   return std::any();
 }
+
+/**
+ * @brief Visits the step up-for context and generates the for loop code.
+ * 
+ * This function generates the for loop code for an incrementing range with a step value.
+ * 
+ * @param ctx The step up-for context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitStepUpFor(SceneParser::StepUpForContext *ctx){
   std::any from = ctx->children[3]->accept(this);
   std::any to = ctx->children[5]->accept(this);
@@ -660,8 +796,16 @@ std::any TopLevelVisitor::visitStepUpFor(SceneParser::StepUpForContext *ctx){
 
   return std::any();
 }
-///@return the corresponding Varible object or an error is thrown
-///@throw out_of_range exception if the variable is unknowen this should be imposible except for test cases and is an indication of a mayor Programming error
+
+/**
+ * @brief Visits the variable context and retrieves the variable.
+ * 
+ * This function retrieves the variable object for the given variable context.
+ * 
+ * @param ctx The variable context to visit.
+ * @return The corresponding Variable object.
+ * @throw std::out_of_range exception if the variable is unknown.
+ */
 std::any TopLevelVisitor::visitVariable(SceneParser::VariableContext *ctx){
   std::cerr << __func__ << std::endl;
   std::string nm = ctx->ID()->getText();
@@ -670,13 +814,30 @@ std::any TopLevelVisitor::visitVariable(SceneParser::VariableContext *ctx){
   std::cerr << "Unknown variable named: " << nm << " found at: " << std::endl;
   throw std::out_of_range("Var dosn't exist");
 }
-///\return the corresponding Varible object or an error is thrown
+
+/**
+ * @brief Visits the global variable context and retrieves the variable.
+ * 
+ * This function retrieves the variable object for the given global variable context.
+ * 
+ * @param ctx The global variable context to visit.
+ * @return The corresponding Variable object.
+ */
 std::any TopLevelVisitor::visitGlobalVariable(SceneParser::GlobalVariableContext *ctx){
   std::cerr << __func__ << std::endl;
   std::string nm = ctx->IncID()->getText();
   if(ctxVar.contains(nm)) return ctxVar.at(nm);
   return envVar.at(nm);
 }
+
+/**
+ * @brief Visits the store variable context and generates the store variable code.
+ * 
+ * This function generates the code to store a value in a variable.
+ * 
+ * @param ctx The store variable context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitStoreVar(SceneParser::StoreVarContext *ctx){
   std::cerr << __func__ << std::endl;
   output
@@ -687,6 +848,15 @@ std::any TopLevelVisitor::visitStoreVar(SceneParser::StoreVarContext *ctx){
     ;
   return std::any();
 }
+
+/**
+ * @brief Visits the subtract variable context and generates the subtract variable code.
+ * 
+ * This function generates the code to subtract a value from a variable.
+ * 
+ * @param ctx The subtract variable context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitSubVar(SceneParser::SubVarContext *ctx){
   std::cerr << __func__ << std::endl;
   output
@@ -697,6 +867,15 @@ std::any TopLevelVisitor::visitSubVar(SceneParser::SubVarContext *ctx){
     ;
   return std::any();
 }
+
+/**
+ * @brief Visits the divide variable context and generates the divide variable code.
+ * 
+ * This function generates the code to divide a variable by a value.
+ * 
+ * @param ctx The divide variable context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitDivVar(SceneParser::DivVarContext *ctx){
   std::cerr << __func__ << std::endl;
   output
@@ -707,6 +886,15 @@ std::any TopLevelVisitor::visitDivVar(SceneParser::DivVarContext *ctx){
     ;
   return std::any();
 }
+
+/**
+ * @brief Visits the add variable context and generates the add variable code.
+ * 
+ * This function generates the code to add a value to a variable.
+ * 
+ * @param ctx The add variable context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitAddVar(SceneParser::AddVarContext *ctx){
   std::cerr << __func__ << std::endl;
   output
@@ -717,6 +905,15 @@ std::any TopLevelVisitor::visitAddVar(SceneParser::AddVarContext *ctx){
     ;
   return std::any();
 }
+
+/**
+ * @brief Visits the multiply variable context and generates the multiply variable code.
+ * 
+ * This function generates the code to multiply a variable by a value.
+ * 
+ * @param ctx The multiply variable context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitMultVar(SceneParser::MultVarContext *ctx){
   output
     << std::any_cast<Variable>(ctx->var()->accept(this)).getName()
@@ -726,6 +923,15 @@ std::any TopLevelVisitor::visitMultVar(SceneParser::MultVarContext *ctx){
     ;
   return std::any();
 }
+
+/**
+ * @brief Visits the finish error context and generates the finish error code.
+ * 
+ * This function generates the code to finish the program with an error.
+ * 
+ * @param ctx The finish error context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitFinError(SceneParser::FinErrorContext *ctx){
   output 
     << "  __envfunc_fin("
@@ -734,16 +940,43 @@ std::any TopLevelVisitor::visitFinError(SceneParser::FinErrorContext *ctx){
   return std::any();
 
 }
+
+/**
+ * @brief Visits the finish OK context and generates the finish OK code.
+ * 
+ * This function generates the code to finish the program successfully.
+ * 
+ * @param ctx The finish OK context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitFinOK(SceneParser::FinOKContext *ctx){
   output 
     << "  __envfunc_fin(0);\n";
   return std::any();
 }
+
+/**
+ * @brief Visits the stop OK context and generates the stop OK code.
+ * 
+ * This function generates the code to stop the program successfully.
+ * 
+ * @param ctx The stop OK context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitStopOK(SceneParser::StopOKContext *ctx){
   output 
     << "  __envfunc_stop(0);\n";
   return std::any();
 }
+
+/**
+ * @brief Visits the stop error context and generates the stop error code.
+ * 
+ * This function generates the code to stop the program with an error.
+ * 
+ * @param ctx The stop error context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitStopError(SceneParser::StopErrorContext *ctx){
   output 
     << "  __envfunc_stop("
@@ -751,6 +984,15 @@ std::any TopLevelVisitor::visitStopError(SceneParser::StopErrorContext *ctx){
     << ");\n";
   return std::any();
 }
+
+/**
+ * @brief Visits the clear context and generates the clear screen code.
+ * 
+ * This function generates the code to clear the screen.
+ * 
+ * @param ctx The clear context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitClear(SceneParser::ClearContext *ctx){
   output  << "  SDL_RenderClear("
           << envVar.at(RND_NAME).getName()
@@ -758,6 +1000,15 @@ std::any TopLevelVisitor::visitClear(SceneParser::ClearContext *ctx){
           ;
   return std::any();
 }
+
+/**
+ * @brief Visits the direction context and generates the direction code.
+ * 
+ * This function generates the code to set the direction.
+ * 
+ * @param ctx The direction context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitDirection(SceneParser::DirectionContext *ctx){
   output  << "  " 
           << envVar.at(ROTATION).getName() 
@@ -767,6 +1018,15 @@ std::any TopLevelVisitor::visitDirection(SceneParser::DirectionContext *ctx){
           ;
   return std::any();
 }
+
+/**
+ * @brief Visits the turn right context and generates the turn right code.
+ * 
+ * This function generates the code to turn right.
+ * 
+ * @param ctx The turn right context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitTurnRight(SceneParser::TurnRightContext *ctx){
   output  << "  " 
           << envVar.at(ROTATION).getName() 
@@ -776,6 +1036,15 @@ std::any TopLevelVisitor::visitTurnRight(SceneParser::TurnRightContext *ctx){
           ;
   return std::any();
 }
+
+/**
+ * @brief Visits the turn left context and generates the turn left code.
+ * 
+ * This function generates the code to turn left.
+ * 
+ * @param ctx The turn left context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitTurnLeft(SceneParser::TurnLeftContext *ctx){
   output  << "  " 
           << envVar.at(ROTATION).getName() 
@@ -785,7 +1054,15 @@ std::any TopLevelVisitor::visitTurnLeft(SceneParser::TurnLeftContext *ctx){
           ;
   return std::any();
 }
-///go back to WINDOW_X/2 and WINDOW_Y which should be the middle of the bottom of the screen
+
+/**
+ * @brief Visits the walk home context and generates the walk home code.
+ * 
+ * This function generates the code to walk home.
+ * 
+ * @param ctx The walk home context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitWalkHome(SceneParser::WalkHomeContext *ctx){
   output  << "  SDL_RenderDrawLine("
           << envVar.at(RND_NAME).getName() 
@@ -811,7 +1088,15 @@ std::any TopLevelVisitor::visitWalkHome(SceneParser::WalkHomeContext *ctx){
 
   return std::any();
 }
-///go back to WINDOW_X/2 and WINDOW_Y which should be the middle of the bottom of the screen
+
+/**
+ * @brief Visits the jump home context and generates the jump home code.
+ * 
+ * This function generates the code to jump home.
+ * 
+ * @param ctx The jump home context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
   output  << envVar.at(POS_X).getName() 
           << " = " 
@@ -826,7 +1111,7 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
 
   return std::any();
 }
-///File local funtion to move POS_X and POS_Y
+
 #define CalcPosX(len) \
   envVar.at(POS_X).getName() << " + " << (len) << " * cos(" << envVar.at(ROTATION).getName() << ')'
 #define CalcPosY(len) \
@@ -838,10 +1123,20 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
   << "  " << envVar.at(POS_Y).getName() << " = "\
   << CalcPosY((len))\
   << ";\n"
+
 /**
  *Expected output:
  *SDL_RenderDrawLine(@renderVar, @x, @y, @x + divx, @y + divy
  * */
+
+/**
+ * @brief Visits the walk front context and generates the walk front code.
+ * 
+ * This function generates the code to walk forward.
+ * 
+ * @param ctx The walk front context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
   output  
     << "  SDL_RenderDrawLine("
@@ -861,6 +1156,15 @@ std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
     ;
   return std::any();
 }
+
+/**
+ * @brief Visits the walk back context and generates the walk back code.
+ * 
+ * This function generates the code to walk backward.
+ * 
+ * @param ctx The walk back context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitWalkBack(SceneParser::WalkBackContext *ctx){
   output  
     << "  SDL_RenderDrawLine("
@@ -880,14 +1184,41 @@ std::any TopLevelVisitor::visitWalkBack(SceneParser::WalkBackContext *ctx){
     ;
   return std::any();
 }
+
+/**
+ * @brief Visits the jump front context and generates the jump front code.
+ * 
+ * This function generates the code to jump forward.
+ * 
+ * @param ctx The jump front context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitJumpFront(SceneParser::JumpFrontContext *ctx){
   output << MovePositions(UnwrapExpre(ctx->expr()));
   return std::any();
 }
+
+/**
+ * @brief Visits the jump back context and generates the jump back code.
+ * 
+ * This function generates the code to jump backward.
+ * 
+ * @param ctx The jump back context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitJumpBack(SceneParser::JumpBackContext *ctx){
   output << MovePositions("-(" + UnwrapExpre(ctx->expr()) + ')');
   return std::any();
 }
+
+/**
+ * @brief Visits the save context and generates the save code.
+ * 
+ * This function generates the code to save the current state.
+ * 
+ * @param ctx The save context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitSave(SceneParser::SaveContext *ctx){
   output
     << "  save_texture(\"" 
@@ -898,6 +1229,15 @@ std::any TopLevelVisitor::visitSave(SceneParser::SaveContext *ctx){
     ;
   return  std::any();
 }
+
+/**
+ * @brief Visits the mark context and generates the mark code.
+ * 
+ * This function generates the code to mark the current position.
+ * 
+ * @param ctx The mark context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitMark(SceneParser::MarkContext *ctx) {
   output << "  pushMarker((Marker){ "
          << envVar.at(POS_X).getName() << ", "
@@ -906,6 +1246,15 @@ std::any TopLevelVisitor::visitMark(SceneParser::MarkContext *ctx) {
          << " });\n";
   return std::any();
 }
+
+/**
+ * @brief Visits the walk mark context and generates the walk mark code.
+ * 
+ * This function generates the code to walk to the marked position.
+ * 
+ * @param ctx The walk mark context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitWalkMark(SceneParser::WalkMarkContext *ctx) {
   output << "  if (markerStackTop >= 0) {\n"
   	     << "      Marker m = popMarker();\n"
@@ -923,6 +1272,15 @@ std::any TopLevelVisitor::visitWalkMark(SceneParser::WalkMarkContext *ctx) {
   	     << "  }\n";
   return std::any();
 }
+
+/**
+ * @brief Visits the jump mark context and generates the jump mark code.
+ * 
+ * This function generates the code to jump to the marked position.
+ * 
+ * @param ctx The jump mark context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitJumpMark(SceneParser::JumpMarkContext *ctx) {
   output << "  if (markerStackTop >= 0) {\n"
          << "      Marker m = popMarker();\n"
@@ -935,6 +1293,15 @@ std::any TopLevelVisitor::visitJumpMark(SceneParser::JumpMarkContext *ctx) {
          << "  }\n";
   return std::any();
 }
+
+/**
+ * @brief Visits the color command context and generates the color command code.
+ * 
+ * This function generates the code to set the drawing color.
+ * 
+ * @param ctx The color command context to visit.
+ * @return An empty std::any object.
+ */
 std::any TopLevelVisitor::visitColorCmd(SceneParser::ColorCmdContext *ctx) {
 
   std::string rValue = UnwrapExpre(ctx->expr(0));
@@ -953,12 +1320,30 @@ std::any TopLevelVisitor::visitColorCmd(SceneParser::ColorCmdContext *ctx) {
 
   return std::any();
 }
+
+/**
+ * @brief Visits the integer context and returns its value.
+ * 
+ * This function visits an integer context and returns its value.
+ * 
+ * @param ctx The integer context to visit.
+ * @return The integer value.
+ */
 std::any TopLevelVisitor::visitInt(SceneParser::IntContext *ctx){
   std::cerr << __func__ << std::endl;
   int64_t ret = std::stol(ctx->Num()->getSymbol()->getText());
   std::cerr << ret << std::endl;
   return ret;
 }
+
+/**
+ * @brief Visits the float context and returns its value.
+ * 
+ * This function visits a float context and returns its value.
+ * 
+ * @param ctx The float context to visit.
+ * @return The float value.
+ */
 std::any TopLevelVisitor::visitFloat(SceneParser::FloatContext *ctx){
   std::cerr << __func__ << std::endl;
   return std::stod(ctx->Float()->getSymbol()->getText());
@@ -990,30 +1375,86 @@ std::any TopLevelVisitor::visitFloat(SceneParser::FloatContext *ctx){
     throw std::runtime_error("todo:"); /*TODO:*/\
   }
 
-///returns a string or bool
+/**
+ * @brief Visits the unequal context and generates the unequal comparison code.
+ * 
+ * This function generates the code for an unequal comparison.
+ * 
+ * @param ctx The unequal context to visit.
+ * @return The result of the comparison.
+ */
 std::any TopLevelVisitor::visitUnequal(SceneParser::UnequalContext *ctx){
   OperationMacro(!=);  
 }
-///returns a string or bool
+
+/**
+ * @brief Visits the equal context and generates the equal comparison code.
+ * 
+ * This function generates the code for an equal comparison.
+ * 
+ * @param ctx The equal context to visit.
+ * @return The result of the comparison.
+ */
 std::any TopLevelVisitor::visitEqual(SceneParser::EqualContext *ctx){
   OperationMacro(==);  
 }
-///\return a string or bool
+
+/**
+ * @brief Visits the less than or equal context and generates the comparison code.
+ * 
+ * This function generates the code for a less than or equal comparison.
+ * 
+ * @param ctx The less than or equal context to visit.
+ * @return The result of the comparison.
+ */
 std::any TopLevelVisitor::visitLesEqThan(SceneParser::LesEqThanContext *ctx){
   OperationMacro(<=);  
 }
-///\return a string or bool
+
+/**
+ * @brief Visits the greater than context and generates the comparison code.
+ * 
+ * This function generates the code for a greater than comparison.
+ * 
+ * @param ctx The greater than context to visit.
+ * @return The result of the comparison.
+ */
 std::any TopLevelVisitor::visitGreaterThan(SceneParser::GreaterThanContext *ctx){
   OperationMacro(>);  
 }
-///\return a string or bool
+
+/**
+ * @brief Visits the less than context and generates the comparison code.
+ * 
+ * This function generates the code for a less than comparison.
+ * 
+ * @param ctx The less than context to visit.
+ * @return The result of the comparison.
+ */
 std::any TopLevelVisitor::visitLesThan(SceneParser::LesThanContext *ctx){
   OperationMacro(<);  
 }
-///\return a string or bool
+
+/**
+ * @brief Visits the greater than or equal context and generates the comparison code.
+ * 
+ * This function generates the code for a greater than or equal comparison.
+ * 
+ * @param ctx The greater than or equal context to visit.
+ * @return The result of the comparison.
+ */
 std::any TopLevelVisitor::visitGreaterEqThan(SceneParser::GreaterEqThanContext *ctx){
   OperationMacro(>=);  
 }
+
+/**
+ * @brief Visits the clam condition context and generates the clam condition code.
+ * 
+ * This function generates the code for a clam condition.
+ * 
+ * @param ctx The clam condition context to visit.
+ * @return The result of the condition.
+ */
 std::any TopLevelVisitor::visitClamCond(SceneParser::ClamCondContext *ctx){
   std::cerr << __func__ << std::endl;
   std::any ret = ctx->cond()->accept(this);
@@ -1024,6 +1465,15 @@ std::any TopLevelVisitor::visitClamCond(SceneParser::ClamCondContext *ctx){
   else
    throw "TODO"; //TODO:
 }
+
+/**
+ * @brief Visits the not condition context and generates the not condition code.
+ * 
+ * This function generates the code for a not condition.
+ * 
+ * @param ctx The not condition context to visit.
+ * @return The result of the condition.
+ */
 std::any TopLevelVisitor::visitNotCond(SceneParser::NotCondContext *ctx){
   std::any ret = ctx->cond()->accept(this);
   if (ret.type() == typeid(bool))
@@ -1033,6 +1483,15 @@ std::any TopLevelVisitor::visitNotCond(SceneParser::NotCondContext *ctx){
   else
    throw "TODO"; //TODO:
 }
+
+/**
+ * @brief Visits the and condition context and generates the and condition code.
+ * 
+ * This function generates the code for an and condition.
+ * 
+ * @param ctx The and condition context to visit.
+ * @return The result of the condition.
+ */
 std::any TopLevelVisitor::visitAndCond(SceneParser::AndCondContext *ctx){
   std::cerr << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -1058,6 +1517,15 @@ std::any TopLevelVisitor::visitAndCond(SceneParser::AndCondContext *ctx){
   else
    throw "todo"; //TODO
 }
+
+/**
+ * @brief Visits the or condition context and generates the or condition code.
+ * 
+ * This function generates the code for an or condition.
+ * 
+ * @param ctx The or condition context to visit.
+ * @return The result of the condition.
+ */
 std::any TopLevelVisitor::visitOrCond(SceneParser::OrCondContext *ctx){
   std::cerr << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -1083,6 +1551,15 @@ std::any TopLevelVisitor::visitOrCond(SceneParser::OrCondContext *ctx){
   else
    throw "todo"; //TODO
 }
+
+/**
+ * @brief Visits the absolute value context and returns the absolute value.
+ * 
+ * This function visits an absolute value context and returns the absolute value.
+ * 
+ * @param ctx The absolute value context to visit.
+ * @return The absolute value.
+ */
 std::any TopLevelVisitor::visitABS(SceneParser::ABSContext *ctx){
   std::any ret = ctx->expr()->accept(this);
   if (ret.type() == typeid(int64_t))
@@ -1094,6 +1571,15 @@ std::any TopLevelVisitor::visitABS(SceneParser::ABSContext *ctx){
   else
     throw std::runtime_error("todo:"); //TODO:
 }
+
+/**
+ * Negates a given value.
+ * Supports int64_t, double, and std::string.
+ * 
+ * @param ctx Context for the negate expression.
+ * @return Negated value as std::any.
+ * @throws std::runtime_error if the type is not supported.
+ */
 std::any TopLevelVisitor::visitNegate(SceneParser::NegateContext *ctx){
   assert(ctx->children.size() == 2);
   std::any number = ctx->children[1]->accept(this);
@@ -1110,10 +1596,26 @@ std::any TopLevelVisitor::visitNegate(SceneParser::NegateContext *ctx){
     throw std::runtime_error("coudn't cast number context to number");
   }
 }
+
+/**
+ * Visits a numeric expression and returns its value.
+ * 
+ * @param ctx Context for the numeric expression.
+ * @return Evaluated number as std::any.
+ */
 std::any TopLevelVisitor::visitNumExpr(SceneParser::NumExprContext *ctx){
   std::cout << __func__ << std::endl;
   return ctx->number()->accept(this);
 }
+
+/**
+ * Adds two values together.
+ * Handles numbers and strings with various combinations.
+ * 
+ * @param ctx Context for the addition expression.
+ * @return Result of the addition as std::any.
+ * @throws std::runtime_error if the type combination is not supported.
+ */
 std::any TopLevelVisitor::visitAdd(SceneParser::AddContext *ctx){
   std::cout << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -1141,6 +1643,15 @@ std::any TopLevelVisitor::visitAdd(SceneParser::AddContext *ctx){
     throw std::runtime_error("todo:"); //TODO:
   }
 }
+
+/**
+ * Performs exponentiation (power) on two values.
+ * Supports numeric and string representations.
+ * 
+ * @param ctx Context for the exponentiation expression.
+ * @return Result of the power operation as std::any.
+ * @throws std::runtime_error if the type combination is not supported.
+ */
 std::any TopLevelVisitor::visitExp(SceneParser::ExpContext *ctx){
   std::cout << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -1168,6 +1679,15 @@ std::any TopLevelVisitor::visitExp(SceneParser::ExpContext *ctx){
     throw std::runtime_error("todo:"); //TODO:
   }
 }
+
+/**
+ * Subtracts the second value from the first.
+ * Supports various type combinations (int, double, string).
+ * 
+ * @param ctx Context for the subtraction expression.
+ * @return Result of the subtraction as std::any.
+ * @throws std::runtime_error if the type combination is not supported.
+ */
 std::any TopLevelVisitor::visitDim(SceneParser::DimContext *ctx){
   std::cout << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -1195,6 +1715,15 @@ std::any TopLevelVisitor::visitDim(SceneParser::DimContext *ctx){
     throw std::runtime_error("todo:"); //TODO:
   }
 }
+
+/**
+ * Divides the first value by the second.
+ * Supports numeric and string representations.
+ * 
+ * @param ctx Context for the division expression.
+ * @return Result of the division as std::any.
+ * @throws std::runtime_error if the type combination is not supported.
+ */
 std::any TopLevelVisitor::visitDife(SceneParser::DifeContext *ctx){
   std::cout << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -1222,6 +1751,15 @@ std::any TopLevelVisitor::visitDife(SceneParser::DifeContext *ctx){
     throw std::runtime_error("todo:"); //TODO:
   }
 }
+
+/**
+ * Multiplies two values.
+ * Supports different combinations of int, double, and string.
+ * 
+ * @param ctx Context for the multiplication expression.
+ * @return Result of the multiplication as std::any.
+ * @throws std::runtime_error if the type combination is not supported.
+ */
 std::any TopLevelVisitor::visitMult(SceneParser::MultContext *ctx){
   std::cout << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
@@ -1249,7 +1787,13 @@ std::any TopLevelVisitor::visitMult(SceneParser::MultContext *ctx){
     throw std::runtime_error("todo:"); //TODO:
   }
 }
-///\return returns the string to acces the variable
+
+/**
+ * Returns the name of a variable.
+ * 
+ * @param ctx Context for the variable expression.
+ * @return Variable name as std::any.
+ */
 std::any TopLevelVisitor::visitVarExpr(SceneParser::VarExprContext *ctx){
   return std::any_cast<Variable>(ctx->var()->accept(this)).getName();
 }

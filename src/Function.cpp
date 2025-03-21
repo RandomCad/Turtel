@@ -8,6 +8,13 @@
 #include <unordered_map>
 #include <vector>
 
+/**
+ * @brief Constructs a Function object for a PathdefContext.
+ * 
+ * @param nm The name of the function.
+ * @param retT The return type of the function.
+ * @param CTX The PathdefContext of the function.
+ */
 Function::Function(const std::string nm, VarType retT, SceneParser::PathdefContext *CTX) 
       : retType(retT), name(nm), ctx(CTX) {
   if(!CTX->paramlist()){
@@ -23,6 +30,14 @@ Function::Function(const std::string nm, VarType retT, SceneParser::PathdefConte
   }
   varCtx.merge(VarVisitor().getVariableContext(CTX->statList()));
 }
+
+/**
+ * @brief Constructs a Function object for a CalcdefContext.
+ * 
+ * @param nm The name of the function.
+ * @param retT The return type of the function.
+ * @param CTX The CalcdefContext of the function.
+ */
 Function::Function(const std::string nm, VarType retT, SceneParser::CalcdefContext *CTX) 
       : retType(retT), name(nm), ctx(CTX) {
   if(!CTX->paramlist()){
@@ -38,10 +53,25 @@ Function::Function(const std::string nm, VarType retT, SceneParser::CalcdefConte
   }
   varCtx.merge(VarVisitor().getVariableContext(CTX->statList()));
 }
+
+/**
+ * @brief Constructs a Function object for a MainContext.
+ * 
+ * @param nm The name of the function.
+ * @param retT The return type of the function.
+ * @param CTX The MainContext of the function.
+ */
 Function::Function(const std::string nm, VarType retT, SceneParser::MainContext *CTX) 
       : retType(retT), name(nm), ctx(CTX) {
 }
-///returns the function declaration for this function
+
+/**
+ * @brief Returns the function declaration for this function.
+ * 
+ * This function generates and returns the function declaration as a string.
+ * 
+ * @return The function declaration as a string.
+ */
 std::string Function::getFunctionDeclaration(){
   //first add the returntype
   std::string ret = VarTypeNS::getTypeName(this->retType);
@@ -63,6 +93,14 @@ std::string Function::getFunctionDeclaration(){
   return ret + '\n';
 }
 
+/**
+ * @brief Returns the function call for this function.
+ * 
+ * This function generates and returns the function call as a string, given a vector of variables.
+ * 
+ * @param var The vector of variables to use in the function call.
+ * @return The function call as a string.
+ */
 std::string Function::getFunctionCall(const std::vector<Variable> var){
 #ifndef NDEBUG
 std::cerr << __func__ << std::endl;
@@ -88,6 +126,13 @@ std::cerr << __func__ << std::endl;
   return ret;
 }
 
+/**
+ * @brief Implements the function.
+ * 
+ * This function generates and returns the implementation of the function as a string.
+ * 
+ * @return The implementation of the function as a string.
+ */
 std::string Function::Implement(){
   //prepere the variable part of the string
   std::string ret = VarTypeNS::getTypeName(retType);
