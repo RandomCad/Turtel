@@ -47,7 +47,7 @@ stat    : walk        | save        | jump
         | addVar      | subVar      | divVar
         | multVar     | walkMark    | jumpMark
         | mark        | colorCmd    | if
-        | toFor
+        | toFor       | pathCall
         | for         | while       | doUntil
         ;
 
@@ -110,13 +110,13 @@ cond  : expr '<' expr #lesThan
       ;
 
 ///Math expressions
-expr  : ( klamKon | number) '^' (klamKon | number) #Exp
-      | ( klamKon | number) '*' (klamKon | number) #Mult
-      | ( klamKon | number) '/' (klamKon | number) #Dife
+expr  : ( klamKon | number | var) '^' (klamKon | number | var) #Exp
+      | expr '*' expr #Mult
+      | ( klamKon | number | var) '/' (klamKon | number | var) #Dife
       | expr '+' expr #Add
       | expr '-' expr #Dim
       | '|' expr '|'  #ABS
-      | '-' ( number | klamKon )   #Negate
+      | '-' ( number | klamKon | var)   #Negate
       | number	      #NumExpr	
       | var	      #VarExpr
       | ID paramlist  #funcCall
@@ -130,3 +130,4 @@ var   : ID      #Variable
       ;
 
 WS : [ \t\r\n]+ -> skip ;
+COMMENT : '"' ~[\r\n]* -> skip ;
