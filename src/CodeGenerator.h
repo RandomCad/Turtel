@@ -1,6 +1,6 @@
-#ifndef MY_VISITOR_FILE
-#define MY_VISITOR_FILE
+#pragma once
 
+#include <ParserRuleContext.h>
 #include <iostream>
 #include <ostream>
 #include <stdlib.h>
@@ -9,14 +9,14 @@
 #include "../libs/SceneParser.h"
 #include "../libs/SceneBaseVisitor.h"
 #include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
-#include "src/MathVisitor.h"
-#include "src/TopLevelVisitor.h"
-#include "src/VariableHeandler.h"
-#include "../UnitTest/TestSuits.h"
+#include "TopLevelVisitor.h"
+#include "VariableHeandler.h"
+#include "FunctionHandler.h"
+#include "Function.h"
+#include "UnitTest/TestSuits.h"
 
 #define CALC_POS_X(len) POSITION_X_NAME + len * cos(ROTATION_NAME)
 #define CALC_POS_Y(len) POSITION_Y_NAME + len * sin(ROTATION_NAME)
-
 
 size_t GetUniquNumber();
 
@@ -29,10 +29,8 @@ class CodeGenerator : public SceneBaseVisitor{
     std::vector<SceneParser::PathdefContext *> astPathdef;
 
     VariableHeandler _variables;
+    FunctionHandler _funcs;
     TopLevelVisitor _topVis;
-    MathVisitor _mathVis;
-    //Only used for Unittesting
-    //CodeGenerator(): output(std::cout), _mathVis(_variables) {}
     CodeGenerator(std::ostream &outStream);
   public:
     CodeGenerator(std::ostream &outStream, SceneParser::FileContext *AstBase);
@@ -50,12 +48,12 @@ class CodeGenerator : public SceneBaseVisitor{
 
     void ProgrammBase();
     void EndeMain();
+    void ImplementFunction(std::unordered_map<std::string,Variable>&, antlr4::ParserRuleContext *);
 
     FRIEND_TEST(CodeGenerator, AddMain);
     FRIEND_TEST(CodeGenerator, BasicEmptyMain);
     FRIEND_TEST(CodeGenerator, BasicWalk);
     FRIEND_TEST(CodeGenerator, AddFunctionDeclaration);
 
+    friend class Function;
 };
-
-#endif

@@ -3,13 +3,13 @@
 #include "InternalVarNames.h"
 #include "CodeGenerator.h"
 #include "CodeGenerator.Helper.h"
-#include "AstRewriteVisitor.h"
+#include "VariableVisitor.h"
+#include "src/Function.h"
 
 #include <any>
 #include <cmath>
 #include <iostream>
 #include <cstring>
-#include <string>
 #include <tree/ParseTreeType.h>
 
 /**
@@ -18,14 +18,10 @@
  * @param ctx The main context to visit.
  * @return The result of visiting the main context.
  */
-std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
+ std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
   std::cerr << "generating main body" << std::endl;
+
   output
-
-    << "void TurtelMain(SDL_Renderer * " 
-    << _variables.getVariableNameString(RND_NAME) 
-    << "){\n"
-
     ///define and set the x Position to half the window size
     << "  " << _variables.getVariableDefinition(POS_X) 
     << '=' 
@@ -60,14 +56,15 @@ std::any CodeGenerator::visitMain(SceneParser::MainContext *ctx){
     << _variables.getVariableNameString(WINDOW_Y) << "/2;\n"
     ;
 
-  //visit all the contained statments(stat)
-  for(auto i : ctx->stat()) i->accept(&_topVis);
+  /*for (auto i : varContext) {
+    output << " " << std::get<Variable>(i).getTypeAndName() << " = 0;\n";
+  }*/
 
-  output
-    << "}\n" 
-    <<std::endl;
+  //visit all the contained statments(stat)
+  for(auto i : ctx->statList()->stat()) i->accept(&_topVis);
   return nullptr;
 }
+
 //formate of the C-File:
 //1. includes
 //2. functiondeclaration
@@ -79,15 +76,13 @@ void CodeGenerator::GenerateCode(){
   AddGlobalVars();
   AddFunctionDeclaration();
   AddMain();
-  astMain->accept(new AstRewriteVisitor());
-  astMain->accept(this);
   AddTurtelFunctions();
 }
 
 /**
  * @brief Adds the necessary includes to the output stream.
  */
-void CodeGenerator::AddIncludes(){
+ void CodeGenerator::AddIncludes(){
   output 
     << "//standart includes\n"
     << "#include <SDL2/SDL.h>\n"
@@ -102,10 +97,9 @@ void CodeGenerator::AddIncludes(){
 /**
  * @brief Adds the function declarations to the output stream.
  */
-void CodeGenerator::AddFunctionDeclaration(){
+ void CodeGenerator::AddFunctionDeclaration(){
   output
-    << "//declaration of the Turtel Main:\n"
-    << "void TurtelMain(" << _variables.getVariableDefinition(RND_NAME) << ");\n" //TODO add needed parameters
+    << "//declaration of Turtel HelperFuncs:\n"
     << "void save_texture(const char* file_name, SDL_Renderer* renderer, SDL_Texture* texture) {\n"
     << "  SDL_Texture* target = SDL_GetRenderTarget(renderer);\n"
     << "  SDL_SetRenderTarget(renderer, texture);\n"
@@ -118,14 +112,14 @@ void CodeGenerator::AddFunctionDeclaration(){
     << "  SDL_SetRenderTarget(renderer, target);\n"
     << "}\n"
   ///define the finsih function
-    << "void __envfunc_stop(const double ret, SDL_Renderer * rnd){\n" 
+    << "void __envfunc_fin(const double ret, SDL_Renderer * rnd){\n" 
     << "  SDL_DestroyRenderer(rnd);\n"
     << "  SDL_DestroyWindow( " << _variables.getVariableNameString(WINDOW_NAME) << ");\n"
     << "  SDL_Quit();\n"
     << "  exit((int) ret);\n"
-    << "}"
+    << "}\n"
   ///define the stop function
-    << "void __envfunc_fin(const double ret, SDL_Renderer * rnd){\n"
+    << "void __envfunc_stop(const double ret, SDL_Renderer * rnd){\n"
 #ifndef UNIT_TEST
     << "  do{\n"
 #ifndef NDEBUG
@@ -140,24 +134,22 @@ void CodeGenerator::AddFunctionDeclaration(){
     << "  }while(1);\n"
 #endif
     << "SDL_DEINIT_LABLE:\n"
-    << "  __envfunc_stop(0, rnd);\n"
+    << "  __envfunc_stop(ret, rnd);\n"
     << "}\n"
     << std::endl
-  //add pathdef Functions:
-    << "//declaration of the pathdefs\n"
-    << std::endl
-  //TODO do
-  //add calcdef Functions:
-    << "//declaration of the calcdefs\n"
-    << std::endl
-  //TODO do
     ;
+
+  ///get all the function definitions
+  _funcs.getFunctionDeclarations(output);
+
+  output << std::endl;
+
 }
 
 /**
  * @brief Adds the global variables to the output stream.
  */
-void CodeGenerator::AddGlobalVars(){
+ void CodeGenerator::AddGlobalVars(){
   output 
     // Marker-Struct
     << "typedef struct {\n"
@@ -181,11 +173,12 @@ void CodeGenerator::AddGlobalVars(){
     << "Marker popMarker(void) {\n"
     << "  if (markerStackTop >= 0) {\n"
     << "    return markerStack[markerStackTop--];\n"
-    << "  } else {\n"
+    << "  }\n"
+    << "  else {\n"
     << "    fprintf(stderr, \"Fehler: Marker-Stack leer!\\n\");\n"
     << "    exit(EXIT_FAILURE);\n"
     << "  }\n"
-    << "}\n";
+    << "}\n"; //TODO move to a different position
   output 
     << _variables.getVariableDefinition(WINDOW_X) << "=800;\n"
     << _variables.getVariableDefinition(WINDOW_Y) << "=600;\n"
@@ -199,7 +192,8 @@ void CodeGenerator::AddGlobalVars(){
 /**
  * @brief Adds the main function to the output stream.
  */
-void CodeGenerator::AddMain(){
+ void CodeGenerator::AddMain(){
+  
   //main head
   output
     << "int main(int argc, const char *argv[]){\n"
@@ -238,9 +232,10 @@ void CodeGenerator::AddMain(){
   //switch to correct backbuffer (internal textur)
   GenPresent(_variables, output);
   
+  ///call turtel main
+  output << _funcs.getFunctionCall(MAIN_FUNC, {_variables.getVariable(RND_NAME)}) << ';';
+
   output
-  //call TurtelMain
-    << "  TurtelMain(" << _variables.getVariableNameString(RND_NAME) << ");\n" //TODO add the parameters
   //Implicit wait
     << "  __envfunc_fin(0, " << _variables.getVariableNameString(RND_NAME) << ");\n"
   //main end
@@ -249,7 +244,7 @@ void CodeGenerator::AddMain(){
 }
 
 void CodeGenerator::AddTurtelFunctions(){
-  //TODO:
+  _funcs.ImplementFunctions(output, this); 
 }
 
 /**
@@ -257,8 +252,8 @@ void CodeGenerator::AddTurtelFunctions(){
  * 
  * @param outStream The output stream to write the generated code to.
  */
-CodeGenerator::CodeGenerator(std::ostream &outStream)
-  : output(outStream), astBase(nullptr), _topVis(output, _variables), _mathVis(_variables) {}
+ CodeGenerator::CodeGenerator(std::ostream &outStream)
+ : output(outStream), astBase(nullptr), _funcs(astMain, astPathdef, astCalcdef), _topVis(output, _variables) {}
 
 /**
  * @brief Constructs a CodeGenerator object with an AST base.
@@ -266,16 +261,16 @@ CodeGenerator::CodeGenerator(std::ostream &outStream)
  * @param outStream The output stream to write the generated code to.
  * @param AstBase The AST base to use for code generation.
  */
-CodeGenerator::CodeGenerator(std::ostream &outStream, SceneParser::FileContext* AstBase)
-  : output(outStream), astBase(AstBase), astMain(astBase->main()), 
-    astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()),
-    _topVis(output, _variables), _mathVis(_variables){
+ CodeGenerator::CodeGenerator(std::ostream &outStream, SceneParser::FileContext* AstBase)
+ : output(outStream), astBase(AstBase), astMain(astBase->main()), 
+   astCalcdef(astBase->calcdef()), astPathdef(astBase->pathdef()),
+   _funcs(astMain, astPathdef, astCalcdef), _topVis(output, _variables, _funcs){
 }
 
 /**
  * @brief Generates the base of the program.
  */
-void CodeGenerator::ProgrammBase(){
+ void CodeGenerator::ProgrammBase(){
   //Headers
   output 
     << "//Standart includes\n"
@@ -293,6 +288,11 @@ void CodeGenerator::EndeMain(){
   output 
     << "//End of Main\n"
     << "}\n//Implimentation start for funktions";
+}
+
+void CodeGenerator::ImplementFunction(std::unordered_map<std::string, Variable> &vars, antlr4::ParserRuleContext *ctx){
+  _variables.setContext(vars);
+  ctx->accept(this);
 }
 ///file lokal
 size_t GetUniquNumber(){

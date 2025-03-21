@@ -13,7 +13,7 @@
 
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/Support/VirtualFileSystem.h>
-#include <llvm/Support/Host.h>
+#include <llvm/TargetParser/Host.h>
 #include <llvm/Support/Program.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
 #include <clang/Driver/Job.h>
@@ -93,13 +93,15 @@ void LLVMInterface::CallLLVM(){
   for(int i = 0; i < sdlArgs.size(); ++i){
     std::cerr << sdlArgs[i] << std::endl;
     args.push_back(sdlArgs[i].c_str());
-  }//*/
-  //args.push_back("-l");
-	//args.push_back("curl");
+  }
 	args.push_back("-v");		// verbose
 	args.push_back("-Werror");		// warnings as errors
   args.push_back("-lm"); ///< add the math lib to the linking stage
   args.push_back("-lSDL2_image"); ///< add link to sdl_immage
+  args.push_back("-O3");
+#ifndef NDEBUG
+  args.push_back("-ggdb");
+#endif
 
   for(auto i: args){
     std::cout << i << std::endl;

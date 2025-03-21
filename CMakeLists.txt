@@ -5,7 +5,7 @@ project("Turtel")
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # compiler must be at least 17
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 #emit clangd data
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -59,6 +59,7 @@ find_package(Clang REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+message(STATUS "Using CLANG dir in: ${CLANG_INCLUDE_DIRS}")
 
 # Add the include directories
 include_directories(${LLVM_INCLUDE_DIRS})
@@ -75,14 +76,8 @@ llvm_map_components_to_libnames(llvm_libs support core irreader)
 
 # Creat llvm-libs
 SET(LLVM_LIBS 
-  ${llvm_libs} 
-  clangTooling 
-  clangBasic 
-  clangAST 
-  clangDriver 
-  clangFrontend 
-  clangFrontendTool 
-  clangSerialization
+  clang-cpp
+  LLVM
   ) 
 
 #---------------------------------------#
@@ -90,13 +85,11 @@ SET(LLVM_LIBS
 #---------------------------------------#
 # Creat CodeGenerator variable 
 set(CodeGeneration 
-  src/CodeGenerator.cpp 
-  src/CodeGenerator.Helper.cpp 
-  src/Variable.cpp 
-  src/VariableHeandler.cpp
-  src/MathVisitor.cpp
   src/TopLevelVisitor.cpp
-  src/AstRewriteVisitor.cpp
+  src/VariableVisitor.cpp
+  src/Function.cpp
+  src/Variable.cpp
+  src/GlobalVarVisitor.cpp
   )
 # Creat LLVM Interface variable
 set(LLVM_Interface src/LLVMInterface.cpp)
@@ -116,7 +109,6 @@ target_link_libraries(Turtel antlr4_static ${SYSTEM_LIBS})
 #---------------------------------------#
 #           UnitTest Programm           #
 #---------------------------------------#
-set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
@@ -130,14 +122,12 @@ enable_testing()
 
 set(
   UnitTest
-  UnitTest/CodeGenerator.Helper.cpp
   UnitTest/TestLLVMInterface.cpp
-  UnitTest/VariableHeandler.cpp
   UnitTest/Variable.cpp
-  UnitTest/CodeGenerator.cpp
   UnitTest/TopLevelVisitor.cpp
-  UnitTest/MathVisitor.cpp
-  UnitTest/AstRewriteVisitor.cpp
+  UnitTest/VariableVisitor.cpp
+  UnitTest/Function.cpp
+  UnitTest/TestHelper.cpp
   )
 
 add_executable(
@@ -147,6 +137,7 @@ add_executable(
   ${CodeGeneration} 
   ${LLVM_Interface}
 )
+target_compile_definitions(Tests PRIVATE UNIT_TEST=1)
 target_link_libraries(
   Tests
   GTest::gtest_main
