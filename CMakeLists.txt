@@ -129,6 +129,12 @@ set(
   UnitTest/TestLLVMInterface.cpp
   UnitTest/Variable.cpp
   UnitTest/TopLevelVisitor.cpp
+  UnitTest/TopLevelVisitor.Math.cpp
+  UnitTest/TopLevelVisitor.Loop.cpp
+  UnitTest/TopLevelVisitor.Var.cpp
+  UnitTest/TopLevelVisitor.Move.cpp
+  UnitTest/TopLevelVisitor.IfEls.cpp
+  UnitTest/TopLevelVisitor.End.cpp
   UnitTest/VariableVisitor.cpp
   UnitTest/Function.cpp
   UnitTest/TestHelper.cpp
