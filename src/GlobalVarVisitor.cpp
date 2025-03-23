@@ -19,6 +19,7 @@ std::any GlobalVarVisitor::visitGlobalVariable(SceneParser::GlobalVariableContex
  * @brief Retrieves the variable context.
  * 
  * This function clears the current variable context, visits the given parser rule context, and returns the updated variable context.
+ * Is supposed to be used in the form GlobalVarVisitor().getVariableContext(...);
  * 
  * @param ctx The parser rule context to visit.
  * @return An unordered map of variable names to Variable objects.

@@ -12,7 +12,7 @@
  * @brief Constructs a Function object for a PathdefContext.
  * 
  * @param nm The name of the function.
- * @param retT The return type of the function.
+ * @param retT The return type of the function. Should be void
  * @param CTX The PathdefContext of the function.
  */
 Function::Function(const std::string nm, VarType retT, SceneParser::PathdefContext *CTX) 
@@ -35,7 +35,7 @@ Function::Function(const std::string nm, VarType retT, SceneParser::PathdefConte
  * @brief Constructs a Function object for a CalcdefContext.
  * 
  * @param nm The name of the function.
- * @param retT The return type of the function.
+ * @param retT The return type of the function. Should be double
  * @param CTX The CalcdefContext of the function.
  */
 Function::Function(const std::string nm, VarType retT, SceneParser::CalcdefContext *CTX) 
@@ -123,28 +123,5 @@ std::cerr << __func__ << std::endl;
   else {
     ret += ")";
   }
-  return ret;
-}
-
-/**
- * @brief Implements the function.
- * 
- * This function generates and returns the implementation of the function as a string.
- * 
- * @return The implementation of the function as a string.
- */
-std::string Function::Implement(){
-  //prepere the variable part of the string
-  std::string ret = VarTypeNS::getTypeName(retType);
-  ret += name;
-  ret += "(";
-  for (auto i : vars) {
-    ret += i.getTypeAndName() + ", ";
-  }
-  if(vars.size() > 0){
-    ret[ret.size() - 2] = ')';
-    ret[ret.size() - 1] = '{';
-  }
-  else ret += "){";
   return ret;
 }
