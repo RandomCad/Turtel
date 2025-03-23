@@ -4,10 +4,12 @@
 #include "VariableVisitor.h"
 #include "src/InternalVarNames.h"
 #include "src/LLVMInterface.h"
+#include "src/Variable.h"
 
 #include <any>
 #include <cstdint>
 #include <cstdlib>
+#include <iomanip>
 #include <ostream>
 #include <string>
 #include <cmath>
@@ -25,7 +27,9 @@
 int TopLevelVisitor::infinitLoopFlag = 0;
 
 TopLevelVisitor::TopLevelVisitor(const char * const fileName) 
-  : llvm(LLVMInterface(fileName)), output(llvm.llvmFile) {}
+  : llvm(LLVMInterface(fileName)), output(llvm.llvmFile) {
+  output << std::setprecision( std::numeric_limits<int>::max() );
+}
 
 ///define function to unpack expr return
 std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
@@ -33,6 +37,7 @@ std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
   if(ret.type() == typeid(std::string))     return std::any_cast<std::string>(ret);
   else if (ret.type() == typeid(int64_t))   return std::to_string(std::any_cast<int64_t>(ret));
   else if (ret.type() == typeid(double))    return std::to_string(std::any_cast<double>(ret));
+  else if (ret.type() == typeid(Variable))  return std::any_cast<Variable>(ret).getName();
   else{
     std::cerr << "unknowen type: " << ret.type().name() << std::endl;
     throw "Error unknowen type";
@@ -71,22 +76,7 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
   }
 
   ///add the static envirment Variables
-  envVar = std::unordered_map<std::string, Variable>({
-    {std::string(RND_NAME),Variable(VarType::RENDERER,"__env_rnd")},
-    {std::string(WINDOW_X), Variable(VarType::CONST_DOUBLE, "__env_wx")},
-    {std::string(WINDOW_Y), Variable(VarType::CONST_DOUBLE, "__env_wy")},
-    {std::string(POS_X),Variable(VarType::DOUBLE,"__env_posX")},
-    {std::string(POS_Y),Variable(VarType::DOUBLE,"__env_posY")},
-    {std::string(MAX_X),Variable(VarType::CONST_DOUBLE,"__env_maxX")},
-    {std::string(MAX_Y),Variable(VarType::CONST_DOUBLE,"__env_maxY")},
-    {std::string(ROTATION),Variable(VarType::DOUBLE,"__env_rot")},
-    {std::string(COLOR_R),Variable(VarType::DOUBLE,"__env_red")},
-    {std::string(COLOR_G),Variable(VarType::DOUBLE,"__env_green")},
-    {std::string(COLOR_B),Variable(VarType::DOUBLE,"__env_blue")},
-    {std::string(TEXTURE_NAME), Variable(VarType::TESXTUR, "__env_textur")},
-    {std::string(WINDOW_NAME), Variable(VarType::WINDOW, "__env_window")},
-    {std::string(EVENT_NAME), Variable(VarType::EVENT, "__env_event")},
-  });
+  envVar = ENV_VAR;
   ///add the User Global varibales
   {
     auto i = GlobalVarVisitor().getVariableContext(ctx);
@@ -323,15 +313,11 @@ std::any TopLevelVisitor::visitFuncCall(SceneParser::FuncCallContext *ctx){
   return funcs.at(funcName).getFunctionCall(std::any_cast<std::vector<Variable>>(ctx->paramlist()->accept(this)));
 }
 std::any TopLevelVisitor::visitParamlist(SceneParser::ParamlistContext *ctx){
-  return [&]() -> std::vector<Variable> {
-  std::vector<Variable> ret;
-  std::transform(ctx->var().begin(), ctx->var().end(),
-                 std::back_inserter(ret),
-                 [this](auto i) {
-                   return envVar.at(std::any_cast<std::string>(i->accept(this)));
-                 });
+  std::vector<Variable> ret(ctx->var().size());
+  for (auto i : ctx->var()) {
+    ret.push_back(std::any_cast<Variable>(i->accept(this)));
+  }
   return ret;
-}();
 }
 
 std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){
@@ -670,6 +656,9 @@ std::any TopLevelVisitor::visitVariable(SceneParser::VariableContext *ctx){
   std::cerr << "Unknown variable named: " << nm << " found at: " << std::endl;
   throw std::out_of_range("Var dosn't exist");
 }
+std::any TopLevelVisitor::visitPiVar(SceneParser::PiVarContext *ctx){
+  return (double)M_PI;
+}
 ///\return the corresponding Varible object or an error is thrown
 std::any TopLevelVisitor::visitGlobalVariable(SceneParser::GlobalVariableContext *ctx){
   std::cerr << __func__ << std::endl;
@@ -968,26 +957,24 @@ std::any TopLevelVisitor::visitFloat(SceneParser::FloatContext *ctx){
   std::cout << __func__ << std::endl;\
   std::any left = ctx->children[0]->accept(this);\
   std::any reigth = ctx->children[2]->accept(this);\
-  if(left.type() == typeid(std::string) && reigth.type() == typeid(std::string))\
-    return std::any_cast<std::string>(left) + #symbol + std::any_cast<std::string>(reigth);\
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(int64_t))\
-    return std::any_cast<std::string>(left) + #symbol + std::to_string(std::any_cast<int64_t>(reigth));\
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(double))\
-    return std::any_cast<std::string>(left) + #symbol + std::to_string(std::any_cast<double>(reigth));\
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(std::string))\
-    return std::to_string(std::any_cast<int64_t>(left)) + #symbol + std::any_cast<std::string>(reigth);\
-  else if(left.type() == typeid(double) && reigth.type() == typeid(std::string))\
-    return std::to_string(std::any_cast<double>(left)) + #symbol + std::any_cast<std::string>(reigth);\
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(int64_t))\
-    return std::any_cast<int64_t>(left) symbol std::any_cast<int64_t>(reigth);\
-  else if(left.type() == typeid(double) && reigth.type() == typeid(int64_t))\
-    return std::any_cast<double>(left) symbol std::any_cast<int64_t>(reigth);\
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(double))\
-    return std::any_cast<int64_t>(left) symbol std::any_cast<double>(reigth);\
-  else if(left.type() == typeid(double) && reigth.type() == typeid(double))\
-    return std::any_cast<double>(left) symbol std::any_cast<double>(reigth);\
+  if(left.type()      == typeid(std::string)  && reigth.type() == typeid(std::string)) return std::any_cast<std::string>(left) + #symbol + std::any_cast<std::string>(reigth);\
+  else if(left.type() == typeid(std::string)  && reigth.type() == typeid(int64_t)) return std::any_cast<std::string>(left) + #symbol + std::to_string(std::any_cast<int64_t>(reigth));\
+  else if(left.type() == typeid(std::string)  && reigth.type() == typeid(double)) return std::any_cast<std::string>(left) + #symbol + std::to_string(std::any_cast<double>(reigth));\
+  else if(left.type() == typeid(std::string)  && reigth.type() == typeid(Variable)) return std::any_cast<std::string>(left) + #symbol + std::any_cast<Variable>(reigth).getName();\
+  else if(left.type() == typeid(int64_t)      && reigth.type() == typeid(std::string)) return std::to_string(std::any_cast<int64_t>(left)) + #symbol + std::any_cast<std::string>(reigth);\
+  else if(left.type() == typeid(int64_t)      && reigth.type() == typeid(int64_t)) return std::any_cast<int64_t>(left) symbol std::any_cast<int64_t>(reigth);\
+  else if(left.type() == typeid(int64_t)      && reigth.type() == typeid(double)) return std::any_cast<int64_t>(left) symbol std::any_cast<double>(reigth);\
+  else if(left.type() == typeid(int64_t)      && reigth.type() == typeid(Variable)) return std::to_string(std::any_cast<int64_t>(left)) + #symbol + std::any_cast<Variable>(reigth).getName();\
+  else if(left.type() == typeid(double)       && reigth.type() == typeid(std::string)) return std::to_string(std::any_cast<double>(left)) + #symbol + std::any_cast<std::string>(reigth);\
+  else if(left.type() == typeid(double)       && reigth.type() == typeid(int64_t)) return std::any_cast<double>(left) symbol std::any_cast<int64_t>(reigth);\
+  else if(left.type() == typeid(double)       && reigth.type() == typeid(double)) return std::any_cast<double>(left) symbol std::any_cast<double>(reigth);\
+  else if(left.type() == typeid(double)       && reigth.type() == typeid(Variable)) return std::to_string(std::any_cast<double>(left)) + #symbol + std::any_cast<Variable>(reigth).getName();\
+  else if(left.type() == typeid(Variable)     && reigth.type() == typeid(int64_t)) return std::any_cast<Variable>(left).getName() + #symbol + std::to_string(std::any_cast<int64_t>(reigth));\
+  else if(left.type() == typeid(Variable)     && reigth.type() == typeid(double)) return std::any_cast<Variable>(left).getName() + #symbol + std::to_string(std::any_cast<double>(reigth));\
+  else if(left.type() == typeid(Variable)     && reigth.type() == typeid(std::string)) return std::any_cast<Variable>(left).getName() + #symbol + std::any_cast<std::string>(reigth);\
+  else if(left.type() == typeid(Variable)     && reigth.type() == typeid(Variable)) return std::any_cast<Variable>(left).getName() + #symbol + std::any_cast<Variable>(reigth).getName();\
   else{\
-    throw std::runtime_error("todo:"); /*TODO:*/\
+    throw std::runtime_error((std::string("todo:") + __func__ + ' ' + left.type().name() + " " + reigth.type().name()).c_str()); /*TODO:*/\
   }
 
 ///returns a string or bool
@@ -1085,27 +1072,20 @@ std::any TopLevelVisitor::visitOrCond(SceneParser::OrCondContext *ctx){
 }
 std::any TopLevelVisitor::visitABS(SceneParser::ABSContext *ctx){
   std::any ret = ctx->expr()->accept(this);
-  if (ret.type() == typeid(int64_t))
-    return std::abs(std::any_cast<int64_t>(ret));
-  else if (ret.type() == typeid(double))
-    return std::abs(std::any_cast<double>(ret));
-  else if(ret.type() == typeid(std::string))
-    return "fabs(" + std::any_cast<std::string>(ret) + ')';
+  if (ret.type() == typeid(int64_t))          return std::abs(std::any_cast<int64_t>(ret));
+  else if (ret.type() == typeid(double))      return std::abs(std::any_cast<double>(ret));
+  else if(ret.type() == typeid(std::string))  return "fabs(" + std::any_cast<std::string>(ret) + ')';
+  else if(ret.type() == typeid(Variable))     return "fabs(" + std::any_cast<Variable>(ret).getName() + ')';
   else
     throw std::runtime_error("todo:"); //TODO:
 }
 std::any TopLevelVisitor::visitNegate(SceneParser::NegateContext *ctx){
   assert(ctx->children.size() == 2);
   std::any number = ctx->children[1]->accept(this);
-  if (number.type() == typeid(int64_t)){
-    return -std::any_cast<int64_t>(number);
-  }
-  else if (number.type() == typeid(double)){
-    return -std::any_cast<double>(number);
-  }
-  else if (number.type() == typeid(std::string)) {
-    return "-" + std::any_cast<std::string>(number);
-  }
+  if (number.type() == typeid(int64_t))           return -std::any_cast<int64_t>(number);
+  else if (number.type() == typeid(double))       return -std::any_cast<double>(number);
+  else if (number.type() == typeid(std::string))  return "-" + std::any_cast<std::string>(number);
+  else if(number.type() == typeid(Variable))      return "-" + std::any_cast<Variable>(number).getName() ;
   else{
     throw std::runtime_error("coudn't cast number context to number");
   }
@@ -1114,142 +1094,54 @@ std::any TopLevelVisitor::visitNumExpr(SceneParser::NumExprContext *ctx){
   std::cout << __func__ << std::endl;
   return ctx->number()->accept(this);
 }
-std::any TopLevelVisitor::visitAdd(SceneParser::AddContext *ctx){
-  std::cout << __func__ << std::endl;
-  std::any left = ctx->children[0]->accept(this);
-  std::any reigth = ctx->children[2]->accept(this);
-
-  if(left.type() == typeid(std::string) && reigth.type() == typeid(std::string))
-    return std::any_cast<std::string>(left) + '+' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(int64_t))
-    return std::any_cast<std::string>(left) + '+' + std::to_string(std::any_cast<int64_t>(reigth));
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(double))
-    return std::any_cast<std::string>(left) + '+' + std::to_string(std::any_cast<double>(reigth));
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<int64_t>(left)) + '+' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<double>(left)) + '+' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(int64_t))
-    return std::any_cast<int64_t>(left) + std::any_cast<int64_t>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(int64_t))
-    return std::any_cast<double>(left) + std::any_cast<int64_t>(reigth);
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(double))
-    return std::any_cast<int64_t>(left) + std::any_cast<double>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(double))
-    return std::any_cast<double>(left) + std::any_cast<double>(reigth);
-  else{
-    throw std::runtime_error("todo:"); //TODO:
-  }
-}
 std::any TopLevelVisitor::visitExp(SceneParser::ExpContext *ctx){
   std::cout << __func__ << std::endl;
   std::any left = ctx->children[0]->accept(this);
   std::any reigth = ctx->children[2]->accept(this);
 
-  if(left.type() == typeid(std::string) && reigth.type() == typeid(std::string))
-    return "pow(" + std::any_cast<std::string>(left) + ',' + std::any_cast<std::string>(reigth) + ')';
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(int64_t))
-    return std::any_cast<std::string>(left) + '+' + std::to_string(std::any_cast<int64_t>(reigth)) + ')';
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(double))
-    return std::any_cast<std::string>(left) + '+' + std::to_string(std::any_cast<double>(reigth)) + ')';
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<int64_t>(left)) + '+' + std::any_cast<std::string>(reigth) + ')';
-  else if(left.type() == typeid(double) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<double>(left)) + '+' + std::any_cast<std::string>(reigth) + ')';
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(int64_t))
-    return std::pow(std::any_cast<int64_t>(left), std::any_cast<int64_t>(reigth));
-  else if(left.type() == typeid(double) && reigth.type() == typeid(int64_t))
-    return std::pow(std::any_cast<double>(left), std::any_cast<int64_t>(reigth));
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(double))
-    return std::pow(std::any_cast<int64_t>(left), std::any_cast<double>(reigth));
-  else if(left.type() == typeid(double) && reigth.type() == typeid(double))
-    return std::pow(std::any_cast<double>(left), std::any_cast<double>(reigth));
+  if     (left.type() == typeid(std::string)  && reigth.type() == typeid(std::string))  return "pow(" + std::any_cast<std::string>(left) + ',' + std::any_cast<std::string>(reigth) + ')';
+  else if(left.type() == typeid(std::string)  && reigth.type() == typeid(int64_t))      return "pow(" + std::any_cast<std::string>(left) + ',' + std::to_string(std::any_cast<int64_t>(reigth)) + ')';
+  else if(left.type() == typeid(std::string)  && reigth.type() == typeid(double))       return "pow(" + std::any_cast<std::string>(left) + ',' + std::to_string(std::any_cast<double>(reigth)) + ')';
+  else if(left.type() == typeid(std::string)  && reigth.type() == typeid(Variable))     return "pow(" + std::any_cast<std::string>(left) + ',' + std::any_cast<Variable>(reigth).getName() + ')';
+  if     (left.type() == typeid(Variable)  && reigth.type() == typeid(std::string))     return "pow(" + std::any_cast<Variable>(left).getName() + ',' + std::any_cast<std::string>(reigth) + ')';
+  else if(left.type() == typeid(Variable)  && reigth.type() == typeid(int64_t))         return "pow(" + std::any_cast<Variable>(left).getName() + ',' + std::to_string(std::any_cast<int64_t>(reigth)) + ')';
+  else if(left.type() == typeid(Variable)  && reigth.type() == typeid(double))          return "pow(" + std::any_cast<Variable>(left).getName() + ',' + std::to_string(std::any_cast<double>(reigth)) + ')';
+  else if(left.type() == typeid(Variable)  && reigth.type() == typeid(Variable))        return "pow(" + std::any_cast<Variable>(left).getName() + ',' + std::any_cast<Variable>(reigth).getName() + ')';
+  else if(left.type() == typeid(int64_t)      && reigth.type() == typeid(std::string))  return "pow(" + std::to_string(std::any_cast<int64_t>(left)) + ',' + std::any_cast<std::string>(reigth) + ')';
+  else if(left.type() == typeid(int64_t)      && reigth.type() == typeid(Variable))     return "pow(" + std::to_string(std::any_cast<int64_t>(left)) + ',' + std::any_cast<Variable>(reigth).getName() + ')';
+  else if(left.type() == typeid(int64_t)      && reigth.type() == typeid(int64_t))      return std::pow(std::any_cast<int64_t>(left), std::any_cast<int64_t>(reigth));
+  else if(left.type() == typeid(int64_t)      && reigth.type() == typeid(double))       return std::pow(std::any_cast<int64_t>(left), std::any_cast<double>(reigth));
+  else if(left.type() == typeid(double)       && reigth.type() == typeid(std::string))  return "pow(" + std::to_string(std::any_cast<double>(left)) + '+' + std::any_cast<std::string>(reigth) + ')';
+  else if(left.type() == typeid(double)       && reigth.type() == typeid(Variable))     return "pow(" + std::to_string(std::any_cast<double>(left)) + '+' + std::any_cast<Variable>(reigth).getName() + ')';
+  else if(left.type() == typeid(double)       && reigth.type() == typeid(int64_t))      return std::pow(std::any_cast<double>(left), std::any_cast<int64_t>(reigth));
+  else if(left.type() == typeid(double)       && reigth.type() == typeid(double))       return std::pow(std::any_cast<double>(left), std::any_cast<double>(reigth));
   else{
     throw std::runtime_error("todo:"); //TODO:
   }
+}
+std::any TopLevelVisitor::visitAdd(SceneParser::AddContext *ctx){
+  OperationMacro(+);
 }
 std::any TopLevelVisitor::visitDim(SceneParser::DimContext *ctx){
-  std::cout << __func__ << std::endl;
-  std::any left = ctx->children[0]->accept(this);
-  std::any reigth = ctx->children[2]->accept(this);
-
-  if(left.type() == typeid(std::string) && reigth.type() == typeid(std::string))
-    return std::any_cast<std::string>(left) + '-' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(int64_t))
-    return std::any_cast<std::string>(left) + '-' + std::to_string(std::any_cast<int64_t>(reigth));
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(double))
-    return std::any_cast<std::string>(left) + '-' + std::to_string(std::any_cast<double>(reigth));
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<int64_t>(left)) + '-' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<double>(left)) + '-' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(int64_t))
-    return std::any_cast<int64_t>(left) - std::any_cast<int64_t>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(int64_t))
-    return std::any_cast<double>(left) - std::any_cast<int64_t>(reigth);
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(double))
-    return std::any_cast<int64_t>(left) - std::any_cast<double>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(double))
-    return std::any_cast<double>(left) - std::any_cast<double>(reigth);
-  else{
-    throw std::runtime_error("todo:"); //TODO:
-  }
+  OperationMacro(-);
 }
 std::any TopLevelVisitor::visitDife(SceneParser::DifeContext *ctx){
-  std::cout << __func__ << std::endl;
-  std::any left = ctx->children[0]->accept(this);
-  std::any reigth = ctx->children[2]->accept(this);
-
-  if(left.type() == typeid(std::string) && reigth.type() == typeid(std::string))
-    return std::any_cast<std::string>(left) + '/' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(int64_t))
-    return std::any_cast<std::string>(left) + '/' + std::to_string(std::any_cast<int64_t>(reigth));
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(double))
-    return std::any_cast<std::string>(left) + '/' + std::to_string(std::any_cast<double>(reigth));
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<int64_t>(left)) + '/' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<double>(left)) + '/' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(int64_t))
-    return std::any_cast<int64_t>(left) / (double)std::any_cast<int64_t>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(int64_t))
-    return std::any_cast<double>(left) / std::any_cast<int64_t>(reigth);
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(double))
-    return std::any_cast<int64_t>(left) / std::any_cast<double>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(double))
-    return std::any_cast<double>(left) / std::any_cast<double>(reigth);
-  else{
-    throw std::runtime_error("todo:"); //TODO:
-  }
+  OperationMacro(/);
 }
 std::any TopLevelVisitor::visitMult(SceneParser::MultContext *ctx){
-  std::cout << __func__ << std::endl;
-  std::any left = ctx->children[0]->accept(this);
-  std::any reigth = ctx->children[2]->accept(this);
-
-  if(left.type() == typeid(std::string) && reigth.type() == typeid(std::string))
-    return std::any_cast<std::string>(left) + '*' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(int64_t))
-    return std::any_cast<std::string>(left) + '*' + std::to_string(std::any_cast<int64_t>(reigth));
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(double))
-    return std::any_cast<std::string>(left) + '*' + std::to_string(std::any_cast<double>(reigth));
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<int64_t>(left)) + '*' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<double>(left)) + '*' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(int64_t))
-    return std::any_cast<int64_t>(left) * std::any_cast<int64_t>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(int64_t))
-    return std::any_cast<double>(left) * std::any_cast<int64_t>(reigth);
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(double))
-    return std::any_cast<int64_t>(left) * std::any_cast<double>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(double))
-    return std::any_cast<double>(left) * std::any_cast<double>(reigth);
+  OperationMacro(*)
+}
+std::any TopLevelVisitor::visitKlamKon(SceneParser::KlamKonContext *ctx){
+  std::any ret = ctx->expr()->accept(this);
+  if      (ret.type() == typeid(int64_t))     return ret;
+  else if (ret.type() == typeid(double))      return ret;
+  else if (ret.type() == typeid(Variable))    return ret;
+  else if (ret.type() == typeid(std::string)) return "(" + std::any_cast<std::string>(ret) + ")";
   else{
-    throw std::runtime_error("todo:"); //TODO:
+    throw "TODO: visit Kalm unknowen type";
   }
 }
 ///\return returns the string to acces the variable
 std::any TopLevelVisitor::visitVarExpr(SceneParser::VarExprContext *ctx){
-  return std::any_cast<Variable>(ctx->var()->accept(this)).getName();
+  return ctx->var()->accept(this);
 }

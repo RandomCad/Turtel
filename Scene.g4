@@ -110,13 +110,14 @@ cond  : expr '<' expr #lesThan
       ;
 
 ///Math expressions
-expr  : ( klamKon | number | var) '^' (klamKon | number | var) #Exp
+expr  : expr '^' expr #Exp
       | expr '*' expr #Mult
-      | ( klamKon | number | var) '/' (klamKon | number | var) #Dife
-      | expr '+' expr #Add
+      | expr '/' expr #Dife
       | expr '-' expr #Dim
+      | expr '+' expr #Add
       | '|' expr '|'  #ABS
       | '-' ( number | klamKon | var)   #Negate
+      | klamKon #ClamExpr
       | number	      #NumExpr	
       | var	      #VarExpr
       | ID paramlist  #funcCall
@@ -127,6 +128,7 @@ number: Num     #Int
       ; 
 var   : ID      #Variable
       | IncID   #GlobalVariable
+      | '@pi'     #piVar
       ;
 
 WS : [ \t\r\n]+ -> skip ;
