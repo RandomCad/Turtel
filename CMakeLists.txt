@@ -53,21 +53,43 @@ include_directories(${PROJECT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libs )
 #---------------------------------------#
 #             LLVM - CLANG              #
 #---------------------------------------#
-# Find LLVM and Clang
-find_package(LLVM REQUIRED CONFIG)
-find_package(Clang REQUIRED CONFIG)
-
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-message(STATUS "Using CLANG dir in: ${CLANG_INCLUDE_DIRS}")
-
-# Add the include directories
-include_directories(${LLVM_INCLUDE_DIRS})
-include_directories(${CLANG_INCLUDE_DIRS})
-add_definitions(${LLVM_DEFINITIONS})
-
-separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-add_definitions(${LLVM_DEFINITIONS_LIST})
+if(EXISTS "/etc/fedora-release")
+  message(STATUS "Fedora erkannt: Fedora-spezifische LLVM/CLANG-Einstellungen werden verwendet")
+  find_package(LLVM REQUIRED CONFIG)
+  find_package(Clang REQUIRED CONFIG)
+  message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+  message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+  message(STATUS "Using CLANG dir in: ${CLANG_INCLUDE_DIRS}")
+  include_directories(${LLVM_INCLUDE_DIRS})
+  include_directories(${CLANG_INCLUDE_DIRS})
+  add_definitions(${LLVM_DEFINITIONS})
+  separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+  add_definitions(${LLVM_DEFINITIONS_LIST})
+elseif(EXISTS "/etc/gentoo-release")
+  message(STATUS "Gentoo erkannt: Gentoo-spezifische LLVM/CLANG-Einstellungen werden verwendet")
+  find_package(LLVM REQUIRED CONFIG)
+  find_package(Clang REQUIRED CONFIG)
+  message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+  message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+  message(STATUS "Using CLANG dir in: ${CLANG_INCLUDE_DIRS}")
+  include_directories(${LLVM_INCLUDE_DIRS})
+  include_directories(${CLANG_INCLUDE_DIRS})
+  add_definitions(${LLVM_DEFINITIONS})
+  separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+  add_definitions(${LLVM_DEFINITIONS_LIST})
+else()
+  message(STATUS "Andere Linux-Distribution erkannt: Standard LLVM/CLANG-Einstellungen werden verwendet")
+  find_package(LLVM REQUIRED CONFIG)
+  find_package(Clang REQUIRED CONFIG)
+  message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+  message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+  message(STATUS "Using CLANG dir in: ${CLANG_INCLUDE_DIRS}")
+  include_directories(${LLVM_INCLUDE_DIRS})
+  include_directories(${CLANG_INCLUDE_DIRS})
+  add_definitions(${LLVM_DEFINITIONS})
+  separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+  add_definitions(${LLVM_DEFINITIONS_LIST})
+endif()
 
 #LLVM libs
 # Find the libraries that correspond to the LLVM components
