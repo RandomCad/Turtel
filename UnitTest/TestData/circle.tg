@@ -1,9 +1,9 @@
 
 " Kleines Testprogramm: Kreis zeichnen
 "
-" Optionale Befehlszeilen-Werte: Radius, Anzahl Teilstücke
+" Optionale Befehlszeilen-Werte: Radius, Anzahl Teilstuecke
 "
-" Originalversion Alexander Hohmann & Max Jänichen 2021
+" Originalversion Alexander Hohmann & Max Jaenichen 2021
 " Klaus Kusche, 2022
 
 path circle(r,n)
@@ -28,8 +28,6 @@ begin
   if @2 > 0 then
     store @2 in steps
   endif
-
-  store 1 in @delay
 
   path circle(radius,steps)
   jump home

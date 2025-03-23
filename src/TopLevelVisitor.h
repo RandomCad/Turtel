@@ -11,6 +11,25 @@ class TopLevelVisitorTest;
 #include "src/Variable.h"
 #include <ostream>
 #include <unordered_map>
+
+#define ENV_VAR\
+  {\
+    {std::string(RND_NAME),Variable(VarType::RENDERER,"__env_rnd")},\
+    {std::string(WINDOW_X), Variable(VarType::CONST_DOUBLE, "__env_wx")},\
+    {std::string(WINDOW_Y), Variable(VarType::CONST_DOUBLE, "__env_wy")},\
+    {std::string(POS_X),Variable(VarType::DOUBLE,"__env_posX")},\
+    {std::string(POS_Y),Variable(VarType::DOUBLE,"__env_posY")},\
+    {std::string(MAX_X),Variable(VarType::CONST_DOUBLE,"__env_maxX")},\
+    {std::string(MAX_Y),Variable(VarType::CONST_DOUBLE,"__env_maxY")},\
+    {std::string(ROTATION),Variable(VarType::DOUBLE,"__env_rot")},\
+    {std::string(COLOR_R),Variable(VarType::DOUBLE,"__env_red")},\
+    {std::string(COLOR_G),Variable(VarType::DOUBLE,"__env_green")},\
+    {std::string(COLOR_B),Variable(VarType::DOUBLE,"__env_blue")},\
+    {std::string(TEXTURE_NAME), Variable(VarType::TESXTUR, "__env_textur")},\
+    {std::string(WINDOW_NAME), Variable(VarType::WINDOW, "__env_window")},\
+    {std::string(EVENT_NAME), Variable(VarType::EVENT, "__env_event")},\
+  }
+
 /**
  *This class is the Top Level visitor.
  *It should only be used to visit the stat and direckt childs.
@@ -102,12 +121,15 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitNotCond(SceneParser::NotCondContext *ctx) override;
     std::any visitAndCond(SceneParser::AndCondContext *ctx) override;
     std::any visitOrCond(SceneParser::OrCondContext *ctx) override;
+    std::any visitKlamKon(SceneParser::KlamKonContext *ctx) override;
     //Number
     std::any visitInt(SceneParser::IntContext *ctx) override;
     std::any visitFloat(SceneParser::FloatContext *ctx) override;
     //The visitor for variables
     ///\return The string of the variable
     std::any visitVariable(SceneParser::VariableContext *ctx) override;
+    std::any visitPiVar(SceneParser::PiVarContext *ctx) override;
+    
     ///\return The string of the variable
     std::any visitGlobalVariable(SceneParser::GlobalVariableContext *ctx) override;
     /// Helper funk to get the result of a calc expr

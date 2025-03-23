@@ -1,4 +1,5 @@
 #include <ANTLRInputStream.h>
+#include <any>
 #include <ios>
 #include <istream>
 #include <sstream>
@@ -56,7 +57,13 @@ int progMain(int argc, const char *argv[]){
 
   TopLevelVisitor vis(opt.outputFile.c_str());
 
-  file->accept(&vis);
+  try {
+    file->accept(&vis);
+  } catch (std::bad_any_cast &a) {
+    std::cerr << a.what() << std::endl ;
+    throw a;
+  
+  }
 
   return 0;
 }

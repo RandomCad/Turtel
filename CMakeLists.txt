@@ -46,6 +46,7 @@ find_package(ANTLR REQUIRED)
 
 # Call macro to add lexer and grammar to your build dependencies.
 antlr_target(SceneGrammarParser Scene.g4 VISITOR LISTENER OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/libs)
+antlr_target(CommandlineGrammarParser Commandline.g4 LISTENER OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/libs)
 
 # add our project source directories
 include_directories(${PROJECT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libs )
@@ -91,12 +92,14 @@ set(CodeGeneration
   src/Function.cpp
   src/Variable.cpp
   src/GlobalVarVisitor.cpp
+  src/CommandLineListener.cpp
   )
 # Creat LLVM Interface variable
 set(LLVM_Interface src/LLVMInterface.cpp)
 
 add_executable(Turtel 
   ${ANTLR_SceneGrammarParser_CXX_OUTPUTS} 
+  ${ANTLR_CommandlineGrammarParser_CXX_OUTPUTS} 
   ${CodeGeneration} 
   ${LLVM_Interface}
   )
@@ -122,6 +125,7 @@ enable_testing()
 
 set(
   UnitTest
+  UnitTest/antlr.cpp
   UnitTest/TestLLVMInterface.cpp
   UnitTest/Variable.cpp
   UnitTest/TopLevelVisitor.cpp
@@ -134,6 +138,7 @@ add_executable(
   Tests
   ${UnitTest}
   ${ANTLR_SceneGrammarParser_CXX_OUTPUTS} 
+  ${ANTLR_CommandlineGrammarParser_CXX_OUTPUTS} 
   ${CodeGeneration} 
   ${LLVM_Interface}
 )

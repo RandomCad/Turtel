@@ -3,11 +3,16 @@
 #include <ANTLRInputStream.h>
 #include <CommonTokenStream.h>
 #include <ParserRuleContext.h>
+#include <any>
+#include <cstdint>
+#include <cstdlib>
+#include <ctime>
 #include <filesystem>
-#include <gtest/gtest.h>
+#include <iomanip>
 #include <regex>
 #include <sstream>
 #include <string>
+#include <cmath>
 
 #include "UnitTest/TestHelper.h"
 #include "UnitTest/TopLevelVisitor.h"
@@ -16,6 +21,7 @@
 #include "src/Variable.h"
 #include "src/VariableVisitor.h"
 #include "src/InternalVarNames.h"
+#include "TestHelper.h"
 
 std::regex matchKomment = std::regex("\\s*\\/\\/.*$");
 std::regex matchPragmaUnrolle = std::regex("\\s*#pragma\\s+unroll\\s*");
@@ -29,22 +35,12 @@ void TopLevelVisitorTest::SetFunction(std::unordered_map<std::string, Function> 
 TopLevelVisitorTest::TopLevelVisitorTest() :
   toTest(retStream)
 {
-  toTest.envVar = std::unordered_map<std::string, Variable>({
-    {std::string(RND_NAME),Variable(VarType::RENDERER,"__env_rnd")},
-    {std::string(WINDOW_X), Variable(VarType::CONST_DOUBLE, "__env_wx")},
-    {std::string(WINDOW_Y), Variable(VarType::CONST_DOUBLE, "__env_wy")},
-    {std::string(POS_X),Variable(VarType::DOUBLE,"__env_posX")},
-    {std::string(POS_Y),Variable(VarType::DOUBLE,"__env_posY")},
-    {std::string(MAX_X),Variable(VarType::CONST_DOUBLE,"__env_maxX")},
-    {std::string(MAX_Y),Variable(VarType::CONST_DOUBLE,"__env_maxY")},
-    {std::string(ROTATION),Variable(VarType::DOUBLE,"__env_rot")},
-    {std::string(COLOR_R),Variable(VarType::DOUBLE,"__env_red")},
-    {std::string(COLOR_G),Variable(VarType::DOUBLE,"__env_green")},
-    {std::string(COLOR_B),Variable(VarType::DOUBLE,"__env_blue")},
-    {std::string(TEXTURE_NAME), Variable(VarType::TESXTUR, "__env_textur")},
-    {std::string(WINDOW_NAME), Variable(VarType::WINDOW, "__env_window")},
-    {std::string(EVENT_NAME), Variable(VarType::EVENT, "__env_event")},
-  });
+  toTest.envVar = std::unordered_map<std::string, Variable>(ENV_VAR);
+  static bool seeded = false;
+  if(!seeded){
+    seeded = true;
+    srand(time(0));
+  }
 }
 void TopLevelVisitorTest::SetupParser(){
   input = ANTLRInputStream(inputStream);
@@ -381,6 +377,76 @@ TEST_F(TopLevelVisitorTest, CalcDef){
 
   auto astStart = parser->calcdef();
   TopLevelVisitorTest::SetFunction({{"TheNumber", Function("TheNumber", VarType::DOUBLE, astStart)}});
+
+  ASSERT_TRUE(astStart);
+
+  {
+    astStart->accept(&toTest);
+
+    std::regex assigne("\\s*__usr_\\w+\\s*=\\s*(-?\\d+|__usr_\\w+)\\s*;\\s*$");
+    std::regex calcAssigne("\\s*__usr_\\w+\\s*(\\+=|-=|\\*=|/=)\\s*__usr\\w+\\s*;\\s*$");
+
+    std::string line;
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, matchFuncHead);
+
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*double\\s+__usr_\\w+\\s*=\\s*0\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*double\\s+__usr_\\w+\\s*=\\s*0\\s*;\\s*$"));
+
+    for (int i = 0; i < 2; ++i){
+      std::getline(retStream, line);
+      ASSERT_FALSE(retStream.eof());
+      ASSERT_REGEX(line, assigne);
+    }
+
+    for (int i = 0; i < 3; ++i){
+      std::getline(retStream, line);
+      ASSERT_FALSE(retStream.eof());
+      ASSERT_REGEX(line, calcAssigne);
+    }
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, assigne);
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, calcAssigne);
+
+    //return
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*return\\s+__usr_\\w+\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, matchClosingCrlBracket);
+
+    std::getline(retStream, line);
+    ASSERT_TRUE(retStream.eof());
+  }
+}
+TEST_F(TopLevelVisitorTest, PathDef){
+  inputStream
+    << "path circle(r,n)\n"
+    << "  jump r\n"
+    << "  store 180-360/n in beta\n"
+    << "  store 2*(2*@pi*r/2)/n in a\n"
+    << "  turn right 180-beta/2\n"
+    << "  counter x from 0 to n do\n"
+    << "    walk a\n"
+    << "    turn right 180-beta\n"
+    << "  done\n"
+    << "endpath\n"
+    ;
+
+  TopLevelVisitorTest::SetupParser();
+
+  auto astStart = parser->pathdef();
+  TopLevelVisitorTest::SetFunction({{"circle", Function("circle", VarType::DOUBLE, astStart)}});
 
   ASSERT_TRUE(astStart);
 
