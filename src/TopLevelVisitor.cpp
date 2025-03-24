@@ -283,6 +283,7 @@ std::any TopLevelVisitor::visitPathdef(SceneParser::PathdefContext *ctx){
   output
     ///output the function header
     << funcs.at(ctx->ID()->getText()).Implement()
+    << std::endl
     ;
   ctxVar = VarVisitor().getVariableContext(ctx); 
   ///define all the Variables
@@ -497,26 +498,17 @@ std::any TopLevelVisitor::visitDoUntil(SceneParser::DoUntilContext *ctx){
 std::any TopLevelVisitor::visitToFor(SceneParser::ToForContext *ctx) { //TODO case to is negativ!
   std::any ret = ctx->expr()->accept(this);
   if(ret.type() == typeid(double)) ret = (int64_t)std::ceil(std::any_cast<double>(ret));
-  if (ret.type() == typeid(int64_t)){
-    output  << "#pragma unroll\n"
-            << "  for (size_t i = 0; i <" << std::any_cast<int64_t>(ret) << " ; ++i){\n"
-            ;
-    for (auto i : ctx->stat()) {
-      i->accept(this);
-    }
-    output  << "}\n";
-  }
-  else if (ret. type() == typeid(std::string)){
-    output  << "  for (size_t i = 0; i <" << std::any_cast<std::string>(ret) << " ; ++i){\n"
-            ;
-    for (auto i : ctx->stat()) {
-      i->accept(this);
-    }
-    output  << "}\n";
-  }
+  if (ret.type() == typeid(int64_t))            output  << "#pragma unroll\n"
+                                                        << "  for (size_t i = 0; i <" << std::any_cast<int64_t>(ret) << " ; ++i){\n";
+  else if (ret. type() == typeid(std::string))  output  << "  for (size_t i = 0; i <" << std::any_cast<std::string>(ret) << " ; ++i){\n";
+  else if (ret. type() == typeid(Variable))  output  << "  for (size_t i = 0; i <" << std::any_cast<Variable>(ret).getName() << " ; ++i){\n";
   else{
     throw "TODO"; //TODO;
   }
+ for (auto i : ctx->stat()) {
+    i->accept(this);
+  }
+  output  << "}\n";
   return std::any();
 }
 std::any TopLevelVisitor::visitSimpUpFor(SceneParser::SimpUpForContext *ctx){
@@ -819,7 +811,7 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
 #define CalcPosX(len) \
   envVar.at(POS_X).getName() << " + " << (len) << " * cos(" << envVar.at(ROTATION).getName() << ')'
 #define CalcPosY(len) \
-  envVar.at(POS_X).getName() << " + " << (len) << " * sin(" << envVar.at(ROTATION).getName() << ')'
+  envVar.at(POS_Y).getName() << " + " << (len) << " * sin(" << envVar.at(ROTATION).getName() << ')'
 #define MovePositions(len) \
   envVar.at(POS_X).getName() << " = "\
   << CalcPosX((len))\

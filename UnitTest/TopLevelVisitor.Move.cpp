@@ -271,10 +271,10 @@ TEST_F(TopLevelVisitorTest, JumpFront){
 
   std::string line;
   std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"));
+  ASSERT_REGEX(line, std::regex("\\s*__env_posX\\s*=\\s*__env_posX\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\(__env_rot\\)\\s*;"));
 
   std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"));
+  ASSERT_REGEX(line, std::regex("\\s*__env_posY\\s*=\\s*__env_posY\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\(__env_rot\\)\\s*;"));
 
   std::getline(retStream, line);
   std::cerr << line << std::endl;

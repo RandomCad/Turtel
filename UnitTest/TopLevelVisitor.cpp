@@ -26,7 +26,7 @@
 std::regex matchKomment = std::regex("\\s*\\/\\/.*$");
 std::regex matchPragmaUnrolle = std::regex("\\s*#pragma\\s+unroll\\s*");
 std::regex matchClosingCrlBracket = std::regex("\\s*\\}\\s*");
-std::regex matchFuncHead = std::regex("\\s*\\w+\\s+\\w+\\s*\\(\\s*\\)\\s*\\{\\s*$");
+std::regex matchFuncHead = std::regex("\\s*\\w+\\s+\\w+\\s*\\(\\s*(\\s*double\\s+__usr_\\w+(,\\s*double\\s+__usr_\\w+)*)?\\)\\s*\\{\\s*$");
 std::regex matchAssigne5 = std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*$");
 
 void TopLevelVisitorTest::SetFunction(std::unordered_map<std::string, Function> &a){
@@ -455,41 +455,72 @@ TEST_F(TopLevelVisitorTest, PathDef){
 
     std::regex assigne("\\s*__usr_\\w+\\s*=\\s*(-?\\d+|__usr_\\w+)\\s*;\\s*$");
     std::regex calcAssigne("\\s*__usr_\\w+\\s*(\\+=|-=|\\*=|/=)\\s*__usr\\w+\\s*;\\s*$");
+    std::regex moveX("\\s*__env_posX\\s*=\\s*__env_posX\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\(__env_rot\\)\\s*;");
+    std::regex moveY("\\s*__env_posY\\s*=\\s*__env_posY\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\(__env_rot\\)\\s*;");
 
     std::string line;
     std::getline(retStream, line);
     ASSERT_REGEX(line, matchFuncHead);
 
-    std::getline(retStream, line);
-    ASSERT_REGEX(line, std::regex("\\s*double\\s+__usr_\\w+\\s*=\\s*0\\s*;\\s*$"));
-
-    std::getline(retStream, line);
-    ASSERT_REGEX(line, std::regex("\\s*double\\s+__usr_\\w+\\s*=\\s*0\\s*;\\s*$"));
-
-    for (int i = 0; i < 2; ++i){
+    for (int i = 0; i < 5; i++){
       std::getline(retStream, line);
-      ASSERT_FALSE(retStream.eof());
-      ASSERT_REGEX(line, assigne);
-    }
-
-    for (int i = 0; i < 3; ++i){
-      std::getline(retStream, line);
-      ASSERT_FALSE(retStream.eof());
-      ASSERT_REGEX(line, calcAssigne);
+      ASSERT_REGEX(line, std::regex("\\s*double\\s+__usr_\\w+\\s*=\\s*0\\s*;\\s*$"));
     }
 
     std::getline(retStream, line);
     ASSERT_FALSE(retStream.eof());
-    ASSERT_REGEX(line, assigne);
+    ASSERT_REGEX(line, moveX);
 
     std::getline(retStream, line);
     ASSERT_FALSE(retStream.eof());
-    ASSERT_REGEX(line, calcAssigne);
+    ASSERT_REGEX(line, moveY);
 
-    //return
     std::getline(retStream, line);
     ASSERT_FALSE(retStream.eof());
-    ASSERT_REGEX(line, std::regex("\\s*return\\s+__usr_\\w+\\s*;\\s*$"));
+    ASSERT_REGEX(line, std::regex("\\s*__usr_\\w+\\s*=\\s*\\d+\\s*-\\s*\\d+\\s*\\/\\s*__usr_\\w+\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*__usr_\\w+\\s*=\\s*\\d+\\s*\\*\\s*\\(\\s*\\d+\\.\\d+\\s*\\*\\s*__usr_\\w+\\s*\\/\\s*\\d+\\s*\\)\\s*\\/\\s*__usr_\\w+\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*__env_rot\\s*\\+=\\s*\\(\\s*\\d+\\s*\\-\\s*__usr_\\w+\\s*\\/\\s*\\d+\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*__usr_\\w+\\s*=\\s*\\d+\\s*;\\s*__usr_\\w+\\s*<\\s*__usr_\\w+\\s*;\\s*\\+\\+__usr_\\w+\\s*\\)\\s*\\{\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*SDL_RenderDrawLine\\s*\\(\\s*__env_rnd\\s*,\\s*__env_posX\\s*,\\s*__env_posY\\s*,\\s*__env_posX\\s*\\+\\s*__usr_\\w+\\s*\\*\\s*cos\\s*\\(\\s*__env_rot\\s*\\)\\s*,\\s*__env_posY\\s*\\+\\s*__usr_a\\s*\\*\\s*sin\\s*\\(\\s*__env_rot\\s*\\)\\s*\\)\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, moveX);
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, moveY);
+    
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*SDL_SetRenderTarget\\s*\\(\\s*__env_\\w+\\s*,\\s*NULL\\s*\\)\\s*;\\s*$"));
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*SDL_RenderClear\\s*\\(\\s*__env_\\w+\\s*\\)\\s*;\\s*$"));
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*SDL_RenderCopy\\s*\\(\\s*__env_\\w+\\s*,\\s*__env_\\w+\\s*,\\s*NULL\\s*,\\s*NULL\\s*\\)\\s*;\\s*$"));
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*SDL_RenderPresent\\s*\\(\\s*__env_\\w+\\s*\\)\\s*;\\s*$"));
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*SDL_SetRenderTarget\\s*\\(\\s*__env_\\w+\\s*,\\s*__env_\\w+\\s*\\)\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*__env_rot\\s*\\+=\\s*\\(\\s*\\d+\\s*\\-\\s*__usr_\\w+\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, matchClosingCrlBracket);
 
     std::getline(retStream, line);
     ASSERT_FALSE(retStream.eof());
