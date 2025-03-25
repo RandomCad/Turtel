@@ -46,6 +46,7 @@ find_package(ANTLR REQUIRED)
 
 # Call macro to add lexer and grammar to your build dependencies.
 antlr_target(SceneGrammarParser Scene.g4 VISITOR LISTENER OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/libs)
+antlr_target(CommandlineGrammarParser Commandline.g4 LISTENER OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/libs)
 
 # add our project source directories
 include_directories(${PROJECT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libs )
@@ -81,22 +82,32 @@ SET(LLVM_LIBS
   ) 
 
 #---------------------------------------#
+#             Include SDL2              #
+#---------------------------------------#
+
+find_package(SDL2 REQUIRED)
+find_package(SDL2_image REQUIRED)
+include_directories(SDL2_LIBS ${SDL2_INCLUDE_DIRS})
+
+#---------------------------------------#
 #            Turtel Programm            #
 #---------------------------------------#
 # Creat CodeGenerator variable 
 set(CodeGeneration 
+  src/antlr.cpp 
   src/TopLevelVisitor.cpp
   src/VariableVisitor.cpp
   src/Function.cpp
   src/Variable.cpp
   src/GlobalVarVisitor.cpp
+  src/CommandLineListener.cpp
   )
 # Creat LLVM Interface variable
 set(LLVM_Interface src/LLVMInterface.cpp)
 
 add_executable(Turtel 
-  src/antlr.cpp 
   ${ANTLR_SceneGrammarParser_CXX_OUTPUTS} 
+  ${ANTLR_CommandlineGrammarParser_CXX_OUTPUTS} 
   ${CodeGeneration} 
   ${LLVM_Interface}
   )
@@ -122,25 +133,38 @@ enable_testing()
 
 set(
   UnitTest
+  UnitTest/antlr.cpp
   UnitTest/TestLLVMInterface.cpp
   UnitTest/Variable.cpp
   UnitTest/TopLevelVisitor.cpp
+  UnitTest/TopLevelVisitor.Math.cpp
+  UnitTest/TopLevelVisitor.Loop.cpp
+  UnitTest/TopLevelVisitor.Var.cpp
+  UnitTest/TopLevelVisitor.Move.cpp
+  UnitTest/TopLevelVisitor.IfEls.cpp
+  UnitTest/TopLevelVisitor.End.cpp
   UnitTest/VariableVisitor.cpp
   UnitTest/Function.cpp
   UnitTest/TestHelper.cpp
+  UnitTest/CommandListener.cpp
   )
 
 add_executable(
   Tests
   ${UnitTest}
   ${ANTLR_SceneGrammarParser_CXX_OUTPUTS} 
+  ${ANTLR_CommandlineGrammarParser_CXX_OUTPUTS} 
   ${CodeGeneration} 
   ${LLVM_Interface}
+  ${SDL2_LIBS}
 )
+
 target_compile_definitions(Tests PRIVATE UNIT_TEST=1)
+
 target_link_libraries(
   Tests
   GTest::gtest_main
+  SDL2_image::SDL2_image
   ${SYSTEM_LIBS}
   antlr4_static
 )
@@ -148,3 +172,11 @@ target_link_libraries(
 include(GoogleTest)
 gtest_discover_tests(Tests)
 
+# Ensure the UnitTest/TestData directory is copied BEFORE running the tests
+add_custom_target(copy_test_data
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/UnitTest/TestData ${CMAKE_CURRENT_BINARY_DIR}/TestData
+  COMMENT "Copying UnitTest/TestData to output directory"
+)
+
+# Ensure Tests depends on copy_test_data (copies test data before running tests)
+add_dependencies(Tests copy_test_data)

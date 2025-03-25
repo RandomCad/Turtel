@@ -28,6 +28,7 @@ Float : [0-9]+ '.' [0-9]+
       | '.' [0-9]+ ;
 
 ID    : [_a-zA-Z] [_@a-zA-Z0-9]* ;
+CliID : '@' [0-9];
 IncID : '@' [_@a-zA-Z0-9]* ;
 
 file  : (pathdef | calcdef)* main (pathdef |calcdef)*; 
@@ -47,7 +48,7 @@ stat    : walk        | save        | jump
         | addVar      | subVar      | divVar
         | multVar     | walkMark    | jumpMark
         | mark        | colorCmd    | if
-        | toFor
+        | toFor       | pathCall
         | for         | while       | doUntil
         ;
 
@@ -110,13 +111,14 @@ cond  : expr '<' expr #lesThan
       ;
 
 ///Math expressions
-expr  : ( klamKon | number) '^' (klamKon | number) #Exp
-      | ( klamKon | number) '*' (klamKon | number) #Mult
-      | ( klamKon | number) '/' (klamKon | number) #Dife
-      | expr '+' expr #Add
+expr  : expr '^' expr #Exp
+      | expr '*' expr #Mult
+      | expr '/' expr #Dife
       | expr '-' expr #Dim
+      | expr '+' expr #Add
       | '|' expr '|'  #ABS
-      | '-' ( number | klamKon )   #Negate
+      | '-' ( number | klamKon | var)   #Negate
+      | klamKon #ClamExpr
       | number	      #NumExpr	
       | var	      #VarExpr
       | ID paramlist  #funcCall
@@ -125,8 +127,11 @@ klamKon	: '(' expr ')' ;
 number: Num     #Int
       | Float   #Float
       ; 
-var   : ID      #Variable
-      | IncID   #GlobalVariable
+var   : ID        #Variable
+      | '@pi'     #piVar
+      | CliID     #CLI
+      | IncID     #GlobalVariable
       ;
 
 WS : [ \t\r\n]+ -> skip ;
+COMMENT : '"' ~[\r\n]* -> skip ;
