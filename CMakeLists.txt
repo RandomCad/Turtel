@@ -138,6 +138,7 @@ set(
   UnitTest/VariableVisitor.cpp
   UnitTest/Function.cpp
   UnitTest/TestHelper.cpp
+  UnitTest/CommandListener.cpp
   )
 
 add_executable(

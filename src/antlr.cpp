@@ -62,7 +62,6 @@ int progMain(int argc, const char *argv[]){
   } catch (std::bad_any_cast &a) {
     std::cerr << a.what() << std::endl ;
     throw a;
-  
   }
 
   return 0;

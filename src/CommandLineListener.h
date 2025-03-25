@@ -1,3 +1,4 @@
+#include "CommandlineParser.h"
 #include "libs/CommandlineBaseListener.h"
 namespace Comandline {
   struct options{
@@ -13,5 +14,6 @@ class CommandLineListener : public CommandlineBaseListener{
     Comandline::options GetOptions() { return opt; } 
   private:
     void exitArgs(CommandlineParser::ArgsContext *) override;
+    void exitOutput(CommandlineParser::OutputContext *) override;
 
 };
