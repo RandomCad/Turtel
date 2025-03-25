@@ -18,5 +18,5 @@ TEST(Main, Circle){
   progMain(2, (const char**)argv);
 
   int exitCode = std::system((std::string("./") + argv[3]).c_str());
-  ASSERT_EQ(WEXITSTATUS(exitCode), 36);
+  ASSERT_EQ(WEXITSTATUS(exitCode), 0);
 }

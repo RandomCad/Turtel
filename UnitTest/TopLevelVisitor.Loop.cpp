@@ -988,5 +988,3 @@ TEST_F(TopLevelVisitorTest, StepDonwForVarInt){
   ASSERT_TRUE(retStream.eof());
   ASSERT_STREQ(line.c_str(), "");
 }
-
-
