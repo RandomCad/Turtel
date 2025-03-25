@@ -127,8 +127,12 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     << std::endl
     ///add the main function
     << "int main(int argc, const char *argv[]){\n"///<sdl init
+    ///init env global Vars
     << envVar.at(WINDOW_X).getName() << "=800;\n"
     << envVar.at(WINDOW_Y).getName() << "=600;\n" 
+    << envVar.at(POS_X).getName() << '=' << envVar.at(WINDOW_X).getName() << "/2;\n"
+    << envVar.at(POS_Y).getName() << '=' << envVar.at(WINDOW_Y).getName() << "/2;\n"
+    << envVar.at(ROTATION).getName() << "=-M_PI/2;\n"
     << "SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"///<creat window
     ///define the window
     << envVar.at(WINDOW_NAME).getName()
@@ -141,6 +145,8 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     << " = SDL_CreateRenderer("
     << envVar.at(WINDOW_NAME).getName()
     << ", -1, SDL_RENDERER_ACCELERATED);\n"
+    ///Set the color of the renderer
+    << "SDL_SetRenderDrawColor(" << envVar.at(RND_NAME).getName() << ",255,255,255,255);\n"
     ///define the texture
     << envVar.at(TEXTURE_NAME).getName() 
     << " = SDL_CreateTexture( " 
