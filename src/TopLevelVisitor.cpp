@@ -111,8 +111,6 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
   }
 
   output
-    //<< envVar.at(WINDOW_X).getTypeAndName() << "=800;\n"
-    //<< envVar.at(WINDOW_Y).getTypeAndName() << "=600;\n" add to main -> set them
     << std::endl
     ///function declarations
     << "//declaration of Turtel HelperFuncs\n"
@@ -129,6 +127,8 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     << std::endl
     ///add the main function
     << "int main(int argc, const char *argv[]){\n"///<sdl init
+    << envVar.at(WINDOW_X).getName() << "=800;\n"
+    << envVar.at(WINDOW_Y).getName() << "=600;\n" 
     << "SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"///<creat window
     ///define the window
     << envVar.at(WINDOW_NAME).getName()

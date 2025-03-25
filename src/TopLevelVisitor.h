@@ -15,8 +15,8 @@ class TopLevelVisitorTest;
 #define ENV_VAR\
   {\
     {std::string(RND_NAME),Variable(VarType::RENDERER,"__env_rnd")},\
-    {std::string(WINDOW_X), Variable(VarType::CONST_DOUBLE, "__env_wx")},\
-    {std::string(WINDOW_Y), Variable(VarType::CONST_DOUBLE, "__env_wy")},\
+    {std::string(WINDOW_X), Variable(VarType::DOUBLE, "__env_wx")},\
+    {std::string(WINDOW_Y), Variable(VarType::DOUBLE, "__env_wy")},\
     {std::string(POS_X),Variable(VarType::DOUBLE,"__env_posX")},\
     {std::string(POS_Y),Variable(VarType::DOUBLE,"__env_posY")},\
     {std::string(MAX_X),Variable(VarType::CONST_DOUBLE,"__env_maxX")},\
