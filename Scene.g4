@@ -28,6 +28,7 @@ Float : [0-9]+ '.' [0-9]+
       | '.' [0-9]+ ;
 
 ID    : [_a-zA-Z] [_@a-zA-Z0-9]* ;
+CliID : '@' [0-9];
 IncID : '@' [_@a-zA-Z0-9]* ;
 
 file  : (pathdef | calcdef)* main (pathdef |calcdef)*; 
@@ -126,9 +127,10 @@ klamKon	: '(' expr ')' ;
 number: Num     #Int
       | Float   #Float
       ; 
-var   : ID      #Variable
-      | IncID   #GlobalVariable
+var   : ID        #Variable
       | '@pi'     #piVar
+      | CliID     #CLI
+      | IncID     #GlobalVariable
       ;
 
 WS : [ \t\r\n]+ -> skip ;

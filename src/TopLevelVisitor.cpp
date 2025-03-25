@@ -7,6 +7,7 @@
 #include "src/Variable.h"
 
 #include <any>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <iomanip>
@@ -149,6 +150,10 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     << ", " 
     << envVar.at(WINDOW_Y).getName() 
     << ");\n"
+    //pars the cli args
+    << envVar.at(ARGC).getName() << "=argc-1;\n"
+    << envVar.at(ARGV).getName() << "=malloc(sizeof(double) * (argc-1));\n"
+    << "for (const char **i =argv + 1; *i; ++i)" << envVar.at(ARGV).getName() << "[i-argv-1]=strtod(*i,NULL);\n"
     //switch to correct backbuffer (internal textur)
     << GenPresent
     << funcs.at(MAIN_FUNC).getFunctionCall({}) << ';'///<call Turtel main
@@ -223,6 +228,8 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     i->accept(this);
   }
   output << std::endl;
+
+  llvm.CallLLVM();
 
   return std::any();
 }
@@ -650,6 +657,21 @@ std::any TopLevelVisitor::visitVariable(SceneParser::VariableContext *ctx){
 }
 std::any TopLevelVisitor::visitPiVar(SceneParser::PiVarContext *ctx){
   return (double)M_PI;
+}
+std::any TopLevelVisitor::visitCLI(SceneParser::CLIContext *ctx){
+  std::string num = ctx->CliID()->getText();
+  num[0] = '0';
+  size_t number = std::strtoull(num.c_str(),NULL,10);
+  std::string ret = "(";
+  ret += envVar.at(ARGC).getName();
+  ret += ">";
+  ret += std::to_string(number);
+  ret += "?";
+  ret += envVar.at(ARGV).getName();
+  ret += "[";
+  ret += std::to_string(number);
+  ret += "]:0)";
+  return ret;
 }
 ///\return the corresponding Varible object or an error is thrown
 std::any TopLevelVisitor::visitGlobalVariable(SceneParser::GlobalVariableContext *ctx){

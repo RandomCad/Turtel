@@ -28,6 +28,8 @@ class TopLevelVisitorTest;
     {std::string(TEXTURE_NAME), Variable(VarType::TESXTUR, "__env_textur")},\
     {std::string(WINDOW_NAME), Variable(VarType::WINDOW, "__env_window")},\
     {std::string(EVENT_NAME), Variable(VarType::EVENT, "__env_event")},\
+    {std::string(ARGC), Variable(VarType::SIZE_T, "__env_argc")},\
+    {std::string(ARGV), Variable(VarType::DOUBLE_ARR, "__env_argv")},\
   }
 
 /**
@@ -129,6 +131,7 @@ class TopLevelVisitor : public SceneBaseVisitor{
     ///\return The string of the variable
     std::any visitVariable(SceneParser::VariableContext *ctx) override;
     std::any visitPiVar(SceneParser::PiVarContext *ctx) override;
+    std::any visitCLI(SceneParser::CLIContext *ctx) override;
     
     ///\return The string of the variable
     std::any visitGlobalVariable(SceneParser::GlobalVariableContext *ctx) override;

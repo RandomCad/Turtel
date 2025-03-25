@@ -12,7 +12,9 @@ enum VarType{
   WINDOW, ///< The main and only window of the program
   CONST_CHAR_PTR,
   VOID,
-  EVENT
+  EVENT,
+  SIZE_T,
+  DOUBLE_ARR,
 };
 
 namespace VarTypeNS{
