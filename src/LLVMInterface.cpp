@@ -1,6 +1,7 @@
 #include "LLVMInterface.h"
 
 #include <alloca.h>
+#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <cwctype>
@@ -66,7 +67,7 @@ void LLVMInterface::CallLLVM(){
 	args.push_back("-x");
 	args.push_back("c");
 	args.push_back(llvmFileName);
-  for(int i = 0; i < sdlArgs.size(); ++i){
+  for(std::size_t i = 0; i < sdlArgs.size(); ++i){
     std::cerr << sdlArgs[i] << std::endl;
     args.push_back(sdlArgs[i].c_str());
   }
@@ -78,10 +79,6 @@ void LLVMInterface::CallLLVM(){
 #ifndef NDEBUG
   args.push_back("-ggdb");
 #endif
-
-  for(auto i: args){
-    std::cout << i << std::endl;
-  }
 	
 	// The clang driver needs a DiagnosticsEngine so it can report problems
 	//clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(),&diagOpt);
@@ -99,17 +96,14 @@ void LLVMInterface::CallLLVM(){
 	// Create the set of actions to perform
   std::unique_ptr<clang::driver::Compilation> C(TheDriver.BuildCompilation(args));
 	
-  std::cerr << "Print" << std::endl;
 	// Print the set of actions
-	TheDriver.PrintActions(*C);
+	//TheDriver.PrintActions(*C);
 	
-  std::cerr << "PrepExecute" << std::endl;
 	// Carry out the actions
 	int Res = 0;
   llvm::SmallVector<std::pair<int, const clang::driver::Command*>> t;
 
 	
-  std::cerr << "Execute" << std::endl;
   if (C) Res = TheDriver.ExecuteCompilation(*C, t);
 	
 	// Report problems
