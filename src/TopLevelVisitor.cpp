@@ -900,7 +900,7 @@ std::any TopLevelVisitor::visitJumpBack(SceneParser::JumpBackContext *ctx){
 std::any TopLevelVisitor::visitSave(SceneParser::SaveContext *ctx){
   output
     << "  save_texture(\"" 
-      << ctx->ID()->getText() << ".png\", "
+      << "./" << ctx->ID()->getText() << ".png\", "
       << envVar.at(RND_NAME).getName() << ", "
       << envVar.at(TEXTURE_NAME).getName() 
     << ");\n"

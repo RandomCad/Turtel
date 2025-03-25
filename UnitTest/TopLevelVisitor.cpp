@@ -3,16 +3,20 @@
 #include <ANTLRInputStream.h>
 #include <CommonTokenStream.h>
 #include <ParserRuleContext.h>
+#include <SDL_render.h>
+#include <SDL_stdinc.h>
+#include <SDL_surface.h>
 #include <any>
-#include <cstdint>
 #include <cstdlib>
 #include <ctime>
 #include <filesystem>
-#include <iomanip>
 #include <regex>
 #include <sstream>
 #include <string>
 #include <cmath>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_surface.h>
 
 #include "UnitTest/TestHelper.h"
 #include "UnitTest/TopLevelVisitor.h"
@@ -28,6 +32,11 @@ std::regex matchPragmaUnrolle = std::regex("\\s*#pragma\\s+unroll\\s*");
 std::regex matchClosingCrlBracket = std::regex("\\s*\\}\\s*");
 std::regex matchFuncHead = std::regex("\\s*\\w+\\s+\\w+\\s*\\(\\s*(\\s*double\\s+__usr_\\w+(,\\s*double\\s+__usr_\\w+)*)?\\)\\s*\\{\\s*$");
 std::regex matchAssigne5 = std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*$");
+
+bool CheckSurfaceForBlack(SDL_Surface *a){
+  for (Uint32 *i = (Uint32*)a->pixels ; i - (Uint32*)a->pixels < a->h *a->w; ++i) if(*i != 0xff000000) return false;
+  return true;
+}
 
 void TopLevelVisitorTest::SetFunction(std::unordered_map<std::string, Function> &a){
   toTest.funcs = a;
@@ -207,7 +216,15 @@ TEST(TopLevelVisitor, TestTrivialSave){
   int exitCode = std::system((std::string("./") + testFile).c_str());
   ASSERT_EQ(WEXITSTATUS(exitCode), 0);
   ASSERT_TRUE(std::filesystem::exists("test.png"));
+
+  SDL_Surface *a = IMG_Load("./test.png");
+
+  ASSERT_EQ(a->format->BytesPerPixel, 4);
+  for (Uint32 *i = (Uint32*)a->pixels ; i - (Uint32*)a->pixels < a->h *a->w; ++i) {
+    ASSERT_EQ(*i, 0xff000000) << (i - (Uint32*)a->pixels) % a->h << (i - (Uint32*)a->pixels)/a->w;
+  }
 }
+
 TEST(TopLevelVisitor, BasicEmptyMain){
   const char * testFile = "EmptyMainTest.out";
   std::filesystem::remove(testFile);
@@ -249,10 +266,13 @@ TEST(TopLevelVisitor, BasicWalk){
   const char *testFile = "BasicWalkTest.out";
   std::filesystem::remove(testFile);
 
+  const std::string baseFileName = "BasicWalk";
+  const std::string picFileName = baseFileName + ".png";
   std::stringstream stream;
   stream 
     << "begin\n"
     << "  walk 50\n"
+    //<< "  save " << baseFileName << "\n"
     << "end\n"
     << std::endl;
 
@@ -301,6 +321,14 @@ TEST(TopLevelVisitor, BasicWalk){
   test.llvm.CallLLVM();
   ASSERT_TRUE(std::filesystem::exists(testFile));
 
+  return;
+
+  ASSERT_TRUE(std::filesystem::exists(picFileName));
+
+  SDL_Surface *a = IMG_Load(picFileName.c_str());
+
+  ASSERT_EQ(a->format->BytesPerPixel, 4);
+  ASSERT_FALSE(CheckSurfaceForBlack(a));
 }
 TEST(TopLevelVisitor, BasicJump){
   const char *testFile = "BasicWalkTest.out";

@@ -82,6 +82,14 @@ SET(LLVM_LIBS
   ) 
 
 #---------------------------------------#
+#             Include SDL2              #
+#---------------------------------------#
+
+find_package(SDL2 REQUIRED)
+find_package(SDL2_image REQUIRED)
+include_directories(SDL2_LIBS ${SDL2_INCLUDE_DIRS})
+
+#---------------------------------------#
 #            Turtel Programm            #
 #---------------------------------------#
 # Creat CodeGenerator variable 
@@ -148,6 +156,7 @@ add_executable(
   ${ANTLR_CommandlineGrammarParser_CXX_OUTPUTS} 
   ${CodeGeneration} 
   ${LLVM_Interface}
+  ${SDL2_LIBS}
 )
 
 target_compile_definitions(Tests PRIVATE UNIT_TEST=1)
@@ -155,6 +164,7 @@ target_compile_definitions(Tests PRIVATE UNIT_TEST=1)
 target_link_libraries(
   Tests
   GTest::gtest_main
+  SDL2_image::SDL2_image
   ${SYSTEM_LIBS}
   antlr4_static
 )
