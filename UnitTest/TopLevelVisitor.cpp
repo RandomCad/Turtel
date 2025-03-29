@@ -224,6 +224,150 @@ TEST(TopLevelVisitor, TestTrivialSave){
     ASSERT_EQ(*i, 0xff000000) << (i - (Uint32*)a->pixels) % a->h << (i - (Uint32*)a->pixels)/a->w;
   }
 }
+TEST(TopLevelVisitor, TestDoubleSave){
+  const char * testFile = "TestTrivialSave.out";
+  std::string pngTest1 = "test";
+  std::string pngTest2 = "test1";
+  std::filesystem::remove(testFile);
+  std::filesystem::remove(pngTest1);
+  std::filesystem::remove(pngTest2);
+
+  LLVMInterface interface(testFile);
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  save " << pngTest1 << "\n"
+    << "  save " << pngTest2 << "\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 0);
+  EXPECT_EQ(astStart->pathdef().size(), 0);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int exitCode = std::system((std::string("./") + testFile).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 0);
+
+  {
+    pngTest1 = std::string("./") + pngTest1 + std::string(".png");
+    ASSERT_TRUE(std::filesystem::exists(pngTest1));
+
+    SDL_Surface *a = IMG_Load(pngTest1.c_str());
+
+    ASSERT_EQ(a->format->BytesPerPixel, 4);
+    for (Uint32 *i = (Uint32*)a->pixels ; i - (Uint32*)a->pixels < a->h *a->w; ++i) {
+      ASSERT_EQ(*i, 0xff000000) << (i - (Uint32*)a->pixels) % a->h << (i - (Uint32*)a->pixels)/a->w;
+    }
+  }
+  {
+    pngTest2 = std::string("./") + pngTest2 + std::string(".png");
+    ASSERT_TRUE(std::filesystem::exists(pngTest2));
+
+    SDL_Surface *a = IMG_Load(pngTest2.c_str());
+
+    ASSERT_EQ(a->format->BytesPerPixel, 4);
+    for (Uint32 *i = (Uint32*)a->pixels ; i - (Uint32*)a->pixels < a->h *a->w; ++i) {
+      ASSERT_EQ(*i, 0xff000000) << (i - (Uint32*)a->pixels) % a->h << (i - (Uint32*)a->pixels)/a->w;
+    }
+  }
+}
+TEST(TopLevelVisitor, BasicWalkSave){
+  const char *testFile = "BasicWalkSaveTest.out";
+  std::string pngTest1 = "test2";
+  std::filesystem::remove(testFile);
+  std::filesystem::remove(pngTest1);
+
+  const std::string baseFileName = "BasicWalk";
+  const std::string picFileName = baseFileName + ".png";
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  walk 50\n"
+    << "  save " << pngTest1 << "\n"
+    << "end\n"
+    << std::endl;
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(),0);
+  EXPECT_EQ(astStart->pathdef().size(),0);
+  EXPECT_FALSE(astStart->main()->isEmpty());
+  EXPECT_EQ(astStart->main()->statList()->stat().size(), 2);
+
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::regex checkForDraw(
+          "\\s+SDL_RenderDrawLine\\s*\\("
+          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
+          ")\\s*;\\s*");
+  std::string line;
+  int ret = 0;
+  while (std::getline(test.llvm.llvmFile, line)) {
+    std::cerr << line ;
+    if(std::regex_match(line, checkForDraw)){
+      ret++;
+      std::cerr << "//found";
+    }
+    std::cerr << std::endl;
+  }
+
+  test.llvm.llvmFile.seekg(0);
+  
+  ASSERT_EQ(ret, 1);
+
+  test.llvm.CallLLVM();
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int exitCode = std::system((std::string("./") + testFile).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 0);
+
+  {
+    pngTest1 = std::string("./") + pngTest1 + std::string(".png");
+    ASSERT_TRUE(std::filesystem::exists(pngTest1));
+
+    SDL_Surface *a = IMG_Load(pngTest1.c_str());
+
+    ASSERT_EQ(a->format->BytesPerPixel, 4);
+    ASSERT_FALSE(CheckSurfaceForBlack(a));
+  }
+}
 
 TEST(TopLevelVisitor, BasicEmptyMain){
   const char * testFile = "EmptyMainTest.out";
