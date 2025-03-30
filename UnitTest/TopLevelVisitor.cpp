@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <filesystem>
+#include <ostream>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -71,6 +72,48 @@ void TopLevelVisitorTest::SetInfLoopFlag(int a){
 
 using  namespace antlr4;
 
+TEST(TopLevelVisitor, TestCircleTG){
+  const char * testFile = "Circle.out";
+  std::filesystem::remove(testFile);
+
+  std::filebuf fb;
+  if(!fb.open("./TestData/circle.tg", std::ios::in)){
+    throw  "error"; //TODO;
+  }
+
+  std::istream stream(&fb);
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 0);
+  EXPECT_EQ(astStart->pathdef().size(), 1);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int exitCode = std::system((std::string("./") + testFile).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 0);
+}
 TEST(TopLevelVisitor, TestCalcDefCommand){
   const char * testFile = "TestCalcDefCommand.out";
   std::filesystem::remove(testFile);
@@ -122,6 +165,57 @@ TEST(TopLevelVisitor, TestCalcDefCommand){
 
   int exitCode = std::system((std::string("./") + testFile).c_str());
   ASSERT_EQ(WEXITSTATUS(exitCode), 36);
+}
+TEST(TopLevelVisitor, TestCalcDefRecursiv){
+  const char * testFile = "TestCalcDefCommand.out";
+  std::filesystem::remove(testFile);
+
+  std::stringstream stream;
+  stream 
+    << "calculation pascal (pascalNum)" << std::endl
+    << "  if pascalNum = 1 then" << std::endl
+    << "    store i in ret" << std::endl
+    << "  else" << std::endl
+    << "    sub 1 from pascalNum" << std::endl
+    << "    store pascal(pascalNum) + pascal(pascalNum) in ret" << std::endl
+    << "  endif"
+    << "  returns ret" << std::endl //returns 36
+    << "endcalc" << std::endl
+    << "begin\n"
+    << "  finish pascal(1)" << std::endl //output should be 36
+    << "end\n"
+    << std::endl;
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 1);
+  EXPECT_EQ(astStart->pathdef().size(), 0);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int exitCode = std::system((std::string("./") + testFile).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 1);
 }
 
 TEST(TopLevelVisitor, TestVarCommands){
