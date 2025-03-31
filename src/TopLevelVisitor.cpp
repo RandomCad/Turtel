@@ -328,9 +328,10 @@ std::any TopLevelVisitor::visitFuncCall(SceneParser::FuncCallContext *ctx){
 }
 std::any TopLevelVisitor::visitParamlist(SceneParser::ParamlistContext *ctx){
   std::vector<Variable> ret(ctx->var().size());
-  for (auto i : ctx->var()) {
-    ret.push_back(std::any_cast<Variable>(i->accept(this)));
+  for(size_t i = 0; i < ctx->var().size(); ++i){
+    ret[i] = std::any_cast<Variable>(ctx->var()[i]->accept(this));
   }
+  assert(cnt == ctx->var().size());
   return ret;
 }
 

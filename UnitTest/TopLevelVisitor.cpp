@@ -7,6 +7,7 @@
 #include <SDL_stdinc.h>
 #include <SDL_surface.h>
 #include <any>
+#include <cstddef>
 #include <cstdlib>
 #include <ctime>
 #include <filesystem>
@@ -18,6 +19,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_surface.h>
+#include <vector>
 
 #include "UnitTest/TestHelper.h"
 #include "UnitTest/TopLevelVisitor.h"
@@ -33,6 +35,8 @@ std::regex matchPragmaUnrolle = std::regex("\\s*#pragma\\s+unroll\\s*");
 std::regex matchClosingCrlBracket = std::regex("\\s*\\}\\s*");
 std::regex matchFuncHead = std::regex("\\s*\\w+\\s+\\w+\\s*\\(\\s*(\\s*double\\s+__usr_\\w+(,\\s*double\\s+__usr_\\w+)*)?\\)\\s*\\{\\s*$");
 std::regex matchAssigne5 = std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*$");
+
+std::string getRandomID();
 
 bool CheckSurfaceForBlack(SDL_Surface *a){
   for (Uint32 *i = (Uint32*)a->pixels ; i - (Uint32*)a->pixels < a->h *a->w; ++i) if(*i != 0xff000000) return false;
@@ -173,16 +177,16 @@ TEST(TopLevelVisitor, TestCalcDefRecursiv){
   std::stringstream stream;
   stream 
     << "calculation pascal (pascalNum)" << std::endl
-    << "  if pascalNum = 1 then" << std::endl
-    << "    store i in ret" << std::endl
+    << "  if pascalNum <= 1 then" << std::endl
+    << "    store 1 in ret" << std::endl
     << "  else" << std::endl
     << "    sub 1 from pascalNum" << std::endl
-    << "    store pascal(pascalNum) + pascal(pascalNum) in ret" << std::endl
+    << "    store pascal(pascalNum) + pascal(pascalNum - 1) in ret" << std::endl
     << "  endif"
-    << "  returns ret" << std::endl //returns 36
+    << "  returns ret" << std::endl 
     << "endcalc" << std::endl
     << "begin\n"
-    << "  finish pascal(1)" << std::endl //output should be 36
+    << "  finish pascal (1)" << std::endl 
     << "end\n"
     << std::endl;
 
@@ -794,6 +798,30 @@ TEST_F(TopLevelVisitorTest, PathDef){
 
     std::getline(retStream, line);
     ASSERT_TRUE(retStream.eof());
+  }
+}
+TEST_F(TopLevelVisitorTest, ParamList){
+  for(int i = 0; i < TEST_AMMOUNT; ++i){
+    size_t am = rand() % TEST_AMMOUNT;
+    std::vector<std::string> IDs(am);
+    for(size_t i = 0; i < am; ++i) IDs[i] = getRandomID(); 
+    inputStream << '(';
+    for(size_t i = 0; i < am - 1; ++i) inputStream << IDs[i] << ',' ; 
+    inputStream << IDs[am-1] << ')';
+
+    TopLevelVisitorTest::SetupParser();
+
+    auto astStart = parser->paramlist();
+    ASSERT_TRUE(astStart);
+    TopLevelVisitorTest::SetVariables(astStart);
+    ASSERT_EQ(astStart->var().size(), am);
+
+    auto ret = astStart->accept(&toTest);
+
+    ASSERT_EQ(ret.type(), typeid(std::vector<Variable>));
+    std::vector<Variable> retVect = std::any_cast<std::vector<Variable>>(ret);
+    
+    ASSERT_EQ(retVect.size(), am);
   }
 }
 

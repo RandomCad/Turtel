@@ -68,11 +68,11 @@ std::string Function::getFunctionCall(const std::vector<Variable> var){
 std::cerr << __func__ << std::endl;
 #endif  
   if(var.size() != vars.size()){
-    std::cerr << "input length unequal to function length" << std::endl;
+    std::cerr << "input length unequal to function length" << vars.size() << ' ' << var.size() << std::endl;
     throw "input length unequal function length";
   }
   //no the name and the opening '('
-  std::string ret = name + "(";
+  std::string ret = name + '(';
   //add all the variables
   for (auto i : var) {
     ret += i.getName() + ", ";
@@ -83,7 +83,7 @@ std::cerr << __func__ << std::endl;
     ret[ret.size()-1] = ' ';
   }
   else {
-    ret += ")";
+    ret += ')';
   }
   return ret;
 }
