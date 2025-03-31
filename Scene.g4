@@ -110,15 +110,16 @@ cond  : expr '<' expr #lesThan
       ;
 
 ///Math expressions
-expr  : expr '^' expr #Exp
+expr  :
+        expr '^' expr #Exp
       | expr '*' expr #Mult
       | expr '/' expr #Dife
       | expr '-' expr #Dim
       | expr '+' expr #Add
       | '|' expr '|'  #ABS
       | '-' ( number | klamKon | var)   #Negate
-      | ID paramlist  #funcCall
       | klamKon #ClamExpr
+      | ID '(' ( ( expr ',')* expr)?  #funcCall
       | number	      #NumExpr	
       | var	      #VarExpr
       ;

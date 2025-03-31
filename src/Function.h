@@ -26,6 +26,7 @@ class Function{
     std::string getFunctionDeclaration();
     std::string getFunctionCall(const std::vector<Variable> var);
     std::string Implement();
+    std::string getName() { return  name; }
     const std::vector<Variable> getHeaderVars() { return vars; }
     FRIEND_TEST(FunctionHandler, CTor);
 };

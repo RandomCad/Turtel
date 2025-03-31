@@ -50,11 +50,10 @@ TopLevelVisitorTest::TopLevelVisitorTest() :
   toTest(retStream)
 {
   toTest.envVar = std::unordered_map<std::string, Variable>(ENV_VAR);
-  static bool seeded = false;
-  if(!seeded){
-    seeded = true;
-    srand(time(0));
-  }
+  int seed = time(00);
+  RecordProperty("seed", seed);
+  std::cout << "seed: " << seed << "  " << ::testing::UnitTest::GetInstance()->current_test_info()->test_case_name() << std::endl; 
+  srand(seed);
 }
 void TopLevelVisitorTest::SetupParser(){
   input = ANTLRInputStream(inputStream);
@@ -176,17 +175,16 @@ TEST(TopLevelVisitor, TestCalcDefRecursiv){
 
   std::stringstream stream;
   stream 
-    << "calculation pascal (pascalNum)" << std::endl
-    << "  if pascalNum <= 1 then" << std::endl
+    << "calculation fib (f)" << std::endl
+    << "  if s <= 1 then" << std::endl
     << "    store 1 in ret" << std::endl
     << "  else" << std::endl
-    << "    sub 1 from pascalNum" << std::endl
-    << "    store pascal(pascalNum) + pascal(pascalNum - 1) in ret" << std::endl
+    << "    store fib(f - 1) in ret" << std::endl
     << "  endif"
     << "  returns ret" << std::endl 
     << "endcalc" << std::endl
     << "begin\n"
-    << "  finish pascal (1)" << std::endl 
+    << "  finish fib(1)" << std::endl 
     << "end\n"
     << std::endl;
 
