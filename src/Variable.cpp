@@ -6,6 +6,15 @@ std::string Variable::getTypeAndName() const{
   return ret += name;
 }
 
+const std::string Variable::getDefinition(const std::string assigne){
+  if(isDefined) return "";
+  isDefined = true;
+  switch (type) {
+    case DOUBLE: return getTypeAndName() + "=" + assigne + ";\n";
+    default: return getTypeAndName() + ";\n";
+  }
+}
+
 std::string VarTypeNS::getTypeName(VarType type){
   switch (type) {
     case CONST_CHAR_PTR:return "const char * ";

@@ -67,7 +67,7 @@ TopLevelVisitorTest::~TopLevelVisitorTest() {
   delete parser;
 }
 void TopLevelVisitorTest::SetVariables(antlr4::ParserRuleContext *a){
-  toTest.ctxVar = VarVisitor().getVariableContext(a);
+  toTest.ctxVar = VarVisitor().getVariableContext(a, {{}});
 }
 void TopLevelVisitorTest::SetInfLoopFlag(int a){
   toTest.infinitLoopFlag = a;
@@ -733,7 +733,7 @@ TEST_F(TopLevelVisitorTest, PathDef){
     std::getline(retStream, line);
     ASSERT_REGEX(line, matchFuncHead);
 
-    for (int i = 0; i < 5; i++){
+    for (int i = 0; i < 3; i++){
       std::getline(retStream, line);
       ASSERT_REGEX(line, std::regex("\\s*double\\s+__usr_\\w+\\s*=\\s*0\\s*;\\s*$"));
     }
