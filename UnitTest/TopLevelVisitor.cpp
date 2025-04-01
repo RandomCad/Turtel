@@ -215,12 +215,13 @@ TEST(TopLevelVisitor, TestCalcDefRecursiv){
   test.llvm.CallLLVM();
   
   ASSERT_TRUE(std::filesystem::exists(testFile));
-
-  int exitCode = std::system((std::string("./") + testFile + " 1").c_str());
-  ASSERT_EQ(WEXITSTATUS(exitCode), 1);
-
-  exitCode = std::system((std::string("./") + testFile + " 2").c_str());
-  ASSERT_EQ(WEXITSTATUS(exitCode), 2);
+  for(size_t i = 1, a = 1, b = 1; i < 12; i++){
+    int exitCode = std::system((std::string("./") + testFile + ' ' + std::to_string(i)).c_str());
+    ASSERT_EQ(WEXITSTATUS(exitCode), a) << "on sicel " << i;
+    size_t zwi = a;
+    a += b;
+    b = zwi;
+  }
 }
 
 TEST(TopLevelVisitor, TestVarCommands){
