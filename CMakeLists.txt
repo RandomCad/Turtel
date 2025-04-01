@@ -90,6 +90,7 @@ else()
     clangFrontend 
     clangFrontendTool 
     clangSerialization
+  )
 endif()
 
 #---------------------------------------#
