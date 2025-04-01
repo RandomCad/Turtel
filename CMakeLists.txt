@@ -53,51 +53,32 @@ include_directories(${PROJECT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libs )
 #---------------------------------------#
 #             LLVM - CLANG              #
 #---------------------------------------#
-if(EXISTS "/etc/fedora-release")
-  find_package(LLVM REQUIRED CONFIG)
-  find_package(Clang REQUIRED CONFIG)
-  message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-  message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-  message(STATUS "Using CLANG dir in: ${CLANG_INCLUDE_DIRS}")
-  include_directories(${LLVM_INCLUDE_DIRS})
-  include_directories(${CLANG_INCLUDE_DIRS})
-  add_definitions(${LLVM_DEFINITIONS})
-  separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-  add_definitions(${LLVM_DEFINITIONS_LIST})
-elseif(EXISTS "/etc/gentoo-release")
-  find_package(LLVM REQUIRED CONFIG)
-  find_package(Clang REQUIRED CONFIG)
-  message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-  message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-  message(STATUS "Using CLANG dir in: ${CLANG_INCLUDE_DIRS}")
-  include_directories(${LLVM_INCLUDE_DIRS})
-  include_directories(${CLANG_INCLUDE_DIRS})
-  add_definitions(${LLVM_DEFINITIONS})
-  separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-  add_definitions(${LLVM_DEFINITIONS_LIST})
-else()
-  find_package(LLVM REQUIRED CONFIG)
-  find_package(Clang REQUIRED CONFIG)
-  message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-  message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-  message(STATUS "Using CLANG dir in: ${CLANG_INCLUDE_DIRS}")
-  include_directories(${LLVM_INCLUDE_DIRS})
-  include_directories(${CLANG_INCLUDE_DIRS})
-  add_definitions(${LLVM_DEFINITIONS})
-  separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-  add_definitions(${LLVM_DEFINITIONS_LIST})
-endif()
+find_package(LLVM REQUIRED CONFIG)
+find_package(Clang REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+message(STATUS "Using CLANG dir in: ${CLANG_INCLUDE_DIRS}")
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${CLANG_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS_LIST})
 
 #LLVM libs
 # Find the libraries that correspond to the LLVM components
 # that we wish to use
 llvm_map_components_to_libnames(llvm_libs support core irreader)
-
-# Creat llvm-libs
-SET(LLVM_LIBS 
-  clang-cpp
-  LLVM
+if(EXISTS "/etc/fedora-release")
+  # Creat llvm-libs
+  SET(LLVM_LIBS 
+    clang-cpp
+    LLVM
   ) 
+elseif(EXISTS "/etc/gentoo-release")
+  
+else()
+  
+endif()
 
 #---------------------------------------#
 #            Turtel Programm            #
