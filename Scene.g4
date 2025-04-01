@@ -119,7 +119,7 @@ expr  :
       | '|' expr '|'  #ABS
       | '-' ( number | klamKon | var)   #Negate
       | klamKon #ClamExpr
-      | ID '(' ( ( expr ',')* expr)?  #funcCall
+      | ID '(' ( ( expr ',')* expr)? ')'  #funcCall
       | number	      #NumExpr	
       | var	      #VarExpr
       ;
