@@ -11,32 +11,28 @@
 Function::Function(const std::string nm, VarType retT, SceneParser::PathdefContext *CTX) 
       : retType(retT), name(nm), ctx(CTX) {
   if(!CTX->paramlist()){
-    varCtx = VarVisitor().getVariableContext(CTX->statList());
     return;
   }
   vars.reserve(CTX->paramlist()->var().size());
   for (auto i : CTX->paramlist()->var()) {
     std::string nm = i->children[0]->getText();
     Variable nw(VarType::DOUBLE, "__usr_func_" + nm);
-    vars.push_back(nw);
-    varCtx.insert({nm, nw});
+    nw.isDefined = true;
+    vars.push_back({nm,nw});
   }
-  varCtx.merge(VarVisitor().getVariableContext(CTX->statList()));
 }
 Function::Function(const std::string nm, VarType retT, SceneParser::CalcdefContext *CTX) 
       : retType(retT), name(nm), ctx(CTX) {
   if(!CTX->paramlist()){
-    varCtx = VarVisitor().getVariableContext(CTX->statList());
     return;
   }
   vars.reserve(CTX->paramlist()->var().size());
   for (auto i : CTX->paramlist()->var()) {
     std::string nm = i->children[0]->getText();
     Variable nw(VarType::DOUBLE, "__usr_func_" + nm);
-    vars.push_back(nw);
-    varCtx.insert({nm, nw});
+    nw.isDefined = true;
+    vars.push_back({nm,nw});
   }
-  varCtx.merge(VarVisitor().getVariableContext(CTX->statList()));
 }
 Function::Function(const std::string nm, VarType retT, SceneParser::MainContext *CTX) 
       : retType(retT), name(nm), ctx(CTX) {
@@ -49,7 +45,7 @@ std::string Function::getFunctionDeclaration(){
   ret += name + "(";
   //add all the variables
   for (auto i : vars) {
-    ret += i.getTypeAndName() + ", ";
+    ret += i.second.getTypeAndName() + ", ";
   }
   if(vars.size() > 0){
     //add the ')' and the ';'
@@ -68,11 +64,11 @@ std::string Function::getFunctionCall(const std::vector<Variable> var){
 std::cerr << __func__ << std::endl;
 #endif  
   if(var.size() != vars.size()){
-    std::cerr << "input length unequal to function length" << std::endl;
+    std::cerr << "input length unequal to function length" << vars.size() << ' ' << var.size() << std::endl;
     throw "input length unequal function length";
   }
   //no the name and the opening '('
-  std::string ret = name + "(";
+  std::string ret = name + '(';
   //add all the variables
   for (auto i : var) {
     ret += i.getName() + ", ";
@@ -83,7 +79,7 @@ std::cerr << __func__ << std::endl;
     ret[ret.size()-1] = ' ';
   }
   else {
-    ret += ")";
+    ret += ')';
   }
   return ret;
 }
@@ -94,7 +90,7 @@ std::string Function::Implement(){
   ret += name;
   ret += "(";
   for (auto i : vars) {
-    ret += i.getTypeAndName() + ", ";
+    ret += i.second.getTypeAndName() + ", ";
   }
   if(vars.size() > 0){
     ret[ret.size() - 2] = ')';

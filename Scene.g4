@@ -36,8 +36,7 @@ file  : (pathdef | calcdef)* main (pathdef |calcdef)*;
 main    : Begin statList End;
 pathdef : 'path' ID paramlist? statList 'endpath' ;
 calcdef : 'calculation' ID  paramlist statList 'returns' expr 'endcalc' ;
-paramlist : '(' (var ',')* var ')'
-          | '(' ')'
+paramlist : '(' ( (var ',')* var )? ')'
           ;
 statList  : stat* ;
 
@@ -111,7 +110,8 @@ cond  : expr '<' expr #lesThan
       ;
 
 ///Math expressions
-expr  : expr '^' expr #Exp
+expr  :
+        expr '^' expr #Exp
       | expr '*' expr #Mult
       | expr '/' expr #Dife
       | expr '-' expr #Dim
@@ -119,9 +119,9 @@ expr  : expr '^' expr #Exp
       | '|' expr '|'  #ABS
       | '-' ( number | klamKon | var)   #Negate
       | klamKon #ClamExpr
+      | ID '(' ( ( expr ',')* expr)? ')'  #funcCall
       | number	      #NumExpr	
       | var	      #VarExpr
-      | ID paramlist  #funcCall
       ;
 klamKon	: '(' expr ')' ;
 number: Num     #Int

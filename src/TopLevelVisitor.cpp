@@ -107,7 +107,7 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     ;
 
   for (auto i : envVar){
-    output << i.second.getTypeAndName() << ";\n";
+    output << i.second.getDefinition();
   }
 
   output
@@ -246,18 +246,10 @@ std::any TopLevelVisitor::visitMain(SceneParser::MainContext *ctx){
     << funcs.at(MAIN_FUNC).Implement()
     << std::endl
     ;
-  ctxVar = VarVisitor().getVariableContext(ctx); 
+  ctxVar = VarVisitor().getVariableContext(ctx, {}); 
   ///define all the Variables
   for (auto i : ctxVar) {
-    output << i.second.getTypeAndName();
-    bool isHeaderDefine = false;
-    for (auto j : funcs.at(MAIN_FUNC).getHeaderVars()) {
-      if(i.second.name == j.name){
-        isHeaderDefine = true;
-        output << " = " << j.getName() << " ;\n";
-      }
-    }
-    if (!isHeaderDefine) output << " = 0;\n";
+    output << i.second.getDefinition();
   }
   ///implement all the commands
   ctx->statList()->accept(this);
@@ -271,18 +263,10 @@ std::any TopLevelVisitor::visitCalcdef(SceneParser::CalcdefContext *ctx) {
     << funcs.at(ctx->ID()->getText()).Implement()
     << std::endl
     ;
-  ctxVar = VarVisitor().getVariableContext(ctx); 
+  ctxVar = VarVisitor().getVariableContext(ctx,funcs.at(ctx->ID()->getText()).getHeaderVars()); 
   ///define all the Variables
   for (auto i : ctxVar) {
-    output << i.second.getTypeAndName();
-    bool isHeaderDefine = false;
-    for (auto j : funcs.at(ctx->ID()->getText()).getHeaderVars()) {
-      if(i.second.name == j.name){
-        isHeaderDefine = true;
-        output << " = " << j.getName() << " ;\n";
-      }
-    }
-    if (!isHeaderDefine) output << " = 0;\n";
+    output << i.second.getDefinition("0");
   }
   ///implement all the commands
   ctx->statList()->accept(this);
@@ -298,18 +282,10 @@ std::any TopLevelVisitor::visitPathdef(SceneParser::PathdefContext *ctx){
     << funcs.at(ctx->ID()->getText()).Implement()
     << std::endl
     ;
-  ctxVar = VarVisitor().getVariableContext(ctx); 
+  ctxVar = VarVisitor().getVariableContext(ctx, funcs.at(ctx->ID()->getText()).getHeaderVars()); 
   ///define all the Variables
   for (auto i : ctxVar) {
-    output << i.second.getTypeAndName();
-    bool isHeaderDefine = false;
-    for (auto j : funcs.at(ctx->ID()->getText()).getHeaderVars()) {
-      if(i.second.name == j.name){
-        isHeaderDefine = true;
-        output << " = " << j.getName() << " ;\n";
-      }
-    }
-    if (!isHeaderDefine) output << " = 0;\n";
+    output << i.second.getDefinition("0");
   }
   ///implement all the commands
   ctx->statList()->accept(this);
@@ -319,18 +295,26 @@ std::any TopLevelVisitor::visitPathdef(SceneParser::PathdefContext *ctx){
 } 
 
 std::any TopLevelVisitor::visitFuncCall(SceneParser::FuncCallContext *ctx){
+  std::cerr << __func__ << std::endl;
   std::string funcName = ctx->ID()->getText();
   if(!funcs.contains(funcName)){
     std::cout << "using function " << funcName << " which wasn't defined in the file" << std::endl;
     throw "Error"; //TODO;
   }
-  return funcs.at(funcName).getFunctionCall(std::any_cast<std::vector<Variable>>(ctx->paramlist()->accept(this)));
+  std::string ret = funcs.at(funcName).getName() + '(';
+  for (auto i : ctx->expr()) {
+    ret += UnwrapExpre(i) + ',';
+  }
+  if(ctx->expr().size() > 0) ret[ret.size() - 1] = ')';
+  else ret += ')';
+  return ret;
 }
 std::any TopLevelVisitor::visitParamlist(SceneParser::ParamlistContext *ctx){
   std::vector<Variable> ret(ctx->var().size());
-  for (auto i : ctx->var()) {
-    ret.push_back(std::any_cast<Variable>(i->accept(this)));
+  for(size_t i = 0; i < ctx->var().size(); ++i){
+    ret[i] = std::any_cast<Variable>(ctx->var()[i]->accept(this));
   }
+  assert(cnt == ctx->var().size());
   return ret;
 }
 

@@ -4,7 +4,6 @@
 TEST(Variable, TestGetName){
   Variable toTest(VarType::DOUBLE, "test");
 
-  EXPECT_FALSE(toTest.isUnique);
   EXPECT_EQ(toTest.type, VarType::DOUBLE);
   EXPECT_EQ(toTest.name, "test");
 
@@ -15,7 +14,6 @@ TEST(Variable, TestGetNameAndType){
   {
     Variable toTest(VarType::DOUBLE, "test");
 
-    EXPECT_FALSE(toTest.isUnique);
     EXPECT_EQ(toTest.type, VarType::DOUBLE);
     EXPECT_EQ(toTest.name, "test");
     EXPECT_EQ(toTest.getName(), "test");
@@ -25,7 +23,6 @@ TEST(Variable, TestGetNameAndType){
   {
     Variable toTest(VarType::CONST_DOUBLE, "test");
 
-    EXPECT_FALSE(toTest.isUnique);
     EXPECT_EQ(toTest.type, VarType::CONST_DOUBLE);
     EXPECT_EQ(toTest.name, "test");
     EXPECT_EQ(toTest.getName(), "test");

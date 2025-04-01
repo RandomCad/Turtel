@@ -7,9 +7,11 @@
 #include <SDL_stdinc.h>
 #include <SDL_surface.h>
 #include <any>
+#include <cstddef>
 #include <cstdlib>
 #include <ctime>
 #include <filesystem>
+#include <ostream>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -17,6 +19,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_surface.h>
+#include <vector>
 
 #include "UnitTest/TestHelper.h"
 #include "UnitTest/TopLevelVisitor.h"
@@ -33,6 +36,8 @@ std::regex matchClosingCrlBracket = std::regex("\\s*\\}\\s*");
 std::regex matchFuncHead = std::regex("\\s*\\w+\\s+\\w+\\s*\\(\\s*(\\s*double\\s+__usr_\\w+(,\\s*double\\s+__usr_\\w+)*)?\\)\\s*\\{\\s*$");
 std::regex matchAssigne5 = std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*$");
 
+std::string getRandomID();
+
 bool CheckSurfaceForBlack(SDL_Surface *a){
   for (Uint32 *i = (Uint32*)a->pixels ; i - (Uint32*)a->pixels < a->h *a->w; ++i) if(*i != 0xff000000) return false;
   return true;
@@ -45,11 +50,10 @@ TopLevelVisitorTest::TopLevelVisitorTest() :
   toTest(retStream)
 {
   toTest.envVar = std::unordered_map<std::string, Variable>(ENV_VAR);
-  static bool seeded = false;
-  if(!seeded){
-    seeded = true;
-    srand(time(0));
-  }
+  int seed = time(00);
+  RecordProperty("seed", seed);
+  std::cout << "seed: " << seed << "  " << ::testing::UnitTest::GetInstance()->current_test_info()->name() << std::endl; 
+  srand(seed);
 }
 void TopLevelVisitorTest::SetupParser(){
   input = ANTLRInputStream(inputStream);
@@ -63,7 +67,7 @@ TopLevelVisitorTest::~TopLevelVisitorTest() {
   delete parser;
 }
 void TopLevelVisitorTest::SetVariables(antlr4::ParserRuleContext *a){
-  toTest.ctxVar = VarVisitor().getVariableContext(a);
+  toTest.ctxVar = VarVisitor().getVariableContext(a, {{}});
 }
 void TopLevelVisitorTest::SetInfLoopFlag(int a){
   toTest.infinitLoopFlag = a;
@@ -71,6 +75,48 @@ void TopLevelVisitorTest::SetInfLoopFlag(int a){
 
 using  namespace antlr4;
 
+TEST(TopLevelVisitor, TestCircleTG){
+  const char * testFile = "Circle.out";
+  std::filesystem::remove(testFile);
+
+  std::filebuf fb;
+  if(!fb.open("./TestData/circle.tg", std::ios::in)){
+    throw  "error"; //TODO;
+  }
+
+  std::istream stream(&fb);
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 0);
+  EXPECT_EQ(astStart->pathdef().size(), 1);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int exitCode = std::system((std::string("./") + testFile).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 0);
+}
 TEST(TopLevelVisitor, TestCalcDefCommand){
   const char * testFile = "TestCalcDefCommand.out";
   std::filesystem::remove(testFile);
@@ -122,6 +168,60 @@ TEST(TopLevelVisitor, TestCalcDefCommand){
 
   int exitCode = std::system((std::string("./") + testFile).c_str());
   ASSERT_EQ(WEXITSTATUS(exitCode), 36);
+}
+TEST(TopLevelVisitor, TestCalcDefRecursiv){
+  const char * testFile = "TestCalcDefCommand.out";
+  std::filesystem::remove(testFile);
+
+  std::stringstream stream;
+  stream 
+    << "calculation fib (f)" << std::endl
+    << "  if f <= 1 then" << std::endl
+    << "    store 1 in ret" << std::endl
+    << "  else" << std::endl
+    << "    store fib(f - 1) + fib(f - 2) in ret" << std::endl
+    << "  endif"
+    << "  returns ret" << std::endl 
+    << "endcalc" << std::endl
+    << "begin\n"
+    << "  finish fib(@0)" << std::endl 
+    << "end\n"
+    << std::endl;
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 1);
+  EXPECT_EQ(astStart->pathdef().size(), 0);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+  for(size_t i = 1, a = 1, b = 1; i < 12; i++){
+    int exitCode = std::system((std::string("./") + testFile + ' ' + std::to_string(i)).c_str());
+    ASSERT_EQ(WEXITSTATUS(exitCode), a) << "on sicel " << i;
+    size_t zwi = a;
+    a += b;
+    b = zwi;
+  }
 }
 
 TEST(TopLevelVisitor, TestVarCommands){
@@ -634,7 +734,7 @@ TEST_F(TopLevelVisitorTest, PathDef){
     std::getline(retStream, line);
     ASSERT_REGEX(line, matchFuncHead);
 
-    for (int i = 0; i < 5; i++){
+    for (int i = 0; i < 3; i++){
       std::getline(retStream, line);
       ASSERT_REGEX(line, std::regex("\\s*double\\s+__usr_\\w+\\s*=\\s*0\\s*;\\s*$"));
     }
@@ -700,6 +800,30 @@ TEST_F(TopLevelVisitorTest, PathDef){
 
     std::getline(retStream, line);
     ASSERT_TRUE(retStream.eof());
+  }
+}
+TEST_F(TopLevelVisitorTest, ParamList){
+  for(int i = 0; i < TEST_AMMOUNT; ++i){
+    size_t am = rand() % TEST_AMMOUNT;
+    std::vector<std::string> IDs(am);
+    for(size_t i = 0; i < am; ++i) IDs[i] = getRandomID(); 
+    inputStream << '(';
+    for(size_t i = 0; i < am - 1; ++i) inputStream << IDs[i] << ',' ; 
+    inputStream << IDs[am-1] << ')';
+
+    TopLevelVisitorTest::SetupParser();
+
+    auto astStart = parser->paramlist();
+    ASSERT_TRUE(astStart);
+    TopLevelVisitorTest::SetVariables(astStart);
+    ASSERT_EQ(astStart->var().size(), am);
+
+    auto ret = astStart->accept(&toTest);
+
+    ASSERT_EQ(ret.type(), typeid(std::vector<Variable>));
+    std::vector<Variable> retVect = std::any_cast<std::vector<Variable>>(ret);
+    
+    ASSERT_EQ(retVect.size(), am);
   }
 }
 

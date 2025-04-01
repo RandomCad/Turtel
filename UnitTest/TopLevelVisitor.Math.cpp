@@ -9,6 +9,7 @@
 #include <ctime>
 #include <iomanip>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <cmath>
 
@@ -1634,6 +1635,62 @@ TEST_F(TopLevelVisitorTest, ExprNumExpNegNum){
 
     ASSERT_EQ(ret.type(), typeid(double));
     ASSERT_DOUBLE_EQ(std::any_cast<double>(ret), std::pow(ID1,-ID2));
+  }
+}
+
+TEST_F(TopLevelVisitorTest, ExprFunc){
+  for(int i = 0; i < TEST_AMMOUNT; ++i){
+    std::string funcID = getRandomID();
+    inputStream
+      << funcID << "()"
+      ;
+
+    std::stringstream stream;
+    stream << "calculation " << funcID << "() returns 0 endcalc" << std::endl;
+
+    antlr4::ANTLRInputStream input1(stream);
+    SceneLexer lexer1(&input1);
+    antlr4::CommonTokenStream tokens1(&lexer1);
+    SceneParser parser1(&tokens1);    
+
+    TopLevelVisitorTest::SetupParser();
+    TopLevelVisitorTest::SetFunction({{funcID, Function(funcID, VarType::DOUBLE, parser1.calcdef())}});
+
+    auto astStart = parser->expr();
+    ASSERT_TRUE(astStart);
+
+    TopLevelVisitorTest::SetVariables(astStart);
+    std::any ret = astStart->accept(&toTest);
+
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    ASSERT_REGEX(std::any_cast<std::string>(ret), std::regex("\\w+\\(\\)\\s*"));
+  }
+  for(int i = 0; i < TEST_AMMOUNT; ++i){
+    std::string funcID = getRandomID();
+    std::string varID = getRandomID();
+    inputStream
+      << funcID << '(' << varID << ')'
+      ;
+
+    std::stringstream stream;
+    stream << "calculation " << funcID << '(' << varID << ") returns 0 endcalc" << std::endl;
+
+    antlr4::ANTLRInputStream input1(stream);
+    SceneLexer lexer1(&input1);
+    antlr4::CommonTokenStream tokens1(&lexer1);
+    SceneParser parser1(&tokens1);    
+
+    TopLevelVisitorTest::SetupParser();
+    TopLevelVisitorTest::SetFunction({{funcID, Function(funcID, VarType::DOUBLE, parser1.calcdef())}});
+
+    auto astStart = parser->expr();
+    ASSERT_TRUE(astStart);
+
+    TopLevelVisitorTest::SetVariables(astStart);
+    std::any ret = astStart->accept(&toTest);
+
+    ASSERT_EQ(ret.type(), typeid(std::string));
+    ASSERT_REGEX(std::any_cast<std::string>(ret), std::regex("\\w+\\(\\s*\\w+\\s*\\)\\s*"));
   }
 }
 
