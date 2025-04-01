@@ -176,15 +176,15 @@ TEST(TopLevelVisitor, TestCalcDefRecursiv){
   std::stringstream stream;
   stream 
     << "calculation fib (f)" << std::endl
-    << "  if s <= 1 then" << std::endl
+    << "  if f <= 1 then" << std::endl
     << "    store 1 in ret" << std::endl
     << "  else" << std::endl
-    << "    store fib(f - 1) in ret" << std::endl
+    << "    store fib(f - 1) + fib(f - 2) in ret" << std::endl
     << "  endif"
     << "  returns ret" << std::endl 
     << "endcalc" << std::endl
     << "begin\n"
-    << "  finish fib(1)" << std::endl 
+    << "  finish fib(@0)" << std::endl 
     << "end\n"
     << std::endl;
 
@@ -216,8 +216,11 @@ TEST(TopLevelVisitor, TestCalcDefRecursiv){
   
   ASSERT_TRUE(std::filesystem::exists(testFile));
 
-  int exitCode = std::system((std::string("./") + testFile).c_str());
+  int exitCode = std::system((std::string("./") + testFile + " 1").c_str());
   ASSERT_EQ(WEXITSTATUS(exitCode), 1);
+
+  exitCode = std::system((std::string("./") + testFile + " 2").c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 2);
 }
 
 TEST(TopLevelVisitor, TestVarCommands){
