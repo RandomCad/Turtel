@@ -52,7 +52,7 @@ TopLevelVisitorTest::TopLevelVisitorTest() :
   toTest.envVar = std::unordered_map<std::string, Variable>(ENV_VAR);
   int seed = time(00);
   RecordProperty("seed", seed);
-  std::cout << "seed: " << seed << "  " << ::testing::UnitTest::GetInstance()->current_test_info()->test_case_name() << std::endl; 
+  std::cout << "seed: " << seed << "  " << ::testing::UnitTest::GetInstance()->current_test_info()->name() << std::endl; 
   srand(seed);
 }
 void TopLevelVisitorTest::SetupParser(){
