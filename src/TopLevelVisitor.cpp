@@ -338,9 +338,9 @@ std::any TopLevelVisitor::visitPathdef(SceneParser::PathdefContext *ctx){
 } 
 
 /**
- * @brief Visits the function call context and generates the function call code.
+ * @brief Visits the calc function call context and generates the calc function call code.
  * 
- * This function generates the function call code for a given function name and input variables.
+ * This function generates the calc function call code for a given calc function name and input variables.
  * 
  * @param ctx The function call context to visit.
  * @return The function call code as a string.
@@ -360,6 +360,15 @@ std::any TopLevelVisitor::visitFuncCall(SceneParser::FuncCallContext *ctx){
   else ret += ')';
   return ret;
 }
+
+/**
+ * @brief Visits the path function call context and generates the path function call code.
+ * 
+ * This function generates the path function call code for a given path function name and input variables.
+ * 
+ * @param ctx The function call context to visit.
+ * @return The function call code as a string.
+ */
 std::any TopLevelVisitor::visitPathCall(SceneParser::PathCallContext *ctx){
   std::cerr << __func__ << std::endl;
   std::string funcName = ctx->ID()->getText();
@@ -590,6 +599,7 @@ std::any TopLevelVisitor::visitDoUntil(SceneParser::DoUntilContext *ctx){
  * @brief Visits the to-for context and generates the for loop code.
  * 
  * This function generates the for loop code for a given range.
+ * If the number of loops is known, unrolling hints are generated.
  * 
  * @param ctx The to-for context to visit.
  * @return An empty std::any object.
@@ -615,6 +625,7 @@ std::any TopLevelVisitor::visitToFor(SceneParser::ToForContext *ctx) { //TODO ca
  * @brief Visits the simple up-for context and generates the for loop code.
  * 
  * This function generates the for loop code for a simple incrementing range.
+ * If the number of loops is known, unrolling hints are generated.
  * 
  * @param ctx The simple up-for context to visit.
  * @return An empty std::any object.
@@ -656,6 +667,7 @@ std::any TopLevelVisitor::visitSimpUpFor(SceneParser::SimpUpForContext *ctx){
  * @brief Visits the simple down-for context and generates the for loop code.
  * 
  * This function generates the for loop code for a simple decrementing range.
+ * If the number of loops is known, unrolling hints are generated.
  * 
  * @param ctx The simple down-for context to visit.
  * @return An empty std::any object.
@@ -694,6 +706,7 @@ std::any TopLevelVisitor::visitSimpDownFor(SceneParser::SimpDownForContext *ctx)
  * @brief Visits the step down-for context and generates the for loop code.
  * 
  * This function generates the for loop code for a decrementing range with a step value.
+ * If the number of loops is known, unrolling hints are generated.
  * 
  * @param ctx The step down-for context to visit.
  * @return An empty std::any object.
@@ -736,6 +749,7 @@ std::any TopLevelVisitor::visitStepDownFor(SceneParser::StepDownForContext *ctx)
  * @brief Visits the step up-for context and generates the for loop code.
  * 
  * This function generates the for loop code for an incrementing range with a step value.
+ * If the number of loops is known, unrolling hints are generated.
  * 
  * @param ctx The step up-for context to visit.
  * @return An empty std::any object.
@@ -920,7 +934,7 @@ std::any TopLevelVisitor::visitMultVar(SceneParser::MultVarContext *ctx){
 /**
  * @brief Visits the finish error context and generates the finish error code.
  * 
- * This function generates the code to finish the program with an error.
+ * This function generates the code to finish the program with an error code.
  * 
  * @param ctx The finish error context to visit.
  * @return An empty std::any object.
@@ -965,7 +979,7 @@ std::any TopLevelVisitor::visitStopOK(SceneParser::StopOKContext *ctx){
 /**
  * @brief Visits the stop error context and generates the stop error code.
  * 
- * This function generates the code to stop the program with an error.
+ * This function generates the code to stop the program with an error code.
  * 
  * @param ctx The stop error context to visit.
  * @return An empty std::any object.
@@ -1118,11 +1132,6 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
   << ";\n"
 
 /**
- *Expected output:
- *SDL_RenderDrawLine(@renderVar, @x, @y, @x + divx, @y + divy
- * */
-
-/**
  * @brief Visits the walk front context and generates the walk front code.
  * 
  * This function generates the code to walk forward.
@@ -1207,7 +1216,7 @@ std::any TopLevelVisitor::visitJumpBack(SceneParser::JumpBackContext *ctx){
 /**
  * @brief Visits the save context and generates the save code.
  * 
- * This function generates the code to save the current state.
+ * This function generates the code to save the current state of the UI to a file.
  * 
  * @param ctx The save context to visit.
  * @return An empty std::any object.
@@ -1590,42 +1599,6 @@ std::any TopLevelVisitor::visitNegate(SceneParser::NegateContext *ctx){
 std::any TopLevelVisitor::visitNumExpr(SceneParser::NumExprContext *ctx){
   std::cout << __func__ << std::endl;
   return ctx->number()->accept(this);
-}
-
-/**
- * Adds two values together.
- * Handles numbers and strings with various combinations.
- * 
- * @param ctx Context for the addition expression.
- * @return Result of the addition as std::any.
- * @throws std::runtime_error if the type combination is not supported.
- */
-std::any TopLevelVisitor::visitAdd(SceneParser::AddContext *ctx){
-  std::cout << __func__ << std::endl;
-  std::any left = ctx->children[0]->accept(this);
-  std::any reigth = ctx->children[2]->accept(this);
-
-  if(left.type() == typeid(std::string) && reigth.type() == typeid(std::string))
-    return std::any_cast<std::string>(left) + '+' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(int64_t))
-    return std::any_cast<std::string>(left) + '+' + std::to_string(std::any_cast<int64_t>(reigth));
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(double))
-    return std::any_cast<std::string>(left) + '+' + std::to_string(std::any_cast<double>(reigth));
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<int64_t>(left)) + '+' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<double>(left)) + '+' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(int64_t))
-    return std::any_cast<int64_t>(left) + std::any_cast<int64_t>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(int64_t))
-    return std::any_cast<double>(left) + std::any_cast<int64_t>(reigth);
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(double))
-    return std::any_cast<int64_t>(left) + std::any_cast<double>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(double))
-    return std::any_cast<double>(left) + std::any_cast<double>(reigth);
-  else{
-    throw std::runtime_error("todo:"); //TODO:
-  }
 }
 
 /**
