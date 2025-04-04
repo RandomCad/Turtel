@@ -129,6 +129,8 @@ number: Num     #Int
       ; 
 var   : ID        #Variable
       | '@pi'     #piVar
+      | '@max_x'  #MaxX
+      | '@max_y'  #MaxY
       | CliID     #CLI
       | IncID     #GlobalVariable
       ;

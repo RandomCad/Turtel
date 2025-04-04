@@ -664,6 +664,12 @@ std::any TopLevelVisitor::visitVariable(SceneParser::VariableContext *ctx){
 std::any TopLevelVisitor::visitPiVar(SceneParser::PiVarContext *ctx){
   return (double)M_PI;
 }
+std::any TopLevelVisitor::visitMaxX(SceneParser::MaxXContext *ctx){
+  return std::string("(" + envVar.at(WINDOW_X).getName() + "/2)");
+}
+std::any TopLevelVisitor::visitMaxY(SceneParser::MaxYContext *ctx) {
+  return std::string("(" + envVar.at(WINDOW_Y).getName() + "/2)");
+}
 std::any TopLevelVisitor::visitCLI(SceneParser::CLIContext *ctx){
   std::string num = ctx->CliID()->getText();
   num[0] = '0';

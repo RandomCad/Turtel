@@ -132,6 +132,8 @@ class TopLevelVisitor : public SceneBaseVisitor{
     ///\return The string of the variable
     std::any visitVariable(SceneParser::VariableContext *ctx) override;
     std::any visitPiVar(SceneParser::PiVarContext *ctx) override;
+    std::any visitMaxX(SceneParser::MaxXContext *ctx) override;
+    std::any visitMaxY(SceneParser::MaxYContext *ctx) override;
     std::any visitCLI(SceneParser::CLIContext *ctx) override;
     
     ///\return The string of the variable
