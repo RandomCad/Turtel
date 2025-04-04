@@ -94,7 +94,7 @@ mark      : Mark;
 walkMark  : Walk Mark;
 jumpMark  : Jump Mark;
 colorCmd  : Color expr expr expr;
-pathCall  : 'path' ID paramlist? ;
+pathCall  : 'path' ID ( '(' ( ( expr ',')* expr)? ')' )? ;
 
 ///conditions (if)
 cond  : expr '<' expr #lesThan
@@ -129,6 +129,8 @@ number: Num     #Int
       ; 
 var   : ID        #Variable
       | '@pi'     #piVar
+      | '@max_x'  #MaxX
+      | '@max_y'  #MaxY
       | CliID     #CLI
       | IncID     #GlobalVariable
       ;

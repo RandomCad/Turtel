@@ -75,12 +75,12 @@ void TopLevelVisitorTest::SetInfLoopFlag(int a){
 
 using  namespace antlr4;
 
-TEST(TopLevelVisitor, TestCircleTG){
+TEST(TopLevelVisitor, TestCircleTG2){
   const char * testFile = "Circle.out";
   std::filesystem::remove(testFile);
 
   std::filebuf fb;
-  if(!fb.open("./TestData/circle.tg", std::ios::in)){
+  if(!fb.open("./TestData/circle.tg2", std::ios::in)){
     throw  "error"; //TODO;
   }
 
@@ -116,6 +116,16 @@ TEST(TopLevelVisitor, TestCircleTG){
 
   int exitCode = std::system((std::string("./") + testFile).c_str());
   ASSERT_EQ(WEXITSTATUS(exitCode), 0);
+
+  {
+    std::string pngTest1 = std::string("./circle.png");
+    ASSERT_TRUE(std::filesystem::exists(pngTest1));
+
+    SDL_Surface *a = IMG_Load(pngTest1.c_str());
+
+    ASSERT_EQ(a->format->BytesPerPixel, 4);
+    ASSERT_FALSE(CheckSurfaceForBlack(a));
+  }
 }
 TEST(TopLevelVisitor, TestCalcDefCommand){
   const char * testFile = "TestCalcDefCommand.out";
@@ -903,6 +913,65 @@ TEST_F(TopLevelVisitorTest, Save){
   std::cerr << line << std::endl;
   ASSERT_TRUE(retStream.eof());
   ASSERT_STREQ(line.c_str(), "");
+}
+
+TEST_F(TopLevelVisitorTest, CallPath){
+  for(int i = 0; i < TEST_AMMOUNT; ++i){
+    std::string funcID = getRandomID();
+    inputStream
+      << "path " << funcID
+      ;
+
+    std::stringstream stream;
+    stream << "path " << funcID << " endpath" << std::endl;
+
+    antlr4::ANTLRInputStream input1(stream);
+    SceneLexer lexer1(&input1);
+    antlr4::CommonTokenStream tokens1(&lexer1);
+    SceneParser parser1(&tokens1);    
+
+    TopLevelVisitorTest::SetupParser();
+    TopLevelVisitorTest::SetFunction({{funcID, Function(funcID, VarType::VOID, parser1.pathdef())}});
+
+    auto astStart = parser->pathCall();
+    ASSERT_TRUE(astStart);
+
+    TopLevelVisitorTest::SetVariables(astStart);
+
+    std::any ret = astStart->accept(&toTest);
+
+    std::string line;
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*\\(\\s*\\)\\s*;\\s*$"));
+  }
+  for(int i = 0; i < TEST_AMMOUNT; ++i){
+    std::string funcID = getRandomID();
+    std::string varID = getRandomID();
+    inputStream
+      << "path " << funcID << '(' << varID << ')'
+      ;
+
+    std::stringstream stream;
+    stream << "path " << funcID << '(' << varID << ") endpath" << std::endl;
+
+    antlr4::ANTLRInputStream input1(stream);
+    SceneLexer lexer1(&input1);
+    antlr4::CommonTokenStream tokens1(&lexer1);
+    SceneParser parser1(&tokens1);    
+
+    TopLevelVisitorTest::SetupParser();
+    TopLevelVisitorTest::SetFunction({{funcID, Function(funcID, VarType::DOUBLE, parser1.pathdef())}});
+
+    auto astStart = parser->pathCall();
+    ASSERT_TRUE(astStart);
+
+    TopLevelVisitorTest::SetVariables(astStart);
+    std::any ret = astStart->accept(&toTest);
+
+    std::string line;
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*$"));
+  }
 }
 
 #if FALSE
