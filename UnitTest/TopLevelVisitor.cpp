@@ -3,11 +3,23 @@
 #include <ANTLRInputStream.h>
 #include <CommonTokenStream.h>
 #include <ParserRuleContext.h>
+#include <SDL_render.h>
+#include <SDL_stdinc.h>
+#include <SDL_surface.h>
+#include <any>
+#include <cstddef>
+#include <cstdlib>
+#include <ctime>
 #include <filesystem>
-#include <gtest/gtest.h>
+#include <ostream>
 #include <regex>
 #include <sstream>
 #include <string>
+#include <cmath>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_surface.h>
+#include <vector>
 
 #include "UnitTest/TestHelper.h"
 #include "UnitTest/TopLevelVisitor.h"
@@ -16,12 +28,20 @@
 #include "src/Variable.h"
 #include "src/VariableVisitor.h"
 #include "src/InternalVarNames.h"
+#include "TestHelper.h"
 
 std::regex matchKomment = std::regex("\\s*\\/\\/.*$");
 std::regex matchPragmaUnrolle = std::regex("\\s*#pragma\\s+unroll\\s*");
 std::regex matchClosingCrlBracket = std::regex("\\s*\\}\\s*");
-std::regex matchFuncHead = std::regex("\\s*\\w+\\s+\\w+\\s*\\(\\s*\\)\\s*\\{\\s*$");
+std::regex matchFuncHead = std::regex("\\s*\\w+\\s+\\w+\\s*\\(\\s*(\\s*double\\s+__usr_\\w+(,\\s*double\\s+__usr_\\w+)*)?\\)\\s*\\{\\s*$");
 std::regex matchAssigne5 = std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*$");
+
+std::string getRandomID();
+
+bool CheckSurfaceForBlack(SDL_Surface *a){
+  for (Uint32 *i = (Uint32*)a->pixels ; i - (Uint32*)a->pixels < a->h *a->w; ++i) if(*i != 0xff000000) return false;
+  return true;
+}
 
 void TopLevelVisitorTest::SetFunction(std::unordered_map<std::string, Function> &a){
   toTest.funcs = a;
@@ -29,22 +49,11 @@ void TopLevelVisitorTest::SetFunction(std::unordered_map<std::string, Function> 
 TopLevelVisitorTest::TopLevelVisitorTest() :
   toTest(retStream)
 {
-  toTest.envVar = std::unordered_map<std::string, Variable>({
-    {std::string(RND_NAME),Variable(VarType::RENDERER,"__env_rnd")},
-    {std::string(WINDOW_X), Variable(VarType::CONST_DOUBLE, "__env_wx")},
-    {std::string(WINDOW_Y), Variable(VarType::CONST_DOUBLE, "__env_wy")},
-    {std::string(POS_X),Variable(VarType::DOUBLE,"__env_posX")},
-    {std::string(POS_Y),Variable(VarType::DOUBLE,"__env_posY")},
-    {std::string(MAX_X),Variable(VarType::CONST_DOUBLE,"__env_maxX")},
-    {std::string(MAX_Y),Variable(VarType::CONST_DOUBLE,"__env_maxY")},
-    {std::string(ROTATION),Variable(VarType::DOUBLE,"__env_rot")},
-    {std::string(COLOR_R),Variable(VarType::DOUBLE,"__env_red")},
-    {std::string(COLOR_G),Variable(VarType::DOUBLE,"__env_green")},
-    {std::string(COLOR_B),Variable(VarType::DOUBLE,"__env_blue")},
-    {std::string(TEXTURE_NAME), Variable(VarType::TESXTUR, "__env_textur")},
-    {std::string(WINDOW_NAME), Variable(VarType::WINDOW, "__env_window")},
-    {std::string(EVENT_NAME), Variable(VarType::EVENT, "__env_event")},
-  });
+  toTest.envVar = std::unordered_map<std::string, Variable>(ENV_VAR);
+  int seed = time(00);
+  RecordProperty("seed", seed);
+  std::cout << "seed: " << seed << "  " << ::testing::UnitTest::GetInstance()->current_test_info()->name() << std::endl; 
+  srand(seed);
 }
 void TopLevelVisitorTest::SetupParser(){
   input = ANTLRInputStream(inputStream);
@@ -58,7 +67,7 @@ TopLevelVisitorTest::~TopLevelVisitorTest() {
   delete parser;
 }
 void TopLevelVisitorTest::SetVariables(antlr4::ParserRuleContext *a){
-  toTest.ctxVar = VarVisitor().getVariableContext(a);
+  toTest.ctxVar = VarVisitor().getVariableContext(a, {{}});
 }
 void TopLevelVisitorTest::SetInfLoopFlag(int a){
   toTest.infinitLoopFlag = a;
@@ -66,6 +75,58 @@ void TopLevelVisitorTest::SetInfLoopFlag(int a){
 
 using  namespace antlr4;
 
+TEST(TopLevelVisitor, TestCircleTG2){
+  const char * testFile = "Circle.out";
+  std::filesystem::remove(testFile);
+
+  std::filebuf fb;
+  if(!fb.open("./TestData/circle.tg2", std::ios::in)){
+    throw  "error"; //TODO;
+  }
+
+  std::istream stream(&fb);
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 0);
+  EXPECT_EQ(astStart->pathdef().size(), 1);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int exitCode = std::system((std::string("./") + testFile).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 0);
+
+  {
+    std::string pngTest1 = std::string("./circle.png");
+    ASSERT_TRUE(std::filesystem::exists(pngTest1));
+
+    SDL_Surface *a = IMG_Load(pngTest1.c_str());
+
+    ASSERT_EQ(a->format->BytesPerPixel, 4);
+    ASSERT_FALSE(CheckSurfaceForBlack(a));
+  }
+}
 TEST(TopLevelVisitor, TestCalcDefCommand){
   const char * testFile = "TestCalcDefCommand.out";
   std::filesystem::remove(testFile);
@@ -117,6 +178,60 @@ TEST(TopLevelVisitor, TestCalcDefCommand){
 
   int exitCode = std::system((std::string("./") + testFile).c_str());
   ASSERT_EQ(WEXITSTATUS(exitCode), 36);
+}
+TEST(TopLevelVisitor, TestCalcDefRecursiv){
+  const char * testFile = "TestCalcDefCommand.out";
+  std::filesystem::remove(testFile);
+
+  std::stringstream stream;
+  stream 
+    << "calculation fib (f)" << std::endl
+    << "  if f <= 1 then" << std::endl
+    << "    store 1 in ret" << std::endl
+    << "  else" << std::endl
+    << "    store fib(f - 1) + fib(f - 2) in ret" << std::endl
+    << "  endif"
+    << "  returns ret" << std::endl 
+    << "endcalc" << std::endl
+    << "begin\n"
+    << "  finish fib(@0)" << std::endl 
+    << "end\n"
+    << std::endl;
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 1);
+  EXPECT_EQ(astStart->pathdef().size(), 0);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+  for(size_t i = 1, a = 1, b = 1; i < 12; i++){
+    int exitCode = std::system((std::string("./") + testFile + ' ' + std::to_string(i)).c_str());
+    ASSERT_EQ(WEXITSTATUS(exitCode), a) << "on sicel " << i;
+    size_t zwi = a;
+    a += b;
+    b = zwi;
+  }
 }
 
 TEST(TopLevelVisitor, TestVarCommands){
@@ -211,7 +326,159 @@ TEST(TopLevelVisitor, TestTrivialSave){
   int exitCode = std::system((std::string("./") + testFile).c_str());
   ASSERT_EQ(WEXITSTATUS(exitCode), 0);
   ASSERT_TRUE(std::filesystem::exists("test.png"));
+
+  SDL_Surface *a = IMG_Load("./test.png");
+
+  ASSERT_EQ(a->format->BytesPerPixel, 4);
+  for (Uint32 *i = (Uint32*)a->pixels ; i - (Uint32*)a->pixels < a->h *a->w; ++i) {
+    ASSERT_EQ(*i, 0xff000000) << (i - (Uint32*)a->pixels) % a->h << (i - (Uint32*)a->pixels)/a->w;
+  }
 }
+TEST(TopLevelVisitor, TestDoubleSave){
+  const char * testFile = "TestTrivialSave.out";
+  std::string pngTest1 = "test";
+  std::string pngTest2 = "test1";
+  std::filesystem::remove(testFile);
+  std::filesystem::remove(pngTest1);
+  std::filesystem::remove(pngTest2);
+
+  LLVMInterface interface(testFile);
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  save " << pngTest1 << "\n"
+    << "  save " << pngTest2 << "\n"
+    << "end\n"
+    << std::endl;
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 0);
+  EXPECT_EQ(astStart->pathdef().size(), 0);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int exitCode = std::system((std::string("./") + testFile).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 0);
+
+  {
+    pngTest1 = std::string("./") + pngTest1 + std::string(".png");
+    ASSERT_TRUE(std::filesystem::exists(pngTest1));
+
+    SDL_Surface *a = IMG_Load(pngTest1.c_str());
+
+    ASSERT_EQ(a->format->BytesPerPixel, 4);
+    for (Uint32 *i = (Uint32*)a->pixels ; i - (Uint32*)a->pixels < a->h *a->w; ++i) {
+      ASSERT_EQ(*i, 0xff000000) << (i - (Uint32*)a->pixels) % a->h << (i - (Uint32*)a->pixels)/a->w;
+    }
+  }
+  {
+    pngTest2 = std::string("./") + pngTest2 + std::string(".png");
+    ASSERT_TRUE(std::filesystem::exists(pngTest2));
+
+    SDL_Surface *a = IMG_Load(pngTest2.c_str());
+
+    ASSERT_EQ(a->format->BytesPerPixel, 4);
+    for (Uint32 *i = (Uint32*)a->pixels ; i - (Uint32*)a->pixels < a->h *a->w; ++i) {
+      ASSERT_EQ(*i, 0xff000000) << (i - (Uint32*)a->pixels) % a->h << (i - (Uint32*)a->pixels)/a->w;
+    }
+  }
+}
+TEST(TopLevelVisitor, BasicWalkSave){
+  const char *testFile = "BasicWalkSaveTest.out";
+  std::string pngTest1 = "test2";
+  std::filesystem::remove(testFile);
+  std::filesystem::remove(pngTest1);
+
+  const std::string baseFileName = "BasicWalk";
+  const std::string picFileName = baseFileName + ".png";
+  std::stringstream stream;
+  stream 
+    << "begin\n"
+    << "  walk 50\n"
+    << "  save " << pngTest1 << "\n"
+    << "end\n"
+    << std::endl;
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(),0);
+  EXPECT_EQ(astStart->pathdef().size(),0);
+  EXPECT_FALSE(astStart->main()->isEmpty());
+  EXPECT_EQ(astStart->main()->statList()->stat().size(), 2);
+
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::regex checkForDraw(
+          "\\s+SDL_RenderDrawLine\\s*\\("
+          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
+          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
+          ")\\s*;\\s*");
+  std::string line;
+  int ret = 0;
+  while (std::getline(test.llvm.llvmFile, line)) {
+    std::cerr << line ;
+    if(std::regex_match(line, checkForDraw)){
+      ret++;
+      std::cerr << "//found";
+    }
+    std::cerr << std::endl;
+  }
+
+  test.llvm.llvmFile.seekg(0);
+  
+  ASSERT_EQ(ret, 1);
+
+  test.llvm.CallLLVM();
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int exitCode = std::system((std::string("./") + testFile).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 0);
+
+  {
+    pngTest1 = std::string("./") + pngTest1 + std::string(".png");
+    ASSERT_TRUE(std::filesystem::exists(pngTest1));
+
+    SDL_Surface *a = IMG_Load(pngTest1.c_str());
+
+    ASSERT_EQ(a->format->BytesPerPixel, 4);
+    ASSERT_FALSE(CheckSurfaceForBlack(a));
+  }
+}
+
 TEST(TopLevelVisitor, BasicEmptyMain){
   const char * testFile = "EmptyMainTest.out";
   std::filesystem::remove(testFile);
@@ -253,10 +520,13 @@ TEST(TopLevelVisitor, BasicWalk){
   const char *testFile = "BasicWalkTest.out";
   std::filesystem::remove(testFile);
 
+  const std::string baseFileName = "BasicWalk";
+  const std::string picFileName = baseFileName + ".png";
   std::stringstream stream;
   stream 
     << "begin\n"
     << "  walk 50\n"
+    //<< "  save " << baseFileName << "\n"
     << "end\n"
     << std::endl;
 
@@ -305,6 +575,14 @@ TEST(TopLevelVisitor, BasicWalk){
   test.llvm.CallLLVM();
   ASSERT_TRUE(std::filesystem::exists(testFile));
 
+  return;
+
+  ASSERT_TRUE(std::filesystem::exists(picFileName));
+
+  SDL_Surface *a = IMG_Load(picFileName.c_str());
+
+  ASSERT_EQ(a->format->BytesPerPixel, 4);
+  ASSERT_FALSE(CheckSurfaceForBlack(a));
 }
 TEST(TopLevelVisitor, BasicJump){
   const char *testFile = "BasicWalkTest.out";
@@ -433,1408 +711,130 @@ TEST_F(TopLevelVisitorTest, CalcDef){
     ASSERT_TRUE(retStream.eof());
   }
 }
-
-TEST_F(TopLevelVisitorTest, SingleIfOptimizeTrue){
+TEST_F(TopLevelVisitorTest, PathDef){
   inputStream
-    << "if 5 = 5 then\n"
-    << "  store 5 in zwi\n"
-    << "endif\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-  
-  //pars the test
-  auto astStart = parser->if_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-
-  std::any ret = astStart->accept(&toTest);
-  
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchKomment);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, SingleIfOptimizeFalse){
-  inputStream
-    << "if 5 <> 5 then\n"
-    << "  store 5 in zwi\n"
-    << "endif\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  //pars the test
-  auto astStart = parser->if_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-
-  std::any ret = astStart->accept(&toTest);
-  
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchKomment);
-
-  //TODO add this lines to most of the other tests!
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, SingleIfNoOptimize){
-  inputStream
-    << "if 5 = zwi then\n"
-    << "  store 5 in zwi\n"
-    << "endif\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  //pars the test
-  auto astStart = parser->if_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-
-  std::any ret = astStart->accept(&toTest);
-  
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*if\\s*\\(\\s*\\d+\\s*==\\s*__usr\\w+\\s*\\)\\s*\\{\\s*"));
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, ElseIfOptimizeTrue){
-  inputStream
-    << "if 5 = 5 then\n"
-    << "  store 5 in zwi\n"
-    << "else\n"
-    << "  store -5 in zwi\n"
-    << "endif\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  //pars the test
-  auto astStart = parser->if_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-
-  std::any ret = astStart->accept(&toTest);
-  
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchKomment);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, ElseIfOptimizeFalse){
-  inputStream
-    << "if 5 <> 5 then\n"
-    << "  store 5 in zwi\n"
-    << "else\n"
-    << "  store -5 in zwi\n"
-    << "endif\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  //pars the test
-  auto astStart = parser->if_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchKomment);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*-5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, ElseIfNoOptimize){
-  inputStream
-    << "if 5 = zwi then\n"
-    << "  store 5 in zwi\n"
-    << "else\n"
-    << "  store -5 in zwi\n"
-    << "endif\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  //pars the test
-  auto astStart = parser->if_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*if\\s*\\(\\s*\\d+\\s*==\\s*__usr\\w+\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*else\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*-5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, WhileOptimizeTrue){
-  inputStream
-    << "while 5 = 5 do\n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  //pars the test
-  auto astStart = parser->while_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  TopLevelVisitorTest::SetInfLoopFlag(1);
-
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchKomment);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*while\\s*\\(\\s*1\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, WhileOptimizeFalse){
-  inputStream
-    << "while 5 <> 5 do\n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  //pars the test
-  auto astStart = parser->while_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  TopLevelVisitorTest::SetInfLoopFlag(1);
-
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchKomment);
-
-  std::getline(retStream, line);
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, WhileNoOptimize){
-  inputStream
-    << "while 5 = zwi do\n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  //pars the test
-  auto astStart = parser->while_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  TopLevelVisitorTest::SetInfLoopFlag(1);
-
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*while\\s*\\(\\s*\\d+\\s*==\\s*__usr\\w+\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, DoUntilOptimizeTrue){
-  inputStream
-    << "repeat\n"
-    << "  store 5 in zwi\n"
-    << "untile 5 <> 5\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  //pars the test
-  auto astStart = parser->doUntil();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  TopLevelVisitorTest::SetInfLoopFlag(1);
-
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchKomment);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*do\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\}\\s*while\\s*\\(\\s*1\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, DoUntilOptimizeFalse){
-  inputStream
-    << "repeat\n"
-    << "  store 5 in zwi\n"
-    << "untile 5 = 5\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  //pars the test
-  auto astStart = parser->doUntil();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  TopLevelVisitorTest::SetInfLoopFlag(1);
-
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchKomment);
-
-  std::getline(retStream, line);
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, DoUntilNoOptimize){
-  inputStream
-    << "repeat\n"
-    << "  store 5 in zwi\n"
-    << "untile 5 = zwi\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  //pars the test
-  auto astStart = parser->doUntil();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  TopLevelVisitorTest::SetInfLoopFlag(1);
-
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*do\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\}\\s*while\\s*\\(\\s*!\\s*\\(\\s*\\d+\\s*==\\s*__usr\\w+\\s*\\)\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, ToForInteger){
-  inputStream
-    << "do 5 times \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->toFor();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*size_t\\s*i\\s*=\\s*0\\s*;\\s*i\\s*<\\s*5\\s*;\\s*\\+\\+i\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, ToForDecimal){
-  inputStream
-    << "do 5.5 times \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->toFor();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*size_t\\s*i\\s*=\\s*0\\s*;\\s*i\\s*<\\s*6\\s*;\\s*\\+\\+i\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, ToForVariable){
-  inputStream
-    << "do zwi times \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    << std::endl;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->toFor();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*size_t\\s*i\\s*=\\s*0\\s*;\\s*i\\s*<\\s*\\w+\\s*;\\s*\\+\\+i\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, SimplUpForIntInt){
-  inputStream
-    << "counter i from 0 to 5 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
+    << "path circle(r,n)\n"
+    << "  jump r\n"
+    << "  store 180-360/n in beta\n"
+    << "  store 2*(2*@pi*r/2)/n in a\n"
+    << "  turn right 180-beta/2\n"
+    << "  counter x from 0 to n do\n"
+    << "    walk a\n"
+    << "    turn right 180-beta\n"
+    << "  done\n"
+    << "endpath\n"
     ;
 
   TopLevelVisitorTest::SetupParser();
 
-  auto astStart = parser->for_();
+  auto astStart = parser->pathdef();
+  TopLevelVisitorTest::SetFunction({{"circle", Function("circle", VarType::DOUBLE, astStart)}});
+
   ASSERT_TRUE(astStart);
 
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
+  {
+    astStart->accept(&toTest);
 
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*0\\s*;\\s*\\w+\\s*<\\s*5\\s*;\\s*\\+\\+\\w+\\s*\\)\\s*\\{\\s*"));
+    std::regex assigne("\\s*__usr_\\w+\\s*=\\s*(-?\\d+|__usr_\\w+)\\s*;\\s*$");
+    std::regex calcAssigne("\\s*__usr_\\w+\\s*(\\+=|-=|\\*=|/=)\\s*__usr\\w+\\s*;\\s*$");
+    std::regex moveX("\\s*__env_posX\\s*=\\s*__env_posX\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\(__env_rot\\)\\s*;");
+    std::regex moveY("\\s*__env_posY\\s*=\\s*__env_posY\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\(__env_rot\\)\\s*;");
 
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
+    std::string line;
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, matchFuncHead);
 
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
+    for (int i = 0; i < 3; i++){
+      std::getline(retStream, line);
+      ASSERT_REGEX(line, std::regex("\\s*double\\s+__usr_\\w+\\s*=\\s*0\\s*;\\s*$"));
+    }
 
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, moveX);
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, moveY);
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*__usr_\\w+\\s*=\\s*\\d+\\s*-\\s*\\d+\\s*\\/\\s*__usr_\\w+\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*__usr_\\w+\\s*=\\s*\\d+\\s*\\*\\s*\\(\\s*\\d+\\.\\d+\\s*\\*\\s*__usr_\\w+\\s*\\/\\s*\\d+\\s*\\)\\s*\\/\\s*__usr_\\w+\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*__env_rot\\s*\\+=\\s*\\(\\s*\\d+\\s*\\-\\s*__usr_\\w+\\s*\\/\\s*\\d+\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*__usr_\\w+\\s*=\\s*\\d+\\s*;\\s*__usr_\\w+\\s*<\\s*__usr_\\w+\\s*;\\s*\\+\\+__usr_\\w+\\s*\\)\\s*\\{\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*SDL_RenderDrawLine\\s*\\(\\s*__env_rnd\\s*,\\s*__env_posX\\s*,\\s*__env_posY\\s*,\\s*__env_posX\\s*\\+\\s*__usr_\\w+\\s*\\*\\s*cos\\s*\\(\\s*__env_rot\\s*\\)\\s*,\\s*__env_posY\\s*\\+\\s*__usr_a\\s*\\*\\s*sin\\s*\\(\\s*__env_rot\\s*\\)\\s*\\)\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, moveX);
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, moveY);
+    
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*SDL_SetRenderTarget\\s*\\(\\s*__env_\\w+\\s*,\\s*NULL\\s*\\)\\s*;\\s*$"));
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*SDL_RenderClear\\s*\\(\\s*__env_\\w+\\s*\\)\\s*;\\s*$"));
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*SDL_RenderCopy\\s*\\(\\s*__env_\\w+\\s*,\\s*__env_\\w+\\s*,\\s*NULL\\s*,\\s*NULL\\s*\\)\\s*;\\s*$"));
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*SDL_RenderPresent\\s*\\(\\s*__env_\\w+\\s*\\)\\s*;\\s*$"));
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*SDL_SetRenderTarget\\s*\\(\\s*__env_\\w+\\s*,\\s*__env_\\w+\\s*\\)\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, std::regex("\\s*__env_rot\\s*\\+=\\s*\\(\\s*\\d+\\s*\\-\\s*__usr_\\w+\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*$"));
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, matchClosingCrlBracket);
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, matchClosingCrlBracket);
+
+    std::getline(retStream, line);
+    ASSERT_TRUE(retStream.eof());
+  }
 }
-TEST_F(TopLevelVisitorTest, SimplUpForDoubleInt){
-  inputStream
-    << "counter i from 0.1 to 5 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*0.1\\d*\\s*;\\s*\\w+\\s*<\\s*5\\s*;\\s*\\+\\+\\w+\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, SimplUpForIntDouble){
-  inputStream
-    << "counter i from 0 to 5.5 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*0\\s*;\\s*\\w+\\s*<\\s*5.5\\d*\\s*;\\s*\\+\\+\\w+\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, SimplUpForDoubleDouble){
-  inputStream
-    << "counter i from 0.1 to 5.5 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*0.1\\d*\\s*;\\s*\\w+\\s*<\\s*5.5\\d*\\s*;\\s*\\+\\+\\w+\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, SimplUpForVarInt){
-  inputStream
-    << "counter i from zwi to 5 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*__usr_\\w+\\s*;\\s*\\w+\\s*<\\s*5\\s*;\\s*\\+\\+\\w+\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, SimplDownForIntInt){
-  inputStream
-    << "counter i from 0 downto 5 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*0\\s*;\\s*\\w+\\s*>\\s*5\\s*;\\s*\\-\\-\\w+\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, SimplDownForDoubleInt){
-  inputStream
-    << "counter i from 0.1 downto 5 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*0.1\\d*\\s*;\\s*\\w+\\s*>\\s*5\\s*;\\s*\\-\\-\\w+\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, SimplDownForIntDouble){
-  inputStream
-    << "counter i from 0 downto 5.5 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*0\\s*;\\s*\\w+\\s*>\\s*5.5\\d*\\s*;\\s*\\-\\-\\w+\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, SimplDownForDoubleDouble){
-  inputStream
-    << "counter i from 0.1 downto 5.5 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*0.1\\d*\\s*;\\s*\\w+\\s*>\\s*5.5\\d*\\s*;\\s*\\-\\-\\w+\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, SimplDownForVarInt){
-  inputStream
-    << "counter i from zwi downto 5 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*__usr_\\w+\\s*;\\s*\\w+\\s*>\\s*5\\s*;\\s*\\-\\-\\w+\\s*\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, StepUpForIntInt){
-  inputStream
-    << "counter i from 0 to 5 step 2 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex(
-          "\\s*for\\s*\\("
-          "\\s*\\w+\\s*=\\s*0\\s*;"
-          "\\s*\\w+\\s*<\\s*5\\s*;"
-          "\\s*\\w+\\s*\\+=\\s*2\\s*"
-          "\\)\\s*\\{\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, StepUpForDoubleInt){
-  inputStream
-    << "counter i from 0.1 to 5 step 2 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex(
-          "\\s*for\\s*\\("
-          "\\s*\\w+\\s*=\\s*0.1\\d*\\s*;"
-          "\\s*\\w+\\s*<\\s*5\\s*;"
-          "\\s*\\w+\\s*\\+=\\s*2\\s*"
-          "\\)\\s*\\{\\s*"
-          ));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, StepUpForIntDouble){
-  inputStream
-    << "counter i from 0 to 5.5 step 2 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex(
-          "\\s*for\\s*\\("
-          "\\s*\\w+\\s*=\\s*0\\s*;"
-          "\\s*\\w+\\s*<\\s*5.5\\d*\\s*;"
-          "\\s*\\w+\\s*\\+=\\s*2\\s*"
-          "\\)\\s*\\{\\s*"
-          ));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, StepUpForDoubleDouble){
-  inputStream
-    << "counter i from 0.1 to 5.5 step 2 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex(
-          "\\s*for\\s*\\("
-          "\\s*\\w+\\s*=\\s*0.1\\d*\\s*;"
-          "\\s*\\w+\\s*<\\s*5.5\\d*\\s*;"
-          "\\s*\\w+\\s*\\+=\\s*2\\s*"
-          "\\)\\s*\\{\\s*"
-          ));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, StepUpForVarInt){
-  inputStream
-    << "counter i from zwi to 5 step 2 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex(
-          "\\s*for\\s*\\("
-          "\\s*\\w+\\s*=\\s*__usr_\\w+\\s*;"
-          "\\s*\\w+\\s*<\\s*5\\s*;"
-          "\\s*\\w+\\s*\\+=\\s*2\\s*"
-          "\\)\\s*\\{\\s*"
-          ));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, StepDonwForIntInt){
-  inputStream
-    << "counter i from 0 downto 5 step 2 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex( "\\s*for\\s*\\(\\s*\\w+\\s*=\\s*0\\s*;\\s*\\w+\\s*>\\s*5\\s*;\\s*__usr_\\w+\\s*-=\\s*2\\s*\\)\\s*\\{\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, StepDownForDoubleInt){
-  inputStream
-    << "counter i from 0.1 downto 5 step 2 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*\\d+\\.\\d+\\s*;\\s*\\w+\\s*>\\s*5\\s*;\\s*__usr_\\w+\\s*-=\\s*2\\s*\\)\\s*\\{\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, StepDonwForIntDouble){
-  inputStream
-    << "counter i from 0 downto 5.5 step 2 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*0\\s*;\\s*\\w+\\s*>\\s*5\\.5\\d*\\s*;\\s*__usr_\\w+\\s*-=\\s*2\\s*\\)\\s*\\{\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, StepDownForDoubleDouble){
-  inputStream
-    << "counter i from 0.1 downto 5.5 step 2 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchPragmaUnrolle);
-  
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*\\d+\\.\\d+\\s*;\\s*\\w+\\s*>\\s*5\\.5\\d*\\s*;\\s*__usr_\\w+\\s*-=\\s*2\\s*\\)\\s*\\{\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, StepDonwForVarInt){
-  inputStream
-    << "counter i from zwi downto 5 step 2 do \n"
-    << "  store 5 in zwi\n"
-    << "done\n"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->for_();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*for\\s*\\(\\s*\\w+\\s*=\\s*__usr_\\w+\\s*;\\s*\\w+\\s*>\\s*5\\s*;\\s*__usr_\\w+\\s*-=\\s*2\\s*\\)\\s*\\{\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchAssigne5);
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, matchClosingCrlBracket);
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, MultVar){
-  inputStream
-    << "mul test by 5"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->multVar();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*\\*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, DivVar){
-  inputStream
-    << "div test by 5"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->divVar();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*/=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, SubVar){
-  inputStream
-    << "sub 5 from test"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->subVar();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*-=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, AddVar){
-  inputStream
-    << "add 5 to test"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->addVar();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*__usr_\\w+\\s*\\+=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, StorVar){
-  inputStream
-    << "store 5 in test"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->storeVar();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, StopNOK){
-  inputStream
-    << "stop 5"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->stop();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*__envfunc_stop\\s*\\(\\s*5\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, StopImplizitOK){
-  inputStream
-    << "stop"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->stop();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*__envfunc_stop\\s*\\(\\s*0\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, StopExplizitOK){
-  inputStream
-    << "stop 0"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->stop();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*__envfunc_stop\\s*\\(\\s*0\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, FinishNOK){
-  inputStream
-    << "finish 5"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->finish();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*__envfunc_fin\\s*\\(\\s*5\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, FinishImplizitOK){
-  inputStream
-    << "finish"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->finish();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*__envfunc_fin\\s*\\(\\s*0\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, FinishExplizitOK){
-  inputStream
-    << "finish 0"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->finish();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*__envfunc_fin\\s*\\(\\s*0\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
+TEST_F(TopLevelVisitorTest, ParamList){
+  for(int i = 0; i < TEST_AMMOUNT; ++i){
+    size_t am = rand() % TEST_AMMOUNT;
+    std::vector<std::string> IDs(am);
+    for(size_t i = 0; i < am; ++i) IDs[i] = getRandomID(); 
+    inputStream << '(';
+    for(size_t i = 0; i < am - 1; ++i) inputStream << IDs[i] << ',' ; 
+    inputStream << IDs[am-1] << ')';
+
+    TopLevelVisitorTest::SetupParser();
+
+    auto astStart = parser->paramlist();
+    ASSERT_TRUE(astStart);
+    TopLevelVisitorTest::SetVariables(astStart);
+    ASSERT_EQ(astStart->var().size(), am);
+
+    auto ret = astStart->accept(&toTest);
+
+    ASSERT_EQ(ret.type(), typeid(std::vector<Variable>));
+    std::vector<Variable> retVect = std::any_cast<std::vector<Variable>>(ret);
+    
+    ASSERT_EQ(retVect.size(), am);
+  }
 }
 
 TEST_F(TopLevelVisitorTest, Clear){
@@ -1853,290 +853,6 @@ TEST_F(TopLevelVisitorTest, Clear){
   std::string line;
   std::getline(retStream, line);
   ASSERT_REGEX(line, std::regex("\\s*SDL_RenderClear\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, TurnExplizitRight){
-  inputStream
-    << "turn right 5"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->turnRight();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*\\+=\\s*\\(\\s*5\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, TurnImplizitRight){
-  inputStream
-    << "turn 5"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->turnRight();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*\\+=\\s*\\(\\s*5\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, TurnLeft){
-  inputStream
-    << "turn left 5"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->turnLeft();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*\\-=\\s*\\(\\s*5\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, Direction){
-  inputStream
-    << "direction 5"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->direction();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*\\=\\s*\\(\\s*5\\s*\\)\\s*\\*\\s*\\(\\s*M_PI\\s*\\/\\s*180\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, JumpHome){
-  inputStream
-    << "jump home"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->jumpHome();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s+\\/\\s+2;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, WalkHome){
-  inputStream
-    << "walk home"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->walkHome();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s+SDL_RenderDrawLine\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s+\\/\\s+2\\s*,\\s*\\w+\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s+\\/\\s+2;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-
-TEST_F(TopLevelVisitorTest, WalkFront){
-  inputStream
-    << "walk 5"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->walk();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s+SDL_RenderDrawLine\\s*\\("
-          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
-          ")\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*SDL_SetRenderTarget\\s*\\(\\s*__env_\\w+\\s*,\\s*NULL\\s*\\)\\s*;\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*SDL_RenderClear\\s*\\(\\s*__env_\\w+\\s*\\)\\s*;\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*SDL_RenderCopy\\s*\\(\\s*__env_\\w+\\s*,\\s*__env_\\w+\\s*,\\s*NULL\\s*,\\s*NULL\\s*\\)\\s*;\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*SDL_RenderPresent\\s*\\(\\s*__env_\\w+\\s*\\)\\s*;\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*SDL_SetRenderTarget\\s*\\(\\s*__env_\\w+\\s*,\\s*__env_\\w+\\s*\\)\\s*;\\s*$"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, WalkBack){
-  inputStream
-    << "walk back 5"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->walk();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s+SDL_RenderDrawLine\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*cos\\(\\s*\\w+\\s*\\)\\s*,\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*sin\\(\\s*\\w+\\s*\\)\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*cos\\(\\s*\\w+\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*sin\\(\\s*\\w+\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*SDL_SetRenderTarget\\s*\\(\\s*__env_\\w+\\s*,\\s*NULL\\s*\\)\\s*;\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*SDL_RenderClear\\s*\\(\\s*__env_\\w+\\s*\\)\\s*;\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*SDL_RenderCopy\\s*\\(\\s*__env_\\w+\\s*,\\s*__env_\\w+\\s*,\\s*NULL\\s*,\\s*NULL\\s*\\)\\s*;\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*SDL_RenderPresent\\s*\\(\\s*__env_\\w+\\s*\\)\\s*;\\s*$"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*SDL_SetRenderTarget\\s*\\(\\s*__env_\\w+\\s*,\\s*__env_\\w+\\s*\\)\\s*;\\s*$"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, JumpFront){
-  inputStream
-    << "jump 5"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->jump();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  std::cerr << line << std::endl;
-  ASSERT_TRUE(retStream.eof());
-  ASSERT_STREQ(line.c_str(), "");
-}
-TEST_F(TopLevelVisitorTest, JumpBack){
-  inputStream
-    << "jump back 5"
-    ;
-
-  TopLevelVisitorTest::SetupParser();
-
-  auto astStart = parser->jump();
-  ASSERT_TRUE(astStart);
-
-  TopLevelVisitorTest::SetVariables(astStart);
-  std::any ret = astStart->accept(&toTest);
-
-  std::string line;
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*cos\\(\\s*\\w+\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*sin\\(\\s*\\w+\\s*\\)\\s*;\\s*"));
 
   std::getline(retStream, line);
   std::cerr << line << std::endl;
@@ -2197,6 +913,65 @@ TEST_F(TopLevelVisitorTest, Save){
   std::cerr << line << std::endl;
   ASSERT_TRUE(retStream.eof());
   ASSERT_STREQ(line.c_str(), "");
+}
+
+TEST_F(TopLevelVisitorTest, CallPath){
+  for(int i = 0; i < TEST_AMMOUNT; ++i){
+    std::string funcID = getRandomID();
+    inputStream
+      << "path " << funcID
+      ;
+
+    std::stringstream stream;
+    stream << "path " << funcID << " endpath" << std::endl;
+
+    antlr4::ANTLRInputStream input1(stream);
+    SceneLexer lexer1(&input1);
+    antlr4::CommonTokenStream tokens1(&lexer1);
+    SceneParser parser1(&tokens1);    
+
+    TopLevelVisitorTest::SetupParser();
+    TopLevelVisitorTest::SetFunction({{funcID, Function(funcID, VarType::VOID, parser1.pathdef())}});
+
+    auto astStart = parser->pathCall();
+    ASSERT_TRUE(astStart);
+
+    TopLevelVisitorTest::SetVariables(astStart);
+
+    std::any ret = astStart->accept(&toTest);
+
+    std::string line;
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*\\(\\s*\\)\\s*;\\s*$"));
+  }
+  for(int i = 0; i < TEST_AMMOUNT; ++i){
+    std::string funcID = getRandomID();
+    std::string varID = getRandomID();
+    inputStream
+      << "path " << funcID << '(' << varID << ')'
+      ;
+
+    std::stringstream stream;
+    stream << "path " << funcID << '(' << varID << ") endpath" << std::endl;
+
+    antlr4::ANTLRInputStream input1(stream);
+    SceneLexer lexer1(&input1);
+    antlr4::CommonTokenStream tokens1(&lexer1);
+    SceneParser parser1(&tokens1);    
+
+    TopLevelVisitorTest::SetupParser();
+    TopLevelVisitorTest::SetFunction({{funcID, Function(funcID, VarType::DOUBLE, parser1.pathdef())}});
+
+    auto astStart = parser->pathCall();
+    ASSERT_TRUE(astStart);
+
+    TopLevelVisitorTest::SetVariables(astStart);
+    std::any ret = astStart->accept(&toTest);
+
+    std::string line;
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*$"));
+  }
 }
 
 #if FALSE

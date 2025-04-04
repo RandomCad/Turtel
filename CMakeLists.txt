@@ -5,7 +5,7 @@ project("Turtel")
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # compiler must be at least 17
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 #emit clangd data
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -46,6 +46,7 @@ find_package(ANTLR REQUIRED)
 
 # Call macro to add lexer and grammar to your build dependencies.
 antlr_target(SceneGrammarParser Scene.g4 VISITOR LISTENER OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/libs)
+antlr_target(CommandlineGrammarParser Commandline.g4 LISTENER OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/libs)
 
 # add our project source directories
 include_directories(${PROJECT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libs )
@@ -66,37 +67,59 @@ include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${CLANG_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-add_definitions(${LLVM_DEFINITIONS_LIST})
-
 #LLVM libs
 # Find the libraries that correspond to the LLVM components
 # that we wish to use
 llvm_map_components_to_libnames(llvm_libs support core irreader)
 
-# Creat llvm-libs
-SET(LLVM_LIBS 
-  clang-cpp
-  LLVM
+if(EXISTS "/etc/fedora-release")
+  # Creat llvm-libs
+  SET(LLVM_LIBS 
+    clang-cpp
+    LLVM
   ) 
+# elseif(EXISTS "/etc/gentoo-release") 
+else()
+ # Creat llvm-libs
+  SET(LLVM_LIBS 
+    ${llvm_libs} 
+    clangTooling 
+    clangBasic 
+    clangAST 
+    clangDriver 
+    clangFrontend 
+    clangFrontendTool 
+    clangSerialization
+  )
+endif()
+
+#---------------------------------------#
+#             Include SDL2              #
+#---------------------------------------#
+
+find_package(SDL2 REQUIRED)
+find_package(SDL2_image REQUIRED)
+include_directories(SDL2_LIBS ${SDL2_INCLUDE_DIRS})
 
 #---------------------------------------#
 #            Turtel Programm            #
 #---------------------------------------#
 # Creat CodeGenerator variable 
 set(CodeGeneration 
+  src/antlr.cpp 
   src/TopLevelVisitor.cpp
   src/VariableVisitor.cpp
   src/Function.cpp
   src/Variable.cpp
   src/GlobalVarVisitor.cpp
+  src/CommandLineListener.cpp
   )
 # Creat LLVM Interface variable
 set(LLVM_Interface src/LLVMInterface.cpp)
 
 add_executable(Turtel 
-  src/antlr.cpp 
   ${ANTLR_SceneGrammarParser_CXX_OUTPUTS} 
+  ${ANTLR_CommandlineGrammarParser_CXX_OUTPUTS} 
   ${CodeGeneration} 
   ${LLVM_Interface}
   )
@@ -122,25 +145,38 @@ enable_testing()
 
 set(
   UnitTest
+  UnitTest/antlr.cpp
   UnitTest/TestLLVMInterface.cpp
   UnitTest/Variable.cpp
   UnitTest/TopLevelVisitor.cpp
+  UnitTest/TopLevelVisitor.Math.cpp
+  UnitTest/TopLevelVisitor.Loop.cpp
+  UnitTest/TopLevelVisitor.Var.cpp
+  UnitTest/TopLevelVisitor.Move.cpp
+  UnitTest/TopLevelVisitor.IfEls.cpp
+  UnitTest/TopLevelVisitor.End.cpp
   UnitTest/VariableVisitor.cpp
   UnitTest/Function.cpp
   UnitTest/TestHelper.cpp
+  UnitTest/CommandListener.cpp
   )
 
 add_executable(
   Tests
   ${UnitTest}
   ${ANTLR_SceneGrammarParser_CXX_OUTPUTS} 
+  ${ANTLR_CommandlineGrammarParser_CXX_OUTPUTS} 
   ${CodeGeneration} 
   ${LLVM_Interface}
+  ${SDL2_LIBS}
 )
+
 target_compile_definitions(Tests PRIVATE UNIT_TEST=1)
+
 target_link_libraries(
   Tests
   GTest::gtest_main
+  SDL2_image::SDL2_image
   ${SYSTEM_LIBS}
   antlr4_static
 )
@@ -148,3 +184,11 @@ target_link_libraries(
 include(GoogleTest)
 gtest_discover_tests(Tests)
 
+# Ensure the UnitTest/TestData directory is copied BEFORE running the tests
+add_custom_target(copy_test_data
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/UnitTest/TestData ${CMAKE_CURRENT_BINARY_DIR}/TestData
+  COMMENT "Copying UnitTest/TestData to output directory"
+)
+
+# Ensure Tests depends on copy_test_data (copies test data before running tests)
+add_dependencies(Tests copy_test_data)

@@ -59,7 +59,7 @@ TEST(VariableVisitor, GetVars){
   }
 
   VarVisitor vis;
-  auto ret = vis.getVariableContext(astStart);
+  auto ret = vis.getVariableContext(astStart, {});
   ASSERT_EQ(ret.size(), 2);
   auto zwi = ret.extract("_step");
   ASSERT_TRUE(zwi);

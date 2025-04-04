@@ -16,8 +16,7 @@ class Function{
   protected:
     const VarType retType;
     const std::string name;
-    std::vector<Variable> vars;
-    std::unordered_map<std::string, Variable> varCtx;
+    std::vector<std::pair<std::string, Variable>> vars;
     antlr4::ParserRuleContext *ctx;
   public:
     Function(const std::string nm, VarType retT, SceneParser::PathdefContext *CTX);
@@ -26,6 +25,7 @@ class Function{
     std::string getFunctionDeclaration();
     std::string getFunctionCall(const std::vector<Variable> var);
     std::string Implement();
-    const std::vector<Variable> getHeaderVars() { return vars; }
+    std::string getName() { return  name; }
+    const std::vector<std::pair<std::string, Variable>> getHeaderVars() { return vars; }
     FRIEND_TEST(FunctionHandler, CTor);
 };

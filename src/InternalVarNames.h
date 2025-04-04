@@ -27,6 +27,10 @@
 ///Debuging
 #define DEBUG_SURFACE "&surface"
 
+///argc
+#define ARGC "&argc"
+///argv
+#define ARGV "&argv"
 
 //also define functionNames
 ///define the compiler internal name for the main function

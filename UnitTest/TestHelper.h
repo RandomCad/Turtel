@@ -5,6 +5,8 @@
 #include "libs/SceneParser.h"
 #include "libs/SceneLexer.h"
 
+#define TEST_AMMOUNT 100
+
 #define getParser(in)\
   antlr4::ANTLRInputStream input(in);\
   SceneLexer lexer(&input);\

@@ -1,6 +1,8 @@
 #pragma once
+#include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
 #include <string>
 
+class Function;
 
 ///Defince all posible types of varaiables for the transpiler 
 enum VarType{
@@ -12,7 +14,9 @@ enum VarType{
   WINDOW, ///< The main and only window of the program
   CONST_CHAR_PTR,
   VOID,
-  EVENT
+  EVENT,
+  SIZE_T,
+  DOUBLE_ARR,
 };
 
 namespace VarTypeNS{
@@ -22,9 +26,15 @@ namespace VarTypeNS{
 struct Variable{
   VarType type;
   std::string name;
-  bool isUnique;
-  Variable(VarType Type, std::string nm, bool is = false) : type(Type), name(nm), isUnique(is){}
+  bool isDefined = false;
+  Variable(VarType Type, std::string nm) : type(Type), name(nm){}
   Variable(){}
   const std::string &getName() const { return name;}
+  private:
   std::string getTypeAndName() const;
+  public:
+  ///@returns a code line that impliments this Variable and assigns it assigne
+  const std::string getDefinition(const std::string assigne = "0");
+  FRIEND_TEST(Variable, TestGetNameAndType);
+  friend class Function;
 };

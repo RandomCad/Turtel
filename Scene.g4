@@ -28,6 +28,7 @@ Float : [0-9]+ '.' [0-9]+
       | '.' [0-9]+ ;
 
 ID    : [_a-zA-Z] [_@a-zA-Z0-9]* ;
+CliID : '@' [0-9];
 IncID : '@' [_@a-zA-Z0-9]* ;
 
 file  : (pathdef | calcdef)* main (pathdef |calcdef)*; 
@@ -35,8 +36,7 @@ file  : (pathdef | calcdef)* main (pathdef |calcdef)*;
 main    : Begin statList End;
 pathdef : 'path' ID paramlist? statList 'endpath' ;
 calcdef : 'calculation' ID  paramlist statList 'returns' expr 'endcalc' ;
-paramlist : '(' (var ',')* var ')'
-          | '(' ')'
+paramlist : '(' ( (var ',')* var )? ')'
           ;
 statList  : stat* ;
 
@@ -47,7 +47,7 @@ stat    : walk        | save        | jump
         | addVar      | subVar      | divVar
         | multVar     | walkMark    | jumpMark
         | mark        | colorCmd    | if
-        | toFor
+        | toFor       | pathCall
         | for         | while       | doUntil
         ;
 
@@ -94,7 +94,7 @@ mark      : Mark;
 walkMark  : Walk Mark;
 jumpMark  : Jump Mark;
 colorCmd  : Color expr expr expr;
-pathCall  : 'path' ID paramlist? ;
+pathCall  : 'path' ID ( '(' ( ( expr ',')* expr)? ')' )? ;
 
 ///conditions (if)
 cond  : expr '<' expr #lesThan
@@ -110,23 +110,30 @@ cond  : expr '<' expr #lesThan
       ;
 
 ///Math expressions
-expr  : ( klamKon | number) '^' (klamKon | number) #Exp
-      | ( klamKon | number) '*' (klamKon | number) #Mult
-      | ( klamKon | number) '/' (klamKon | number) #Dife
-      | expr '+' expr #Add
+expr  :
+        expr '^' expr #Exp
+      | expr '*' expr #Mult
+      | expr '/' expr #Dife
       | expr '-' expr #Dim
+      | expr '+' expr #Add
       | '|' expr '|'  #ABS
-      | '-' ( number | klamKon )   #Negate
+      | '-' ( number | klamKon | var)   #Negate
+      | klamKon #ClamExpr
+      | ID '(' ( ( expr ',')* expr)? ')'  #funcCall
       | number	      #NumExpr	
       | var	      #VarExpr
-      | ID paramlist  #funcCall
       ;
 klamKon	: '(' expr ')' ;
 number: Num     #Int
       | Float   #Float
       ; 
-var   : ID      #Variable
-      | IncID   #GlobalVariable
+var   : ID        #Variable
+      | '@pi'     #piVar
+      | '@max_x'  #MaxX
+      | '@max_y'  #MaxY
+      | CliID     #CLI
+      | IncID     #GlobalVariable
       ;
 
 WS : [ \t\r\n]+ -> skip ;
+COMMENT : '"' ~[\r\n]* -> skip ;
