@@ -19,12 +19,13 @@ std::string Variable::getTypeAndName() const{
  * If the variable is not yet defined, marks it as defined and returns a string
  * containing its declaration. For variables of type DOUBLE, the declaration includes
  * initialization with the provided assignment value.
+ * If the variable is already defined, a comment is generated.
  *
  * @param assigne The value to assign to the variable upon declaration.
  * @return A string containing the variable's declaration, with initialization if applicable.
  */
 const std::string Variable::getDefinition(const std::string assigne){
-  if(isDefined) return "";
+  if(isDefined) return "/*redifinition*/";
   isDefined = true;
   switch (type) {
     case DOUBLE: return getTypeAndName() + "=" + assigne + ";\n";
