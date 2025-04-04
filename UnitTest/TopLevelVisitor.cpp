@@ -75,12 +75,12 @@ void TopLevelVisitorTest::SetInfLoopFlag(int a){
 
 using  namespace antlr4;
 
-TEST(TopLevelVisitor, TestCircleTG){
+TEST(TopLevelVisitor, TestCircleTG2){
   const char * testFile = "Circle.out";
   std::filesystem::remove(testFile);
 
   std::filebuf fb;
-  if(!fb.open("./TestData/circle.tg", std::ios::in)){
+  if(!fb.open("./TestData/circle.tg2", std::ios::in)){
     throw  "error"; //TODO;
   }
 
@@ -116,6 +116,16 @@ TEST(TopLevelVisitor, TestCircleTG){
 
   int exitCode = std::system((std::string("./") + testFile).c_str());
   ASSERT_EQ(WEXITSTATUS(exitCode), 0);
+
+  {
+    std::string pngTest1 = std::string("./circle.png");
+    ASSERT_TRUE(std::filesystem::exists(pngTest1));
+
+    SDL_Surface *a = IMG_Load(pngTest1.c_str());
+
+    ASSERT_EQ(a->format->BytesPerPixel, 4);
+    ASSERT_FALSE(CheckSurfaceForBlack(a));
+  }
 }
 TEST(TopLevelVisitor, TestCalcDefCommand){
   const char * testFile = "TestCalcDefCommand.out";
