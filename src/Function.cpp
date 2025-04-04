@@ -11,6 +11,9 @@
 /**
  * @brief Constructs a Function object for a PathdefContext.
  * 
+ * Initializes the function's name, return type, and context. If the context includes a parameter list,
+ * it creates corresponding Variable objects of type DOUBLE, marks them as defined, and adds them to the vars vector.
+ *
  * @param nm The name of the function.
  * @param retT The return type of the function. Should be void
  * @param CTX The PathdefContext of the function.
@@ -134,6 +137,7 @@ std::cerr << __func__ << std::endl;
  *
  * @return A string containing the formatted function signature.
  */
+[[deprecated]]
 std::string Function::Implement(){
   //prepere the variable part of the string
   std::string ret = VarTypeNS::getTypeName(retType);
