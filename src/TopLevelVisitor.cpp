@@ -1661,18 +1661,70 @@ std::any TopLevelVisitor::visitExp(SceneParser::ExpContext *ctx){
     throw std::runtime_error("todo:"); //TODO:
   }
 }
+
+/**
+ * @brief Handles addition operations.
+ *
+ * This function processes addition expressions by applying the '+' operator
+ * to the operands provided in the context.
+ *
+ * @param ctx Pointer to the context containing the addition expression.
+ * @return The result of the addition operation.
+ */
 std::any TopLevelVisitor::visitAdd(SceneParser::AddContext *ctx){
   OperationMacro(+);
 }
+
+/**
+ * @brief Handles subtraction operations.
+ *
+ * This function processes subtraction expressions by applying the '-' operator
+ * to the operands provided in the context.
+ *
+ * @param ctx Pointer to the context containing the subtraction expression.
+ * @return The result of the subtraction operation.
+ */
 std::any TopLevelVisitor::visitDim(SceneParser::DimContext *ctx){
   OperationMacro(-);
 }
+
+/**
+ * @brief Handles division operations.
+ *
+ * This function processes division expressions by applying the '/' operator
+ * to the operands provided in the context.
+ *
+ * @param ctx Pointer to the context containing the division expression.
+ * @return The result of the division operation.
+ */
 std::any TopLevelVisitor::visitDife(SceneParser::DifeContext *ctx){
   OperationMacro(/);
 }
+
+/**
+ * @brief Handles multiplication operations.
+ *
+ * This function processes multiplication expressions by applying the '*' operator
+ * to the operands provided in the context.
+ *
+ * @param ctx Pointer to the context containing the multiplication expression.
+ * @return The result of the multiplication operation.
+ */
 std::any TopLevelVisitor::visitMult(SceneParser::MultContext *ctx){
   OperationMacro(*)
 }
+
+/**
+ * @brief Handles expressions within parentheses.
+ *
+ * This function evaluates expressions enclosed in parentheses. If the result
+ * is a string, it adds parentheses around it; otherwise, it returns the result
+ * as is. Throws an exception if the result type is unknown.
+ *
+ * @param ctx Pointer to the context containing the parenthesized expression.
+ * @return The evaluated result, with parentheses added if it's a string.
+ * @throws std::runtime_error if the result type is unknown.
+ */
 std::any TopLevelVisitor::visitKlamKon(SceneParser::KlamKonContext *ctx){
   std::any ret = ctx->expr()->accept(this);
   if      (ret.type() == typeid(int64_t))     return ret;

@@ -28,6 +28,17 @@ Function::Function(const std::string nm, VarType retT, SceneParser::PathdefConte
     vars.push_back({nm,nw});
   }
 }
+
+/**
+ * @brief Constructs a Function object with a name, return type, and parsing context.
+ *
+ * Initializes the function's name, return type, and context. If the context includes a parameter list,
+ * it creates corresponding Variable objects of type DOUBLE, marks them as defined, and adds them to the vars vector.
+ *
+ * @param nm The function's name.
+ * @param retT The function's return type.
+ * @param CTX Pointer to the CalcdefContext containing the function's parsing context.
+ */
 Function::Function(const std::string nm, VarType retT, SceneParser::CalcdefContext *CTX) 
       : retType(retT), name(nm), ctx(CTX) {
   if(!CTX->paramlist()){
@@ -114,6 +125,15 @@ std::cerr << __func__ << std::endl;
   return ret;
 }
 
+/**
+ * @brief Generates the function signature for implementation.
+ *
+ * Constructs a string representing the function's signature, including its
+ * return type, name, and parameters, formatted appropriately for the
+ * function's implementation.
+ *
+ * @return A string containing the formatted function signature.
+ */
 std::string Function::Implement(){
   //prepere the variable part of the string
   std::string ret = VarTypeNS::getTypeName(retType);
