@@ -82,6 +82,7 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitWalkMark(SceneParser::WalkMarkContext *ctx) override;
     std::any visitJumpMark(SceneParser::JumpMarkContext *ctx) override;
     std::any visitColorCmd(SceneParser::ColorCmdContext *ctx) override;
+    std::any visitPathCall(SceneParser::PathCallContext *ctx) override;
     ///The visitor for the var commands
     std::any visitStoreVar(SceneParser::StoreVarContext *ctx) override;
     std::any visitSubVar(SceneParser::SubVarContext *ctx) override;

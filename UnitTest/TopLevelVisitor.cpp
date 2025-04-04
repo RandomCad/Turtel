@@ -915,6 +915,65 @@ TEST_F(TopLevelVisitorTest, Save){
   ASSERT_STREQ(line.c_str(), "");
 }
 
+TEST_F(TopLevelVisitorTest, CallPath){
+  for(int i = 0; i < TEST_AMMOUNT; ++i){
+    std::string funcID = getRandomID();
+    inputStream
+      << "path " << funcID
+      ;
+
+    std::stringstream stream;
+    stream << "path " << funcID << " endpath" << std::endl;
+
+    antlr4::ANTLRInputStream input1(stream);
+    SceneLexer lexer1(&input1);
+    antlr4::CommonTokenStream tokens1(&lexer1);
+    SceneParser parser1(&tokens1);    
+
+    TopLevelVisitorTest::SetupParser();
+    TopLevelVisitorTest::SetFunction({{funcID, Function(funcID, VarType::VOID, parser1.pathdef())}});
+
+    auto astStart = parser->pathCall();
+    ASSERT_TRUE(astStart);
+
+    TopLevelVisitorTest::SetVariables(astStart);
+
+    std::any ret = astStart->accept(&toTest);
+
+    std::string line;
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*\\(\\s*\\)\\s*;\\s*$"));
+  }
+  for(int i = 0; i < TEST_AMMOUNT; ++i){
+    std::string funcID = getRandomID();
+    std::string varID = getRandomID();
+    inputStream
+      << "path " << funcID << '(' << varID << ')'
+      ;
+
+    std::stringstream stream;
+    stream << "path " << funcID << '(' << varID << ") endpath" << std::endl;
+
+    antlr4::ANTLRInputStream input1(stream);
+    SceneLexer lexer1(&input1);
+    antlr4::CommonTokenStream tokens1(&lexer1);
+    SceneParser parser1(&tokens1);    
+
+    TopLevelVisitorTest::SetupParser();
+    TopLevelVisitorTest::SetFunction({{funcID, Function(funcID, VarType::DOUBLE, parser1.pathdef())}});
+
+    auto astStart = parser->pathCall();
+    ASSERT_TRUE(astStart);
+
+    TopLevelVisitorTest::SetVariables(astStart);
+    std::any ret = astStart->accept(&toTest);
+
+    std::string line;
+    std::getline(retStream, line);
+    ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*$"));
+  }
+}
+
 #if FALSE
 TEST(TOP_LEVEL_VISITOR_TEST_SUITE, AcceptNumContext){
   std::stringstream stream;

@@ -309,6 +309,22 @@ std::any TopLevelVisitor::visitFuncCall(SceneParser::FuncCallContext *ctx){
   else ret += ')';
   return ret;
 }
+std::any TopLevelVisitor::visitPathCall(SceneParser::PathCallContext *ctx){
+  std::cerr << __func__ << std::endl;
+  std::string funcName = ctx->ID()->getText();
+  if(!funcs.contains(funcName)){
+    std::cout << "using function " << funcName << " which wasn't defined in the file" << std::endl;
+    throw "Error"; //TODO;
+  }
+  std::string ret;
+  for (auto i : ctx->expr()) {
+    ret += UnwrapExpre(i) + ',';
+  }
+  if(ctx->expr().size() > 0) ret[ret.size() - 1] = ')';
+  else ret += ')';
+  output << funcs.at(funcName).getName() << '(' << ret << ";\n";
+  return std::any();
+}
 std::any TopLevelVisitor::visitParamlist(SceneParser::ParamlistContext *ctx){
   std::vector<Variable> ret(ctx->var().size());
   for(size_t i = 0; i < ctx->var().size(); ++i){

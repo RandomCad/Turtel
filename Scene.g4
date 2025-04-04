@@ -94,7 +94,7 @@ mark      : Mark;
 walkMark  : Walk Mark;
 jumpMark  : Jump Mark;
 colorCmd  : Color expr expr expr;
-pathCall  : 'path' ID paramlist? ;
+pathCall  : 'path' ID ( '(' ( ( expr ',')* expr)? ')' )? ;
 
 ///conditions (if)
 cond  : expr '<' expr #lesThan
