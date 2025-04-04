@@ -5,7 +5,7 @@
 /**
  * @brief Visits a global variable context and adds the variable to the context.
  * 
- * This function visits a global variable context, creates a Variable object, and adds it to the context.
+ * This function visits a global variable context, creates a Variable object, and adds it to the variable list.
  * 
  * @param ctx The global variable context to visit.
  * @return An empty std::any object.
