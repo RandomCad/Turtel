@@ -2,9 +2,9 @@
 " Testprogramm: Pythagoras-Fraktal (rekursiv)
 "
 " Optionale Befehlszeilen-Werte:
-" Anfängliche Seitenlänge, kleinste Seitenlänge, Winkel des Dreieckes
+" Anfaengliche Seitenlaenge, kleinste Seitenlaenge, Winkel des Dreieckes
 "
-" Originalversion Alexander Hohmann & Max Jänichen 2021
+" Originalversion Alexander Hohmann & Max Jaenichen 2021
 " Klaus Kusche, 2022
 
 path pythagoras(len, abort_len, w)

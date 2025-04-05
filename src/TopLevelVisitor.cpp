@@ -171,19 +171,19 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     ///add env Functions
     << "void __envfunc_stop(const double ret){\n"
 #ifndef UNIT_TEST
-    << "  do{\n"
+    << "do{\n"
 #ifndef NDEBUG
     << "    printf(\"Event Loop\\n\");\n"
 #endif
-    << "    SDL_WaitEvent(&" << envVar.at(EVENT_NAME).getName() << ");\n"
-    << "    switch ("<< envVar.at(EVENT_NAME).getName() << ".type){\n"
-    << "      case SDL_KEYDOWN:\n"
-    << "      case SDL_QUIT: __envfunc_stop(ret);\n"
-    << "      default: break;\n"
-    << "    }\n"
-    << "  }while(1);\n"
+    << "SDL_PollEvent(&" << envVar.at(EVENT_NAME).getName() << ");\n"
+    << "switch ("<< envVar.at(EVENT_NAME).getName() << ".type){\n"
+    << "case SDL_KEYDOWN:\n"
+    << "case SDL_QUIT: __envfunc_fin(ret);\n"
+    << "default: break;\n"
+    << "}\n"
+    << "}while(1);\n"
 #endif
-    << "  __envfunc_fin(ret);\n"
+    << "__envfunc_fin(ret);\n"
     << "}\n"
     << "void __envfunc_fin(const double ret){\n" 
     << "  SDL_DestroyRenderer(" << envVar.at(RND_NAME).getName() <<" );\n"
