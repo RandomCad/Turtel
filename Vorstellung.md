@@ -24,8 +24,9 @@
 
     Der in der Aufgabenstellung beschriebene Sprachumfang umfasst eine Vielzahl an Befehlen (z. B. walk, jump, turn left, direction, Zuweisungen, Schleifen, Funktionen, Markierungskommandos usw.). Unsere Implementierung setzt darauf, einen Transpiler zu entwickeln, der von Turtle zu C übersetzt.
 
-        - Dabei wird die Sprache wohl als Teilmenge bzw. abgewandelte Variante implementiert, die speziell auf junge Lernende zugeschnitten ist.
+        - Dabei wird die Sprache als Teilmenge bzw. abgewandelte Variante implementiert, die speziell auf junge Lernende zugeschnitten ist.
         - Darüber hinaus wurde der Befehl save als Erweiterung hinzugefügt, um den aktuellen Programmstand als .png-Datei zu speichern – ein Feature, das in der Aufgabenstellung nicht erwähnt wird.
+        - Darüber hinaus wurden die Befehle zum Beenden des Programmes um die Möglichkeit der Angabe eines Returncodes erweitert.
 
 # Build- und Testinfrastruktur
 
@@ -92,6 +93,7 @@ Die ersten Zeilen der Grammatik enthalten die Definition von Schlüsselwörtern,
   Color     : 'color' ;
 
 Diese Regeln teilen dem Lexer mit, dass genau diese Zeichenfolgen als Token des jeweiligen Typs erkannt werden. Die Großschreibung und genaue Übereinstimmung ist dabei ausschlaggebend.
+Neben diesen können auch unbenante Lexer Tokens direkt in Parser-Regeln definiert werden.
 
 - **Zahlen und Identifikatoren:**
 ```antlr
