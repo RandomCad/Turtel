@@ -1351,6 +1351,17 @@ std::any TopLevelVisitor::visitFloat(SceneParser::FloatContext *ctx){
   return std::stod(ctx->Float()->getSymbol()->getText());
 }
 
+/**
+ * @brief Applies an operation between two operands.
+ *
+ * This macro retrieves the left and right operands from the parsing context and evaluates them
+ * via their accept methods. It then checks the types of both operands (which can be std::string,
+ * int64_t, double, or Variable) and performs an operation based on the provided symbol. Depending
+ * on the operand types, it may concatenate strings, format numbers, or apply arithmetic operations.
+ * If the operand types do not match any of the expected combinations, the macro throws a runtime error.
+ *
+ * @param symbol The operator symbol used in the operation.
+ */
 #define OperationMacro(symbol) \
   std::cout << __func__ << std::endl;\
   std::any left = ctx->children[0]->accept(this);\
@@ -1571,7 +1582,7 @@ std::any TopLevelVisitor::visitABS(SceneParser::ABSContext *ctx){
 }
 
 /**
- * Negates a given value.
+ * @brief Negates a given value.
  * Supports int64_t, double, and std::string.
  * 
  * @param ctx Context for the negate expression.
@@ -1591,7 +1602,7 @@ std::any TopLevelVisitor::visitNegate(SceneParser::NegateContext *ctx){
 }
 
 /**
- * Visits a numeric expression and returns its value.
+ * @brief Visits a numeric expression and returns its value.
  * 
  * @param ctx Context for the numeric expression.
  * @return Evaluated number as std::any.
@@ -1602,7 +1613,43 @@ std::any TopLevelVisitor::visitNumExpr(SceneParser::NumExprContext *ctx){
 }
 
 /**
- * Performs exponentiation (power) on two values.
+ * @brief Adds two values together.
+ * Handles numbers and strings with various combinations.
+ * 
+ * @param ctx Context for the addition expression.
+ * @return Result of the addition as std::any.
+ * @throws std::runtime_error if the type combination is not supported.
+ */
+std::any TopLevelVisitor::visitAdd(SceneParser::AddContext *ctx){
+  std::cout << __func__ << std::endl;
+  std::any left = ctx->children[0]->accept(this);
+  std::any reigth = ctx->children[2]->accept(this);
+
+  if(left.type() == typeid(std::string) && reigth.type() == typeid(std::string))
+    return std::any_cast<std::string>(left) + '+' + std::any_cast<std::string>(reigth);
+  else if(left.type() == typeid(std::string) && reigth.type() == typeid(int64_t))
+    return std::any_cast<std::string>(left) + '+' + std::to_string(std::any_cast<int64_t>(reigth));
+  else if(left.type() == typeid(std::string) && reigth.type() == typeid(double))
+    return std::any_cast<std::string>(left) + '+' + std::to_string(std::any_cast<double>(reigth));
+  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(std::string))
+    return std::to_string(std::any_cast<int64_t>(left)) + '+' + std::any_cast<std::string>(reigth);
+  else if(left.type() == typeid(double) && reigth.type() == typeid(std::string))
+    return std::to_string(std::any_cast<double>(left)) + '+' + std::any_cast<std::string>(reigth);
+  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(int64_t))
+    return std::any_cast<int64_t>(left) + std::any_cast<int64_t>(reigth);
+  else if(left.type() == typeid(double) && reigth.type() == typeid(int64_t))
+    return std::any_cast<double>(left) + std::any_cast<int64_t>(reigth);
+  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(double))
+    return std::any_cast<int64_t>(left) + std::any_cast<double>(reigth);
+  else if(left.type() == typeid(double) && reigth.type() == typeid(double))
+    return std::any_cast<double>(left) + std::any_cast<double>(reigth);
+  else{
+    throw std::runtime_error("todo:"); //TODO:
+  }
+}
+
+/**
+ * @brief Performs exponentiation (power) on two values.
  * Supports numeric and string representations.
  * 
  * @param ctx Context for the exponentiation expression.
@@ -1710,7 +1757,7 @@ std::any TopLevelVisitor::visitKlamKon(SceneParser::KlamKonContext *ctx){
 }
 
 /**
- * Returns the name of a variable.
+ * @brief Returns the name of a variable.
  * 
  * @param ctx Context for the variable expression.
  * @return Variable name as std::any.
