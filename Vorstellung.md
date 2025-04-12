@@ -304,17 +304,5 @@ Die Listener-Methoden sind typischerweise void und liefern keine Rückgabewerte.
 - **Weniger Kontrolle über den Traversierungsprozess:**
 Da der Listener-Mechanismus automatisch abläuft, hat man weniger Flexibilität, beispielsweise das Überspringen bestimmter Knoten oder eine selektive Behandlung des Baumes zu implementieren. Das kann in komplexeren Anwendungen, etwa bei der Code-Generation, einschränkend wirken.
 
-## Besonderheiten im Kontext eurer Umsetzung
-
-In unserer Implementierung, die mit ANTLR4 arbeitet, werden die Besucher (Visitor) oder Listener üblicherweise zur Verarbeitung des vom Parser erzeugten AST verwendet. Dabei fällt besonders auf, dass:
-
-- **Rückgabetypen (z. B. std::any in C++):**
-In eurem Fall wurde erwähnt, dass die ANTLR‑Visitor ausschließlich std::any als Rückgabetyp verwenden. Das kann durchaus Nachteile mit sich bringen, da die Typisierung dann weniger strikt ist und Fehler erst zur Laufzeit auffallen können. Ein sorgfältiger Umgang mit den Rückgabewerten ist hier erforderlich.
-
-- **Auswahl des Patterns anhand der Aufgabe:**
-Wird etwa der C-Code-Generator implementiert, so kann das Visitor-Pattern vorteilhaft sein, weil Ergebnisse aus Teilbäumen zurückgegeben und zusammengeführt werden können. Bei einfacheren Aufgaben, etwa beim reinen Parsen und Anzeigen von Informationen, könnte hingegen der Listener-Ansatz ausreichend und einfacher sein.
-
-- **Implementierungsaufwand:**
-Für komplexe Sprachen und Grammatiken (wie z. B. eure Turtle-Sprache mit vielen Befehlen) kann der Visitor-Ansatz aufgrund der Vielzahl an Knoten etwas umfangreicher sein. Gleichzeitig ermöglicht er jedoch eine präzise Steuerung der Verarbeitungslogik.
 
 
