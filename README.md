@@ -130,3 +130,9 @@ Dieser Funktioniert sehr gut und die Integration war sehr einfach.
 
 
 Zyklische dependencys im Function system haben sicherlich 2-3h Zeit geraubt.
+
+### Doxygen
+
+cmake --build . --target doc
+
+Mit diesem Befehl kann die API-Dokumentation generiert werden
