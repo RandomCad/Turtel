@@ -22,6 +22,9 @@ Untile: 'untile'        ;
 Begin : 'begin'         ;
 End   : 'end'           ;
 Color : 'color'         ;
+And   : [aA] [nN] [dD]  ;
+Or    : [oO] [rR]       ;
+Not   : [nN] [oO] [tT]  ;
 
 Num   : [0-9]+ ;
 Float : [0-9]+ '.' [0-9]+
@@ -97,16 +100,16 @@ colorCmd  : Color expr expr expr;
 pathCall  : 'path' ID ( '(' ( ( expr ',')* expr)? ')' )? ;
 
 ///conditions (if)
-cond  : expr '<' expr #lesThan
+cond  : cond And cond #andCond
+      | cond Or cond #orCond
       | expr '>' expr #greaterThan
       | expr '<=' expr #lesEqThan
       | expr '>=' expr #greaterEqThan
       | expr '=' expr #Equal
       | expr '<>' expr #Unequal
+      | expr '<' expr #lesThan
       | '(' cond ')' #clamCond
-      | 'NOT' cond #notCond
-      | cond 'AND' cond #andCond
-      | cond 'OR' cond #orCond
+      | Not cond #notCond
       ;
 
 ///Math expressions
