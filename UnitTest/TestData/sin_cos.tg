@@ -4,7 +4,7 @@
 " Optionale Befehlszeilen-Werte:
 " Amplitude, Anzahl der Schwingungen, Abtast-Abstand
 "
-" Originalversion Alexander Hohmann & Max Jänichen 2021
+" Originalversion Alexander Hohmann & Max Jaenichen 2021
 " Klaus Kusche, 2022
 
 path cos_path(len, stepwidth, amp, periods, dotted)
