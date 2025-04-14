@@ -362,7 +362,7 @@ std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){
     }
   }
   else if (ret.type() == typeid(std::string)){
-    output << "  if (" << std::any_cast<std::string>(ret) << "){\n";
+    output << "if(" << std::any_cast<std::string>(ret) << "){\n";
     for (auto i : ctx->stat()) {
       i->accept(this);
     }
@@ -373,7 +373,7 @@ std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){
         i->accept(this);
       }
     }
-    output  << "  }\n";
+    output  << "}\n";
     return std::any();
   }
   else{
@@ -802,7 +802,7 @@ std::any TopLevelVisitor::visitTurnLeft(SceneParser::TurnLeftContext *ctx){
 }
 ///go back to WINDOW_X/2 and WINDOW_Y which should be the middle of the bottom of the screen
 std::any TopLevelVisitor::visitWalkHome(SceneParser::WalkHomeContext *ctx){
-  output  << "  SDL_RenderDrawLine("
+  output  << "SDL_RenderDrawLine("
           << envVar.at(RND_NAME).getName() 
           << ", " 
           << envVar.at(POS_X).getName() 
@@ -810,7 +810,7 @@ std::any TopLevelVisitor::visitWalkHome(SceneParser::WalkHomeContext *ctx){
           << envVar.at(POS_Y).getName() 
           << ", "
           << envVar.at(WINDOW_X).getName() << " / 2, "
-          << envVar.at(WINDOW_Y).getName() 
+          << envVar.at(WINDOW_Y).getName() << " / 2"
           << ");\n"
           
           << envVar.at(POS_X).getName() 
@@ -821,7 +821,7 @@ std::any TopLevelVisitor::visitWalkHome(SceneParser::WalkHomeContext *ctx){
           << envVar.at(POS_Y).getName() 
           << " = " 
           << envVar.at(WINDOW_Y).getName() 
-          << ";\n"
+          << " / 2;\n"
           ;
 
   return std::any();
@@ -836,7 +836,7 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
           << envVar.at(POS_Y).getName() 
           << " = " 
           << envVar.at(WINDOW_Y).getName() 
-          << ";\n"
+          << " / 2;\n"
           ;
 
   return std::any();
@@ -850,7 +850,7 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
   envVar.at(POS_X).getName() << " = "\
   << CalcPosX((len))\
   << ";\n"\
-  << "  " << envVar.at(POS_Y).getName() << " = "\
+  << envVar.at(POS_Y).getName() << " = "\
   << CalcPosY((len))\
   << ";\n"
 /**
@@ -859,7 +859,7 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
  * */
 std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
   output  
-    << "  SDL_RenderDrawLine("
+    << "SDL_RenderDrawLine("
     << envVar.at(RND_NAME).getName() 
     << ", " 
     << envVar.at(POS_X).getName() 
@@ -878,7 +878,7 @@ std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
 }
 std::any TopLevelVisitor::visitWalkBack(SceneParser::WalkBackContext *ctx){
   output  
-    << "  SDL_RenderDrawLine("
+    << "SDL_RenderDrawLine("
     << envVar.at(RND_NAME).getName() 
     << ", " 
     << envVar.at(POS_X).getName() 
@@ -956,15 +956,15 @@ std::any TopLevelVisitor::visitColorCmd(SceneParser::ColorCmdContext *ctx) {
   std::string gValue = UnwrapExpre(ctx->expr(1));
   std::string bValue = UnwrapExpre(ctx->expr(2));
 
-  output << "  SDL_SetRenderDrawColor(" 
+  output << "SDL_SetRenderDrawColor(" 
          << envVar.at(RND_NAME).getName() << ", "
          << rValue << ", "
          << gValue << ", "
          << bValue << ", 255);\n";
   
-  output << "  " << envVar.at(COLOR_R).getName() << " = " << rValue << ";\n"
-         << "  " << envVar.at(COLOR_G).getName() << " = " << gValue << ";\n"
-         << "  " << envVar.at(COLOR_B).getName() << " = " << bValue << ";\n";
+  output << envVar.at(COLOR_R).getName() << " = " << rValue << ";\n"
+         << envVar.at(COLOR_G).getName() << " = " << gValue << ";\n"
+         << envVar.at(COLOR_B).getName() << " = " << bValue << ";\n";
 
   return std::any();
 }
