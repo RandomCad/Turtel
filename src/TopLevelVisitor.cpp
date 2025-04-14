@@ -1167,6 +1167,85 @@ std::any TopLevelVisitor::visitKlamKon(SceneParser::KlamKonContext *ctx){
     throw "TODO: visit Kalm unknowen type";
   }
 }
+std::any TopLevelVisitor::visitCosCall(SceneParser::CosCallContext *ctx){
+  std::any ret = ctx->expr()->accept(this);
+  if      (ret.type() == typeid(int64_t))     return std::cos(std::any_cast<int64_t>(ret));
+  else if (ret.type() == typeid(double))      return std::cos(std::any_cast<double>(ret));
+  else if (ret.type() == typeid(Variable))    return "cos(" + std::any_cast<Variable>(ret).getName() + ')';
+  else if (ret.type() == typeid(std::string)) return "cos(" + std::any_cast<std::string>(ret) + ")";
+  else{
+    throw "TODO: visit cos unknowen type";
+  }
+}
+std::any TopLevelVisitor::visitSinCall(SceneParser::SinCallContext *ctx){
+  std::any ret = ctx->expr()->accept(this);
+  if      (ret.type() == typeid(int64_t))     return std::sin(std::any_cast<int64_t>(ret));
+  else if (ret.type() == typeid(double))      return std::sin(std::any_cast<double>(ret));
+  else if (ret.type() == typeid(Variable))    return "sin(" + std::any_cast<Variable>(ret).getName() + ')';
+  else if (ret.type() == typeid(std::string)) return "sin(" + std::any_cast<std::string>(ret) + ")";
+  else{
+    throw "TODO: visit cos unknowen type";
+  }
+}
+std::any TopLevelVisitor::visitRandCall(SceneParser::RandCallContext *ctx){
+  std::any ret1 = ctx->expr(0)->accept(this);
+  std::any ret2 = ctx->expr(1)->accept(this);
+  std::string p1, p2;
+  
+  if      (ret1.type() == typeid(int64_t))     p1 = std::any_cast<int64_t>(ret1);
+  else if (ret1.type() == typeid(double))      p1 = std::any_cast<double>(ret1);
+  else if (ret1.type() == typeid(Variable))    p1 = std::any_cast<Variable>(ret1).getName();
+  else if (ret1.type() == typeid(std::string)) p1 = std::any_cast<std::string>(ret1) ;
+  else{
+    throw "TODO: visit cos unknowen type";
+  }
+
+  if      (ret2.type() == typeid(int64_t)){
+    int64_t zwi = std::any_cast<int64_t>(ret2);
+    if      (ret1.type() == typeid(int64_t))     p2 = std::any_cast<int64_t>(ret1) - zwi;
+    else if (ret1.type() == typeid(double))      p2 = std::any_cast<double>(ret1) - zwi;
+    else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName() + '-' + std::to_string(zwi);
+    else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1) + '-' + std::to_string(zwi);
+    else{
+      throw "TODO: visit cos unknowen type";
+    }
+  }
+  else if (ret2.type() == typeid(double)){
+    double zwi = std::any_cast<double>(ret2);
+    if      (ret1.type() == typeid(int64_t))     p2 = std::any_cast<int64_t>(ret1)  - zwi;
+    else if (ret1.type() == typeid(double))      p2 = std::any_cast<double>(ret1)   - zwi;
+    else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName() + '-' + std::to_string(zwi);
+    else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1) + '-' + std::to_string(zwi);
+    else{
+      throw "TODO: visit cos unknowen type";
+    }
+  }
+  else if (ret2.type() == typeid(Variable)){
+    std::string zwi = std::any_cast<Variable>(ret2).getName();
+    if      (ret1.type() == typeid(int64_t))     p2 = std::to_string(std::any_cast<int64_t>(ret1))  + '-' + zwi;
+    else if (ret1.type() == typeid(double))      p2 = std::to_string(std::any_cast<double>(ret1))   + '-' + zwi;
+    else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName()       + '-' + zwi;
+    else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1)              + '-' + zwi;
+    else{
+      throw "TODO: visit cos unknowen type";
+    }
+  }
+  else if (ret2.type() == typeid(std::string)) {
+    std::string zwi = std::any_cast<std::string>(ret2);
+    if      (ret1.type() == typeid(int64_t))     p2 = std::to_string(std::any_cast<int64_t>(ret1))  + '-' + zwi;
+    else if (ret1.type() == typeid(double))      p2 = std::to_string(std::any_cast<double>(ret1))   + '-' + zwi;
+    else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName()       + '-' + zwi;
+    else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1)              + '-' + zwi;
+    else{
+      throw "TODO: visit cos unknowen type";
+    }
+  }
+  else{
+    throw "TODO: visit cos unknowen type";
+  }
+  
+  return '(' + p1 +" + rand() % " + p2 + ')';
+}
 ///\return returns the string to acces the variable
 std::any TopLevelVisitor::visitVarExpr(SceneParser::VarExprContext *ctx){
   return ctx->var()->accept(this);

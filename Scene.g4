@@ -96,7 +96,7 @@ finish    : Finish #FinOK
 mark      : Mark;
 walkMark  : Walk Mark;
 jumpMark  : Jump Mark;
-colorCmd  : Color expr expr expr;
+colorCmd  : Color expr ',' expr ',' expr;
 pathCall  : 'path' ID ( '(' ( ( expr ',')* expr)? ')' )? ;
 
 ///conditions (if)
@@ -114,17 +114,20 @@ cond  : cond And cond #andCond
 
 ///Math expressions
 expr  :
-        expr '^' expr #Exp
-      | expr '*' expr #Mult
-      | expr '/' expr #Dife
-      | expr '-' expr #Dim
-      | expr '+' expr #Add
-      | '|' expr '|'  #ABS
-      | '-' ( number | klamKon | var)   #Negate
-      | klamKon #ClamExpr
+        expr '^' expr                     #Exp
+      | expr '*' expr                     #Mult
+      | expr '/' expr                     #Dife
+      | expr '-' expr                     #Dim
+      | expr '+' expr                     #Add
+      | '|' expr '|'                      #ABS
+      | '-' ( number | klamKon | var)     #Negate
+      | klamKon                           #ClamExpr
       | ID '(' ( ( expr ',')* expr)? ')'  #funcCall
-      | number	      #NumExpr	
-      | var	      #VarExpr
+      | 'sin' '(' expr ')'                #sinCall
+      | 'cos' '(' expr ')'                #cosCall
+      | 'rand' '(' expr ',' expr ')'      #randCall
+      | number	                          #NumExpr	
+      | var	                              #VarExpr
       ;
 klamKon	: '(' expr ')' ;
 number: Num     #Int
