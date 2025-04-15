@@ -193,3 +193,22 @@ add_custom_target(copy_test_data
 
 # Ensure Tests depends on copy_test_data (copies test data before running tests)
 add_dependencies(Tests copy_test_data)
+
+# ----------------------------
+# Doxygen Integration
+# ----------------------------
+find_package(Doxygen REQUIRED)
+
+if (DOXYGEN_FOUND)
+  set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+  set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+
+  configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
+
+  add_custom_target(doc
+    COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating API documentation with Doxygen"
+    VERBATIM
+  )
+endif()
