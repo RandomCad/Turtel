@@ -456,7 +456,7 @@ std::any TopLevelVisitor::visitDoUntil(SceneParser::DoUntilContext *ctx){
             std::cerr 
               << "you created an infinit loop at line: " 
               << ctx->getTokens(SceneParser::Untile)[0]->getSymbol()->getLine() 
-              << "starting with character: "
+              << " starting with character: "
               << ctx->getTokens(SceneParser::Untile)[0]->getSymbol()->getCharPositionInLine()
               << ".\n"
               
@@ -1169,20 +1169,20 @@ std::any TopLevelVisitor::visitKlamKon(SceneParser::KlamKonContext *ctx){
 }
 std::any TopLevelVisitor::visitCosCall(SceneParser::CosCallContext *ctx){
   std::any ret = ctx->expr()->accept(this);
-  if      (ret.type() == typeid(int64_t))     return std::cos(std::any_cast<int64_t>(ret));
-  else if (ret.type() == typeid(double))      return std::cos(std::any_cast<double>(ret));
-  else if (ret.type() == typeid(Variable))    return "cos(" + std::any_cast<Variable>(ret).getName() + ')';
-  else if (ret.type() == typeid(std::string)) return "cos(" + std::any_cast<std::string>(ret) + ")";
+  if      (ret.type() == typeid(int64_t))     return std::cos(std::any_cast<int64_t>(ret) * M_PI/180);
+  else if (ret.type() == typeid(double))      return std::cos(std::any_cast<double>(ret) * M_PI/180);
+  else if (ret.type() == typeid(Variable))    return "cos(" + std::any_cast<Variable>(ret).getName() + " * M_PI/180)";
+  else if (ret.type() == typeid(std::string)) return "cos(" + std::any_cast<std::string>(ret) + " * M_PI/180)";
   else{
     throw "TODO: visit cos unknowen type";
   }
 }
 std::any TopLevelVisitor::visitSinCall(SceneParser::SinCallContext *ctx){
   std::any ret = ctx->expr()->accept(this);
-  if      (ret.type() == typeid(int64_t))     return std::sin(std::any_cast<int64_t>(ret));
-  else if (ret.type() == typeid(double))      return std::sin(std::any_cast<double>(ret));
-  else if (ret.type() == typeid(Variable))    return "sin(" + std::any_cast<Variable>(ret).getName() + ')';
-  else if (ret.type() == typeid(std::string)) return "sin(" + std::any_cast<std::string>(ret) + ")";
+  if      (ret.type() == typeid(int64_t))     return std::sin(std::any_cast<int64_t>(ret) * M_PI/180);
+  else if (ret.type() == typeid(double))      return std::sin(std::any_cast<double>(ret) * M_PI/180);
+  else if (ret.type() == typeid(Variable))    return "sin(" + std::any_cast<Variable>(ret).getName() + " * M_PI/180)";
+  else if (ret.type() == typeid(std::string)) return "sin(" + std::any_cast<std::string>(ret) + " * M_PI/180)";
   else{
     throw "TODO: visit cos unknowen type";
   }
@@ -1192,8 +1192,8 @@ std::any TopLevelVisitor::visitRandCall(SceneParser::RandCallContext *ctx){
   std::any ret2 = ctx->expr(1)->accept(this);
   std::string p1, p2;
   
-  if      (ret1.type() == typeid(int64_t))     p1 = std::any_cast<int64_t>(ret1);
-  else if (ret1.type() == typeid(double))      p1 = std::any_cast<double>(ret1);
+  if      (ret1.type() == typeid(int64_t))     p1 = std::to_string(std::any_cast<int64_t>(ret1));
+  else if (ret1.type() == typeid(double))      p1 = std::to_string(std::any_cast<double>(ret1));
   else if (ret1.type() == typeid(Variable))    p1 = std::any_cast<Variable>(ret1).getName();
   else if (ret1.type() == typeid(std::string)) p1 = std::any_cast<std::string>(ret1) ;
   else{
@@ -1202,8 +1202,8 @@ std::any TopLevelVisitor::visitRandCall(SceneParser::RandCallContext *ctx){
 
   if      (ret2.type() == typeid(int64_t)){
     int64_t zwi = std::any_cast<int64_t>(ret2);
-    if      (ret1.type() == typeid(int64_t))     p2 = std::any_cast<int64_t>(ret1) - zwi;
-    else if (ret1.type() == typeid(double))      p2 = std::any_cast<double>(ret1) - zwi;
+    if      (ret1.type() == typeid(int64_t))     p2 = std::to_string(std::any_cast<int64_t>(ret1) - zwi);
+    else if (ret1.type() == typeid(double))      p2 = std::to_string(std::any_cast<double>(ret1)  - zwi);
     else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName() + '-' + std::to_string(zwi);
     else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1) + '-' + std::to_string(zwi);
     else{
@@ -1212,8 +1212,8 @@ std::any TopLevelVisitor::visitRandCall(SceneParser::RandCallContext *ctx){
   }
   else if (ret2.type() == typeid(double)){
     double zwi = std::any_cast<double>(ret2);
-    if      (ret1.type() == typeid(int64_t))     p2 = std::any_cast<int64_t>(ret1)  - zwi;
-    else if (ret1.type() == typeid(double))      p2 = std::any_cast<double>(ret1)   - zwi;
+    if      (ret1.type() == typeid(int64_t))     p2 = std::to_string(std::any_cast<int64_t>(ret1)  - zwi);
+    else if (ret1.type() == typeid(double))      p2 = std::to_string(std::any_cast<double>(ret1)   - zwi);
     else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName() + '-' + std::to_string(zwi);
     else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1) + '-' + std::to_string(zwi);
     else{
