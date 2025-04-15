@@ -35,6 +35,8 @@ std::regex matchPragmaUnrolle = std::regex("\\s*#pragma\\s+unroll\\s*");
 std::regex matchClosingCrlBracket = std::regex("\\s*\\}\\s*");
 std::regex matchFuncHead = std::regex("\\s*\\w+\\s+\\w+\\s*\\(\\s*(\\s*double\\s+__usr_\\w+(,\\s*double\\s+__usr_\\w+)*)?\\)\\s*\\{\\s*$");
 std::regex matchAssigne5 = std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*$");
+std::regex checkForDraw(
+          "\\s*SDL_RenderDrawLine\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*\\+\\s*(-\\()?\\w+\\)?\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,\\s*\\w+\\s*\\+\\s*(-\\()?\\w+\\)?\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\)\\s*;\\s*");
 
 std::string getRandomID();
 
@@ -493,12 +495,6 @@ TEST(TopLevelVisitor, BasicWalkSave){
 
   toTest.seekg(0);
 
-  std::regex checkForDraw(
-          "\\s+SDL_RenderDrawLine\\s*\\("
-          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
-          ")\\s*;\\s*");
   std::string line;
   int ret = 0;
   while (std::getline(test.llvm.llvmFile, line)) {
@@ -603,12 +599,6 @@ TEST(TopLevelVisitor, BasicWalk){
 
   toTest.seekg(0);
 
-  std::regex checkForDraw(
-          "\\s+SDL_RenderDrawLine\\s*\\("
-          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
-          ")\\s*;\\s*");
   std::string line;
   int ret = 0;
   while (std::getline(test.llvm.llvmFile, line)) {
@@ -668,12 +658,6 @@ TopLevelVisitor test(testFile);
 
   toTest.seekg(0);
 
-  std::regex checkForDraw(
-          "\\s+SDL_RenderDrawLine\\s*\\("
-          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
-          ")\\s*;\\s*");
   std::string line;
   int ret = 0;
   while (std::getline(test.llvm.llvmFile, line)) {

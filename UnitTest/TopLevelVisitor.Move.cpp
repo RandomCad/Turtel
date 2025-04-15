@@ -22,6 +22,7 @@ extern std::regex matchPragmaUnrolle;
 extern std::regex matchClosingCrlBracket;
 extern std::regex matchFuncHead;
 extern std::regex matchAssigne5;
+extern std::regex checkForDraw;
 
 TEST_F(TopLevelVisitorTest, TurnExplizitRight){
   inputStream
@@ -130,7 +131,7 @@ TEST_F(TopLevelVisitorTest, JumpHome){
   ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s+\\/\\s+2;\\s*"));
 
   std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*;\\s*"));
+  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s+\\/\\s+2;\\s*"));
 
   std::getline(retStream, line);
   std::cerr << line << std::endl;
@@ -152,13 +153,13 @@ TEST_F(TopLevelVisitorTest, WalkHome){
 
   std::string line;
   std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s+SDL_RenderDrawLine\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s+\\/\\s+2\\s*,\\s*\\w+\\s*\\)\\s*;\\s*"));
+  ASSERT_REGEX(line, std::regex("\\s*SDL_RenderDrawLine\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s+\\/\\s+2\\s*,\\s*\\w+\\s+\\/\\s+2\\s*\\)\\s*;\\s*"));
 
   std::getline(retStream, line);
   ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s+\\/\\s+2;\\s*"));
 
   std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*;\\s*"));
+  ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s+\\/\\s+2;\\s*"));
 
   std::getline(retStream, line);
   std::cerr << line << std::endl;
@@ -181,11 +182,7 @@ TEST_F(TopLevelVisitorTest, WalkFront){
 
   std::string line;
   std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s+SDL_RenderDrawLine\\s*\\("
-          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
-          ")\\s*;\\s*"));
+  ASSERT_REGEX(line, checkForDraw);
 
   std::getline(retStream, line);
   ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*;\\s*"));
@@ -228,7 +225,7 @@ TEST_F(TopLevelVisitorTest, WalkBack){
 
   std::string line;
   std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s+SDL_RenderDrawLine\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*cos\\(\\s*\\w+\\s*\\)\\s*,\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*sin\\(\\s*\\w+\\s*\\)\\s*\\)\\s*;\\s*"));
+  ASSERT_REGEX(line, checkForDraw);
 
   std::getline(retStream, line);
   ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*\\w+\\s*\\+\\s*-\\s*\\(\\s*\\w+\\s*\\)\\s*\\*\\s*cos\\(\\s*\\w+\\s*\\)\\s*;\\s*"));

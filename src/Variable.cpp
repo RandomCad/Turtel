@@ -25,7 +25,7 @@ std::string Variable::getTypeAndName() const{
  * @return A string containing the variable's declaration, with initialization if applicable.
  */
 const std::string Variable::getDefinition(const std::string assigne){
-  if(isDefined) return "/*redifinition*/";
+  if(isDefined) return ""; // "/*redifinition*/\n";
   isDefined = true;
   switch (type) {
     case DOUBLE: return getTypeAndName() + "=" + assigne + ";\n";
