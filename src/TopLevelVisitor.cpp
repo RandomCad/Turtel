@@ -1723,8 +1723,8 @@ std::any TopLevelVisitor::visitCosCall(SceneParser::CosCallContext *ctx){
   std::any ret = ctx->expr()->accept(this);
   if      (ret.type() == typeid(int64_t))     return std::cos(std::any_cast<int64_t>(ret) * M_PI/180);
   else if (ret.type() == typeid(double))      return std::cos(std::any_cast<double>(ret) * M_PI/180);
-  else if (ret.type() == typeid(Variable))    return "cos(" + std::any_cast<Variable>(ret).getName() + " * M_PI/180)";
-  else if (ret.type() == typeid(std::string)) return "cos(" + std::any_cast<std::string>(ret) + " * M_PI/180)";
+  else if (ret.type() == typeid(Variable))    return "cos((" + std::any_cast<Variable>(ret).getName() + ") * M_PI/180)";
+  else if (ret.type() == typeid(std::string)) return "cos((" + std::any_cast<std::string>(ret) + ") * M_PI/180)";
   else{
     throw "TODO: visit cos unknowen type";
   }
@@ -1733,8 +1733,8 @@ std::any TopLevelVisitor::visitSinCall(SceneParser::SinCallContext *ctx){
   std::any ret = ctx->expr()->accept(this);
   if      (ret.type() == typeid(int64_t))     return std::sin(std::any_cast<int64_t>(ret) * M_PI/180);
   else if (ret.type() == typeid(double))      return std::sin(std::any_cast<double>(ret) * M_PI/180);
-  else if (ret.type() == typeid(Variable))    return "sin(" + std::any_cast<Variable>(ret).getName() + " * M_PI/180)";
-  else if (ret.type() == typeid(std::string)) return "sin(" + std::any_cast<std::string>(ret) + " * M_PI/180)";
+  else if (ret.type() == typeid(Variable))    return "sin((" + std::any_cast<Variable>(ret).getName() + ") * M_PI/180)";
+  else if (ret.type() == typeid(std::string)) return "sin((" + std::any_cast<std::string>(ret) + ") * M_PI/180)";
   else{
     throw "TODO: visit cos unknowen type";
   }
