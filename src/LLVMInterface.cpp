@@ -100,6 +100,9 @@ void LLVMInterface::CallLLVM(){
   args.push_back("-lm"); ///< add the math lib to the linking stage
   args.push_back("-lSDL2_image"); ///< add link to sdl_immage
   args.push_back("-O3");
+  args.push_back("-mtune=native");
+  args.push_back("-march=native");
+  args.push_back("-flto=full");
 #ifndef NDEBUG
   args.push_back("-ggdb");
 #endif
