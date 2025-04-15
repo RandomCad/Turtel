@@ -17,7 +17,6 @@
 #include "UnitTest/TopLevelVisitor.h"
 #include "libs/SceneParser.h"
 #include "src/Variable.h"
-#include "src/VariableVisitor.h"
 
 std::string getRandomID();
 int64_t getRandomInt64();

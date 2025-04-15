@@ -4,7 +4,6 @@ class TopLevelVisitorTest;
 
 #include "SceneBaseVisitor.h"
 #include "SceneParser.h"
-#include "FunctionHandler.h"
 #include "build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h"
 #include "src/Function.h"
 #include "src/LLVMInterface.h"
