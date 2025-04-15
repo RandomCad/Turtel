@@ -53,5 +53,6 @@ std::string VarTypeNS::getTypeName(VarType type){
     case EVENT:         return "SDL_Event ";
     case SIZE_T:        return "size_t ";
     case DOUBLE_ARR:    return "double *";
+    default:            return "int "; ///< return default type in c
   }
 }

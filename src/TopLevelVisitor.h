@@ -19,8 +19,6 @@ class TopLevelVisitorTest;
     {std::string(WINDOW_Y), Variable(VarType::DOUBLE, "__env_wy")},\
     {std::string(POS_X),Variable(VarType::DOUBLE,"__env_posX")},\
     {std::string(POS_Y),Variable(VarType::DOUBLE,"__env_posY")},\
-    {std::string(MAX_X),Variable(VarType::CONST_DOUBLE,"__env_maxX")},\
-    {std::string(MAX_Y),Variable(VarType::CONST_DOUBLE,"__env_maxY")},\
     {std::string(ROTATION),Variable(VarType::DOUBLE,"__env_rot")},\
     {std::string(COLOR_R),Variable(VarType::DOUBLE,"__env_red")},\
     {std::string(COLOR_G),Variable(VarType::DOUBLE,"__env_green")},\
@@ -30,6 +28,7 @@ class TopLevelVisitorTest;
     {std::string(EVENT_NAME), Variable(VarType::EVENT, "__env_event")},\
     {std::string(ARGC), Variable(VarType::SIZE_T, "__env_argc")},\
     {std::string(ARGV), Variable(VarType::DOUBLE_ARR, "__env_argv")},\
+    {std::string("@delay"), Variable(VarType::DOUBLE, "__env_delay")},\
   }
 
 /**
@@ -111,6 +110,9 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitNegate(SceneParser::NegateContext *ctx) override;
     std::any visitVarExpr(SceneParser::VarExprContext *ctx) override;
     std::any visitFuncCall(SceneParser::FuncCallContext *ctx) override;
+    std::any visitCosCall(SceneParser::CosCallContext *ctx) override;
+    std::any visitSinCall(SceneParser::SinCallContext *ctx) override;
+    std::any visitRandCall(SceneParser::RandCallContext *ctx) override;
     ///\return a vector with all the variables
     std::any visitParamlist(SceneParser::ParamlistContext *ctx) override;
     ///conditions (bool)

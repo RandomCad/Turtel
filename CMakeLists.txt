@@ -150,6 +150,7 @@ set(
   UnitTest/Variable.cpp
   UnitTest/TopLevelVisitor.cpp
   UnitTest/TopLevelVisitor.Math.cpp
+  UnitTest/TopLevelVisitor.Cond.cpp
   UnitTest/TopLevelVisitor.Loop.cpp
   UnitTest/TopLevelVisitor.Var.cpp
   UnitTest/TopLevelVisitor.Move.cpp

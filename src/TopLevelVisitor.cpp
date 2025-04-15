@@ -186,19 +186,19 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     ///add env Functions
     << "void __envfunc_stop(const double ret){\n"
 #ifndef UNIT_TEST
-    << "  do{\n"
+    << "do{\n"
 #ifndef NDEBUG
     << "    printf(\"Event Loop\\n\");\n"
 #endif
-    << "    SDL_WaitEvent(&" << envVar.at(EVENT_NAME).getName() << ");\n"
-    << "    switch ("<< envVar.at(EVENT_NAME).getName() << ".type){\n"
-    << "      case SDL_KEYDOWN:\n"
-    << "      case SDL_QUIT: __envfunc_stop(ret);\n"
-    << "      default: break;\n"
-    << "    }\n"
-    << "  }while(1);\n"
+    << "SDL_PollEvent(&" << envVar.at(EVENT_NAME).getName() << ");\n"
+    << "switch ("<< envVar.at(EVENT_NAME).getName() << ".type){\n"
+    << "case SDL_KEYDOWN:\n"
+    << "case SDL_QUIT: __envfunc_fin(ret);\n"
+    << "default: break;\n"
+    << "}\n"
+    << "}while(1);\n"
 #endif
-    << "  __envfunc_fin(ret);\n"
+    << "__envfunc_fin(ret);\n"
     << "}\n"
     << "void __envfunc_fin(const double ret){\n" 
     << "  SDL_DestroyRenderer(" << envVar.at(RND_NAME).getName() <<" );\n"
@@ -430,7 +430,7 @@ std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){
     }
   }
   else if (ret.type() == typeid(std::string)){
-    output << "  if (" << std::any_cast<std::string>(ret) << "){\n";
+    output << "if(" << std::any_cast<std::string>(ret) << "){\n";
     for (auto i : ctx->stat()) {
       i->accept(this);
     }
@@ -441,7 +441,7 @@ std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){
         i->accept(this);
       }
     }
-    output  << "  }\n";
+    output  << "}\n";
     return std::any();
   }
   else{
@@ -542,7 +542,7 @@ std::any TopLevelVisitor::visitDoUntil(SceneParser::DoUntilContext *ctx){
             std::cerr 
               << "you created an infinit loop at line: " 
               << ctx->getTokens(SceneParser::Untile)[0]->getSymbol()->getLine() 
-              << "starting with character: "
+              << " starting with character: "
               << ctx->getTokens(SceneParser::Untile)[0]->getSymbol()->getCharPositionInLine()
               << ".\n"
               
@@ -1071,7 +1071,7 @@ std::any TopLevelVisitor::visitTurnLeft(SceneParser::TurnLeftContext *ctx){
  * @return An empty std::any object.
  */
 std::any TopLevelVisitor::visitWalkHome(SceneParser::WalkHomeContext *ctx){
-  output  << "  SDL_RenderDrawLine("
+  output  << "SDL_RenderDrawLine("
           << envVar.at(RND_NAME).getName() 
           << ", " 
           << envVar.at(POS_X).getName() 
@@ -1079,7 +1079,7 @@ std::any TopLevelVisitor::visitWalkHome(SceneParser::WalkHomeContext *ctx){
           << envVar.at(POS_Y).getName() 
           << ", "
           << envVar.at(WINDOW_X).getName() << " / 2, "
-          << envVar.at(WINDOW_Y).getName() 
+          << envVar.at(WINDOW_Y).getName() << " / 2"
           << ");\n"
           
           << envVar.at(POS_X).getName() 
@@ -1090,7 +1090,7 @@ std::any TopLevelVisitor::visitWalkHome(SceneParser::WalkHomeContext *ctx){
           << envVar.at(POS_Y).getName() 
           << " = " 
           << envVar.at(WINDOW_Y).getName() 
-          << ";\n"
+          << " / 2;\n"
           ;
 
   return std::any();
@@ -1113,7 +1113,7 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
           << envVar.at(POS_Y).getName() 
           << " = " 
           << envVar.at(WINDOW_Y).getName() 
-          << ";\n"
+          << " / 2;\n"
           ;
 
   return std::any();
@@ -1127,7 +1127,7 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
   envVar.at(POS_X).getName() << " = "\
   << CalcPosX((len))\
   << ";\n"\
-  << "  " << envVar.at(POS_Y).getName() << " = "\
+  << envVar.at(POS_Y).getName() << " = "\
   << CalcPosY((len))\
   << ";\n"
 
@@ -1141,7 +1141,7 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
  */
 std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
   output  
-    << "  SDL_RenderDrawLine("
+    << "SDL_RenderDrawLine("
     << envVar.at(RND_NAME).getName() 
     << ", " 
     << envVar.at(POS_X).getName() 
@@ -1169,7 +1169,7 @@ std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
  */
 std::any TopLevelVisitor::visitWalkBack(SceneParser::WalkBackContext *ctx){
   output  
-    << "  SDL_RenderDrawLine("
+    << "SDL_RenderDrawLine("
     << envVar.at(RND_NAME).getName() 
     << ", " 
     << envVar.at(POS_X).getName() 
@@ -1310,15 +1310,15 @@ std::any TopLevelVisitor::visitColorCmd(SceneParser::ColorCmdContext *ctx) {
   std::string gValue = UnwrapExpre(ctx->expr(1));
   std::string bValue = UnwrapExpre(ctx->expr(2));
 
-  output << "  SDL_SetRenderDrawColor(" 
+  output << "SDL_SetRenderDrawColor(" 
          << envVar.at(RND_NAME).getName() << ", "
          << rValue << ", "
          << gValue << ", "
          << bValue << ", 255);\n";
   
-  output << "  " << envVar.at(COLOR_R).getName() << " = " << rValue << ";\n"
-         << "  " << envVar.at(COLOR_G).getName() << " = " << gValue << ";\n"
-         << "  " << envVar.at(COLOR_B).getName() << " = " << bValue << ";\n";
+  output << envVar.at(COLOR_R).getName() << " = " << rValue << ";\n"
+         << envVar.at(COLOR_G).getName() << " = " << gValue << ";\n"
+         << envVar.at(COLOR_B).getName() << " = " << bValue << ";\n";
 
   return std::any();
 }
@@ -1754,6 +1754,86 @@ std::any TopLevelVisitor::visitKlamKon(SceneParser::KlamKonContext *ctx){
   else{
     throw "TODO: visit Kalm unknowen type";
   }
+}
+
+std::any TopLevelVisitor::visitCosCall(SceneParser::CosCallContext *ctx){
+  std::any ret = ctx->expr()->accept(this);
+  if      (ret.type() == typeid(int64_t))     return std::cos(std::any_cast<int64_t>(ret) * M_PI/180);
+  else if (ret.type() == typeid(double))      return std::cos(std::any_cast<double>(ret) * M_PI/180);
+  else if (ret.type() == typeid(Variable))    return "cos(" + std::any_cast<Variable>(ret).getName() + " * M_PI/180)";
+  else if (ret.type() == typeid(std::string)) return "cos(" + std::any_cast<std::string>(ret) + " * M_PI/180)";
+  else{
+    throw "TODO: visit cos unknowen type";
+  }
+}
+std::any TopLevelVisitor::visitSinCall(SceneParser::SinCallContext *ctx){
+  std::any ret = ctx->expr()->accept(this);
+  if      (ret.type() == typeid(int64_t))     return std::sin(std::any_cast<int64_t>(ret) * M_PI/180);
+  else if (ret.type() == typeid(double))      return std::sin(std::any_cast<double>(ret) * M_PI/180);
+  else if (ret.type() == typeid(Variable))    return "sin(" + std::any_cast<Variable>(ret).getName() + " * M_PI/180)";
+  else if (ret.type() == typeid(std::string)) return "sin(" + std::any_cast<std::string>(ret) + " * M_PI/180)";
+  else{
+    throw "TODO: visit cos unknowen type";
+  }
+}
+std::any TopLevelVisitor::visitRandCall(SceneParser::RandCallContext *ctx){
+  std::any ret1 = ctx->expr(0)->accept(this);
+  std::any ret2 = ctx->expr(1)->accept(this);
+  std::string p1, p2;
+  
+  if      (ret1.type() == typeid(int64_t))     p1 = std::to_string(std::any_cast<int64_t>(ret1));
+  else if (ret1.type() == typeid(double))      p1 = std::to_string(std::any_cast<double>(ret1));
+  else if (ret1.type() == typeid(Variable))    p1 = std::any_cast<Variable>(ret1).getName();
+  else if (ret1.type() == typeid(std::string)) p1 = std::any_cast<std::string>(ret1) ;
+  else{
+    throw "TODO: visit cos unknowen type";
+  }
+
+  if      (ret2.type() == typeid(int64_t)){
+    int64_t zwi = std::any_cast<int64_t>(ret2);
+    if      (ret1.type() == typeid(int64_t))     p2 = std::to_string(std::any_cast<int64_t>(ret1) - zwi);
+    else if (ret1.type() == typeid(double))      p2 = std::to_string(std::any_cast<double>(ret1)  - zwi);
+    else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName() + '-' + std::to_string(zwi);
+    else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1) + '-' + std::to_string(zwi);
+    else{
+      throw "TODO: visit cos unknowen type";
+    }
+  }
+  else if (ret2.type() == typeid(double)){
+    double zwi = std::any_cast<double>(ret2);
+    if      (ret1.type() == typeid(int64_t))     p2 = std::to_string(std::any_cast<int64_t>(ret1)  - zwi);
+    else if (ret1.type() == typeid(double))      p2 = std::to_string(std::any_cast<double>(ret1)   - zwi);
+    else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName() + '-' + std::to_string(zwi);
+    else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1) + '-' + std::to_string(zwi);
+    else{
+      throw "TODO: visit cos unknowen type";
+    }
+  }
+  else if (ret2.type() == typeid(Variable)){
+    std::string zwi = std::any_cast<Variable>(ret2).getName();
+    if      (ret1.type() == typeid(int64_t))     p2 = std::to_string(std::any_cast<int64_t>(ret1))  + '-' + zwi;
+    else if (ret1.type() == typeid(double))      p2 = std::to_string(std::any_cast<double>(ret1))   + '-' + zwi;
+    else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName()       + '-' + zwi;
+    else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1)              + '-' + zwi;
+    else{
+      throw "TODO: visit cos unknowen type";
+    }
+  }
+  else if (ret2.type() == typeid(std::string)) {
+    std::string zwi = std::any_cast<std::string>(ret2);
+    if      (ret1.type() == typeid(int64_t))     p2 = std::to_string(std::any_cast<int64_t>(ret1))  + '-' + zwi;
+    else if (ret1.type() == typeid(double))      p2 = std::to_string(std::any_cast<double>(ret1))   + '-' + zwi;
+    else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName()       + '-' + zwi;
+    else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1)              + '-' + zwi;
+    else{
+      throw "TODO: visit cos unknowen type";
+    }
+  }
+  else{
+    throw "TODO: visit cos unknowen type";
+  }
+  
+  return '(' + p1 +" + rand() % " + p2 + ')';
 }
 
 /**
