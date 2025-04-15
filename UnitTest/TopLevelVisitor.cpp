@@ -287,6 +287,58 @@ TEST(TopLevelVisitor, TestSinCos){
     ASSERT_FALSE(CheckSurfaceForBlack(a));
   }
 }
+TEST(TopLevelVisitor, TestPythaboras){
+  const char * testFile = "phy.out";
+  std::filesystem::remove(testFile);
+
+  std::filebuf fb;
+  if(!fb.open("./TestData/pythagoras_fraktal.tg", std::ios::in)){
+    throw  "error"; //TODO;
+  }
+
+  std::istream stream(&fb);
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 0);
+  EXPECT_EQ(astStart->pathdef().size(), 3);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int exitCode = std::system((std::string("./") + testFile).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 0);
+
+  {
+    std::string pngTest1 = std::string("./circle.png");
+    ASSERT_TRUE(std::filesystem::exists(pngTest1));
+
+    SDL_Surface *a = IMG_Load(pngTest1.c_str());
+
+    ASSERT_EQ(a->format->BytesPerPixel, 4);
+    ASSERT_FALSE(CheckSurfaceForBlack(a));
+  }
+}
 
 TEST(TopLevelVisitor, TestVarCommands){
   const char * testFile = "TestVarCommand.out";
