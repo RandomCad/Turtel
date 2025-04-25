@@ -113,7 +113,6 @@ set(CodeGeneration
   src/Variable.cpp
   src/GlobalVarVisitor.cpp
   src/CommandLineListener.cpp
-  src/CollorVisitor.cpp
   )
 # Creat LLVM Interface variable
 set(LLVM_Interface src/LLVMInterface.cpp)

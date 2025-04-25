@@ -1738,6 +1738,16 @@ std::any TopLevelVisitor::visitSinCall(SceneParser::SinCallContext *ctx){
     throw "TODO: visit cos unknowen type";
   }
 }
+std::any TopLevelVisitor::visitSqrtCall(SceneParser::SqrtCallContext *ctx){
+  std::any ret = ctx->expr()->accept(this);
+  if      (ret.type() == typeid(int64_t))     return std::sqrt(std::any_cast<int64_t>(ret));
+  else if (ret.type() == typeid(double))      return std::sqrt(std::any_cast<double>(ret));
+  else if (ret.type() == typeid(Variable))    return "sqrt(" + std::any_cast<Variable>(ret).getName() + ')';
+  else if (ret.type() == typeid(std::string)) return "sqrt(" + std::any_cast<std::string>(ret) + ')';
+  else{
+    throw "TODO: visit cos unknowen type";
+  }
+}
 std::any TopLevelVisitor::visitRandCall(SceneParser::RandCallContext *ctx){
   std::any ret1 = ctx->expr(0)->accept(this);
   std::any ret2 = ctx->expr(1)->accept(this);

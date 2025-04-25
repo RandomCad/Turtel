@@ -111,6 +111,7 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitFuncCall(SceneParser::FuncCallContext *ctx) override;
     std::any visitCosCall(SceneParser::CosCallContext *ctx) override;
     std::any visitSinCall(SceneParser::SinCallContext *ctx) override;
+    std::any visitSqrtCall(SceneParser::SqrtCallContext *ctx) override;
     std::any visitRandCall(SceneParser::RandCallContext *ctx) override;
     ///\return a vector with all the variables
     std::any visitParamlist(SceneParser::ParamlistContext *ctx) override;
