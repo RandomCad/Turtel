@@ -15,6 +15,26 @@ Dieser kann zur überprüfung der korrekten Arbeitsweise SDL2 verwenden.
 
 ## Dependency
 
+on debian:
+
+### Pipline
+
+* git
+* cmake
+* C++-Compiler (gcc is fully tested clang not)
+* Java (17+)
+* Doxygen
+
+### Includes/Libs
+
+* llvm-19-dev
+* libclang-19-dev
+* Clang-19
+* libsdl2-dev
+* libsdl2-image-dev
+
+
+
 * Clang-19
 * SDL2
 * SDL2-Immage

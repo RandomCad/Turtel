@@ -6,7 +6,6 @@ class CodeGenerator;
 #include "src/Variable.h"
 
 #include <ParserRuleContext.h>
-#include <gtest/gtest_prod.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -27,5 +26,4 @@ class Function{
     std::string Implement();
     std::string getName() { return  name; }
     const std::vector<std::pair<std::string, Variable>> getHeaderVars() { return vars; }
-    FRIEND_TEST(FunctionHandler, CTor);
 };

@@ -390,7 +390,6 @@ std::any TopLevelVisitor::visitParamlist(SceneParser::ParamlistContext *ctx){
   for(size_t i = 0; i < ctx->var().size(); ++i){
     ret[i] = std::any_cast<Variable>(ctx->var()[i]->accept(this));
   }
-  assert(cnt == ctx->var().size());
   return ret;
 }
 
