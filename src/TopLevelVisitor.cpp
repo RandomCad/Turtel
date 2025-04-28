@@ -390,7 +390,6 @@ std::any TopLevelVisitor::visitParamlist(SceneParser::ParamlistContext *ctx){
   for(size_t i = 0; i < ctx->var().size(); ++i){
     ret[i] = std::any_cast<Variable>(ctx->var()[i]->accept(this));
   }
-  assert(cnt == ctx->var().size());
   return ret;
 }
 
@@ -1613,42 +1612,6 @@ std::any TopLevelVisitor::visitNumExpr(SceneParser::NumExprContext *ctx){
 }
 
 /**
- * @brief Adds two values together.
- * Handles numbers and strings with various combinations.
- * 
- * @param ctx Context for the addition expression.
- * @return Result of the addition as std::any.
- * @throws std::runtime_error if the type combination is not supported.
- */
-std::any TopLevelVisitor::visitAdd(SceneParser::AddContext *ctx){
-  std::cout << __func__ << std::endl;
-  std::any left = ctx->children[0]->accept(this);
-  std::any reigth = ctx->children[2]->accept(this);
-
-  if(left.type() == typeid(std::string) && reigth.type() == typeid(std::string))
-    return std::any_cast<std::string>(left) + '+' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(int64_t))
-    return std::any_cast<std::string>(left) + '+' + std::to_string(std::any_cast<int64_t>(reigth));
-  else if(left.type() == typeid(std::string) && reigth.type() == typeid(double))
-    return std::any_cast<std::string>(left) + '+' + std::to_string(std::any_cast<double>(reigth));
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<int64_t>(left)) + '+' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(std::string))
-    return std::to_string(std::any_cast<double>(left)) + '+' + std::any_cast<std::string>(reigth);
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(int64_t))
-    return std::any_cast<int64_t>(left) + std::any_cast<int64_t>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(int64_t))
-    return std::any_cast<double>(left) + std::any_cast<int64_t>(reigth);
-  else if(left.type() == typeid(int64_t) && reigth.type() == typeid(double))
-    return std::any_cast<int64_t>(left) + std::any_cast<double>(reigth);
-  else if(left.type() == typeid(double) && reigth.type() == typeid(double))
-    return std::any_cast<double>(left) + std::any_cast<double>(reigth);
-  else{
-    throw std::runtime_error("todo:"); //TODO:
-  }
-}
-
-/**
  * @brief Performs exponentiation (power) on two values.
  * Supports numeric and string representations.
  * 
@@ -1683,13 +1646,12 @@ std::any TopLevelVisitor::visitExp(SceneParser::ExpContext *ctx){
 }
 
 /**
- * @brief Handles addition operations.
- *
- * This function processes addition expressions by applying the '+' operator
- * to the operands provided in the context.
- *
- * @param ctx Pointer to the context containing the addition expression.
- * @return The result of the addition operation.
+ * @brief Adds two values together.
+ * Handles numbers and strings with various combinations.
+ * 
+ * @param ctx Context for the addition expression.
+ * @return Result of the addition as std::any.
+ * @throws std::runtime_error if the type combination is not supported.
  */
 std::any TopLevelVisitor::visitAdd(SceneParser::AddContext *ctx){
   OperationMacro(+);
@@ -1760,8 +1722,8 @@ std::any TopLevelVisitor::visitCosCall(SceneParser::CosCallContext *ctx){
   std::any ret = ctx->expr()->accept(this);
   if      (ret.type() == typeid(int64_t))     return std::cos(std::any_cast<int64_t>(ret) * M_PI/180);
   else if (ret.type() == typeid(double))      return std::cos(std::any_cast<double>(ret) * M_PI/180);
-  else if (ret.type() == typeid(Variable))    return "cos(" + std::any_cast<Variable>(ret).getName() + " * M_PI/180)";
-  else if (ret.type() == typeid(std::string)) return "cos(" + std::any_cast<std::string>(ret) + " * M_PI/180)";
+  else if (ret.type() == typeid(Variable))    return "cos((" + std::any_cast<Variable>(ret).getName() + ") * M_PI/180)";
+  else if (ret.type() == typeid(std::string)) return "cos((" + std::any_cast<std::string>(ret) + ") * M_PI/180)";
   else{
     throw "TODO: visit cos unknowen type";
   }
@@ -1770,8 +1732,18 @@ std::any TopLevelVisitor::visitSinCall(SceneParser::SinCallContext *ctx){
   std::any ret = ctx->expr()->accept(this);
   if      (ret.type() == typeid(int64_t))     return std::sin(std::any_cast<int64_t>(ret) * M_PI/180);
   else if (ret.type() == typeid(double))      return std::sin(std::any_cast<double>(ret) * M_PI/180);
-  else if (ret.type() == typeid(Variable))    return "sin(" + std::any_cast<Variable>(ret).getName() + " * M_PI/180)";
-  else if (ret.type() == typeid(std::string)) return "sin(" + std::any_cast<std::string>(ret) + " * M_PI/180)";
+  else if (ret.type() == typeid(Variable))    return "sin((" + std::any_cast<Variable>(ret).getName() + ") * M_PI/180)";
+  else if (ret.type() == typeid(std::string)) return "sin((" + std::any_cast<std::string>(ret) + ") * M_PI/180)";
+  else{
+    throw "TODO: visit cos unknowen type";
+  }
+}
+std::any TopLevelVisitor::visitSqrtCall(SceneParser::SqrtCallContext *ctx){
+  std::any ret = ctx->expr()->accept(this);
+  if      (ret.type() == typeid(int64_t))     return std::sqrt(std::any_cast<int64_t>(ret));
+  else if (ret.type() == typeid(double))      return std::sqrt(std::any_cast<double>(ret));
+  else if (ret.type() == typeid(Variable))    return "sqrt(" + std::any_cast<Variable>(ret).getName() + ')';
+  else if (ret.type() == typeid(std::string)) return "sqrt(" + std::any_cast<std::string>(ret) + ')';
   else{
     throw "TODO: visit cos unknowen type";
   }

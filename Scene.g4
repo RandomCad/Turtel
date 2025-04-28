@@ -31,7 +31,7 @@ Float : [0-9]+ '.' [0-9]+
       | '.' [0-9]+ ;
 
 ID    : [_a-zA-Z] [_@a-zA-Z0-9]* ;
-CliID : '@' [0-9];
+CliID : '@' [0-9]+;
 IncID : '@' [_@a-zA-Z0-9]* ;
 
 file  : (pathdef | calcdef)* main (pathdef |calcdef)*; 
@@ -125,6 +125,7 @@ expr  :
       | ID '(' ( ( expr ',')* expr)? ')'  #funcCall
       | 'sin' '(' expr ')'                #sinCall
       | 'cos' '(' expr ')'                #cosCall
+      | 'sqrt' '(' expr ')'               #sqrtCall
       | 'rand' '(' expr ',' expr ')'      #randCall
       | number	                          #NumExpr	
       | var	                              #VarExpr
@@ -141,5 +142,5 @@ var   : ID        #Variable
       | IncID     #GlobalVariable
       ;
 
-WS : [ \t\r\n]+ -> skip ;
+WS : [ \t\r\n\f]+ -> skip ;
 COMMENT : '"' ~[\r\n]* -> skip ;

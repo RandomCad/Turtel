@@ -35,6 +35,8 @@ std::regex matchPragmaUnrolle = std::regex("\\s*#pragma\\s+unroll\\s*");
 std::regex matchClosingCrlBracket = std::regex("\\s*\\}\\s*");
 std::regex matchFuncHead = std::regex("\\s*\\w+\\s+\\w+\\s*\\(\\s*(\\s*double\\s+__usr_\\w+(,\\s*double\\s+__usr_\\w+)*)?\\)\\s*\\{\\s*$");
 std::regex matchAssigne5 = std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*$");
+std::regex checkForDraw(
+          "\\s*SDL_RenderDrawLine\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*\\+\\s*(-\\()?\\w+\\)?\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,\\s*\\w+\\s*\\+\\s*(-\\()?\\w+\\)?\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\)\\s*;\\s*");
 
 std::string getRandomID();
 
@@ -285,6 +287,48 @@ TEST(TopLevelVisitor, TestSinCos){
     ASSERT_FALSE(CheckSurfaceForBlack(a));
   }
 }
+TEST(TopLevelVisitor, TestPythagoras){
+  const char * testFile = "phy.out";
+  std::filesystem::remove(testFile);
+
+  std::filebuf fb;
+  if(!fb.open("./TestData/pythagoras_fraktal.tg", std::ios::in)){
+    throw  "error"; //TODO;
+  }
+
+  std::istream stream(&fb);
+
+  ANTLRInputStream input(stream);
+  SceneLexer lexer(&input);
+  CommonTokenStream tokens(&lexer);
+  SceneParser parser(&tokens);
+
+  auto astStart = parser.file();
+  EXPECT_TRUE(astStart);
+  EXPECT_TRUE(astStart->main());
+  EXPECT_EQ(astStart->calcdef().size(), 0);
+  EXPECT_EQ(astStart->pathdef().size(), 3);
+  
+  TopLevelVisitor test(testFile);
+  test.visitFile(astStart);
+
+  std::istream &toTest(test.llvm.llvmFile);
+
+  toTest.seekg(0);
+
+  std::string line;
+  while (std::getline(toTest, line)) {
+    std::cerr << line << std::endl;
+  }
+
+  toTest.seekg(0);
+  test.llvm.CallLLVM();
+  
+  ASSERT_TRUE(std::filesystem::exists(testFile));
+
+  int exitCode = std::system((std::string("./") + testFile).c_str());
+  ASSERT_EQ(WEXITSTATUS(exitCode), 0);
+}
 
 TEST(TopLevelVisitor, TestVarCommands){
   const char * testFile = "TestVarCommand.out";
@@ -493,12 +537,6 @@ TEST(TopLevelVisitor, BasicWalkSave){
 
   toTest.seekg(0);
 
-  std::regex checkForDraw(
-          "\\s+SDL_RenderDrawLine\\s*\\("
-          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
-          ")\\s*;\\s*");
   std::string line;
   int ret = 0;
   while (std::getline(test.llvm.llvmFile, line)) {
@@ -603,12 +641,6 @@ TEST(TopLevelVisitor, BasicWalk){
 
   toTest.seekg(0);
 
-  std::regex checkForDraw(
-          "\\s+SDL_RenderDrawLine\\s*\\("
-          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
-          ")\\s*;\\s*");
   std::string line;
   int ret = 0;
   while (std::getline(test.llvm.llvmFile, line)) {
@@ -668,12 +700,6 @@ TopLevelVisitor test(testFile);
 
   toTest.seekg(0);
 
-  std::regex checkForDraw(
-          "\\s+SDL_RenderDrawLine\\s*\\("
-          "\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,"
-          "\\s*\\w+\\s*\\+\\s*\\w+\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\"
-          ")\\s*;\\s*");
   std::string line;
   int ret = 0;
   while (std::getline(test.llvm.llvmFile, line)) {

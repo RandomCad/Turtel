@@ -11,7 +11,7 @@
  * @return An empty std::any object.
  */
 std::any GlobalVarVisitor::visitGlobalVariable(SceneParser::GlobalVariableContext *ctx){
-  ret[ctx->IncID()->getText()] = Variable(VarType::DOUBLE, "__usr_global_" + ctx->IncID()->getText());
+  ret[ctx->IncID()->getText()] = Variable(VarType::DOUBLE, "__usr_global_" + ctx->IncID()->getText().erase(0,1));
   return std::any();
 }
 
