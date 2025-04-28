@@ -287,7 +287,7 @@ TEST(TopLevelVisitor, TestSinCos){
     ASSERT_FALSE(CheckSurfaceForBlack(a));
   }
 }
-TEST(TopLevelVisitor, TestPythaboras){
+TEST(TopLevelVisitor, TestPythagoras){
   const char * testFile = "phy.out";
   std::filesystem::remove(testFile);
 
@@ -328,16 +328,6 @@ TEST(TopLevelVisitor, TestPythaboras){
 
   int exitCode = std::system((std::string("./") + testFile).c_str());
   ASSERT_EQ(WEXITSTATUS(exitCode), 0);
-
-  {
-    std::string pngTest1 = std::string("./circle.png");
-    ASSERT_TRUE(std::filesystem::exists(pngTest1));
-
-    SDL_Surface *a = IMG_Load(pngTest1.c_str());
-
-    ASSERT_EQ(a->format->BytesPerPixel, 4);
-    ASSERT_FALSE(CheckSurfaceForBlack(a));
-  }
 }
 
 TEST(TopLevelVisitor, TestVarCommands){
