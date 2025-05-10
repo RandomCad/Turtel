@@ -206,6 +206,7 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     << "  SDL_Quit();\n"
     << "  exit((int) ret);\n"
     << "}\n"
+    // Code from [Czipperz](https://stackoverflow.com/users/1692584/czipperz)
     << "void save_texture(const char* file_name, SDL_Renderer* renderer, SDL_Texture* texture) {\n"
     << "  SDL_Texture* target = SDL_GetRenderTarget(renderer);\n"
     << "  SDL_SetRenderTarget(renderer, texture);\n"
@@ -1070,7 +1071,14 @@ std::any TopLevelVisitor::visitTurnLeft(SceneParser::TurnLeftContext *ctx){
  * @return An empty std::any object.
  */
 std::any TopLevelVisitor::visitWalkHome(SceneParser::WalkHomeContext *ctx){
-  output  << "SDL_RenderDrawLine("
+
+  output  << "SDL_SetRenderDrawColor(" 
+          << envVar.at(RND_NAME).getName() << ", "
+          << envVar.at(COLOR_R).getName() << ", "
+          << envVar.at(COLOR_G).getName() << ", "
+          << envVar.at(COLOR_B).getName() << ", 255);\n"
+
+          << "SDL_RenderDrawLine("
           << envVar.at(RND_NAME).getName() 
           << ", " 
           << envVar.at(POS_X).getName() 
@@ -1139,7 +1147,12 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
  * @return An empty std::any object.
  */
 std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
-  output  
+  output << "SDL_SetRenderDrawColor(" 
+         << envVar.at(RND_NAME).getName() << ", "
+         << envVar.at(COLOR_R).getName() << ", "
+         << envVar.at(COLOR_G).getName() << ", "
+         << envVar.at(COLOR_B).getName() << ", 255);\n"
+
     << "SDL_RenderDrawLine("
     << envVar.at(RND_NAME).getName() 
     << ", " 
@@ -1167,7 +1180,12 @@ std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
  * @return An empty std::any object.
  */
 std::any TopLevelVisitor::visitWalkBack(SceneParser::WalkBackContext *ctx){
-  output  
+  output << "SDL_SetRenderDrawColor(" 
+         << envVar.at(RND_NAME).getName() << ", "
+         << envVar.at(COLOR_R).getName() << ", "
+         << envVar.at(COLOR_G).getName() << ", "
+         << envVar.at(COLOR_B).getName() << ", 255);\n"
+
     << "SDL_RenderDrawLine("
     << envVar.at(RND_NAME).getName() 
     << ", " 
@@ -1257,7 +1275,14 @@ std::any TopLevelVisitor::visitMark(SceneParser::MarkContext *ctx) {
  * @return An empty std::any object.
  */
 std::any TopLevelVisitor::visitWalkMark(SceneParser::WalkMarkContext *ctx) {
-  output << "  if (markerStackTop >= 0) {\n"
+  //set collore
+  output << "SDL_SetRenderDrawColor(" 
+         << envVar.at(RND_NAME).getName() << ", "
+         << envVar.at(COLOR_R).getName() << ", "
+         << envVar.at(COLOR_G).getName() << ", "
+         << envVar.at(COLOR_B).getName() << ", 255);\n"
+
+         << "  if (markerStackTop >= 0) {\n"
   	     << "      Marker m = popMarker();\n"
   	     << "      SDL_RenderDrawLine(" 
   	     << envVar.at(RND_NAME).getName() << ", "
@@ -1271,6 +1296,7 @@ std::any TopLevelVisitor::visitWalkMark(SceneParser::WalkMarkContext *ctx) {
   	     << "      fprintf(stderr, \"Fehler: Marker-Stack leer!\\n\");\n"
   	     << "      exit(EXIT_FAILURE);\n"
   	     << "  }\n";
+
   return std::any();
 }
 
@@ -1309,15 +1335,15 @@ std::any TopLevelVisitor::visitColorCmd(SceneParser::ColorCmdContext *ctx) {
   std::string gValue = UnwrapExpre(ctx->expr(1));
   std::string bValue = UnwrapExpre(ctx->expr(2));
 
-  output << "SDL_SetRenderDrawColor(" 
-         << envVar.at(RND_NAME).getName() << ", "
-         << rValue << ", "
-         << gValue << ", "
-         << bValue << ", 255);\n";
-  
   output << envVar.at(COLOR_R).getName() << " = " << rValue << ";\n"
          << envVar.at(COLOR_G).getName() << " = " << gValue << ";\n"
          << envVar.at(COLOR_B).getName() << " = " << bValue << ";\n";
+
+  output << "SDL_SetRenderDrawColor(" 
+         << envVar.at(RND_NAME).getName() << ", "
+         << envVar.at(COLOR_R).getName() << ", "
+         << envVar.at(COLOR_G).getName() << ", "
+         << envVar.at(COLOR_B).getName() << ", 255);\n";
 
   return std::any();
 }
