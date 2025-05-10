@@ -24,7 +24,7 @@
 #define COLOR_G "@green"
 #define COLOR_B "@blue"
 
-///Debuging
+///Debugging
 #define DEBUG_SURFACE "&surface"
 
 ///argc

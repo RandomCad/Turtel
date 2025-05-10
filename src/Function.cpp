@@ -75,7 +75,7 @@ Function::Function(const std::string nm, VarType retT, SceneParser::MainContext 
  * @return The function declaration as a string.
  */
 std::string Function::getFunctionDeclaration(){
-  //first add the returntype
+  //first add the return type
   std::string ret = VarTypeNS::getTypeName(this->retType);
   //no the name and the opening '('
   ret += name + "(";
@@ -139,7 +139,7 @@ std::cerr << __func__ << std::endl;
  */
 [[deprecated]]
 std::string Function::Implement(){
-  //prepere the variable part of the string
+  //prepare the variable part of the string
   std::string ret = VarTypeNS::getTypeName(retType);
   ret += name;
   ret += "(";
