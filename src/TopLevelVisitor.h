@@ -8,6 +8,7 @@ class TopLevelVisitorTest;
 #include "src/Function.h"
 #include "src/LLVMInterface.h"
 #include "src/Variable.h"
+#include "src/CommandLineListener.h"
 #include <ostream>
 #include <unordered_map>
 
@@ -52,6 +53,7 @@ class TopLevelVisitor : public SceneBaseVisitor{
   public:
     ///\param fileName sets the name of the output file. Has a standart value.
     TopLevelVisitor(const char * const fileName = "file");
+    TopLevelVisitor(const Comandline::options opt);
     ///entry point for code generation
     std::any visitFile(SceneParser::FileContext *ctx) override;
     

@@ -31,6 +31,11 @@ TopLevelVisitor::TopLevelVisitor(const char * const fileName)
   : llvm(LLVMInterface(fileName)), output(llvm.llvmFile) {
   output << std::setprecision( std::numeric_limits<int>::max() );
 }
+TopLevelVisitor::TopLevelVisitor(const Comandline::options opt) 
+  : llvm(LLVMInterface(opt.inputFile.c_str())), output(llvm.llvmFile) {
+  infinitLoopFlag = opt.infinitLoop;
+  output << std::setprecision( std::numeric_limits<int>::max() );
+}
 
 /**
  * @brief Unwraps the expression and returns its string representation.
