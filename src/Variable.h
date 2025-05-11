@@ -4,10 +4,10 @@
 
 class Function;
 
-///Defince all posible types of varaiables for the transpiler 
+///Defince all possible types of variables for the transpiler 
 enum VarType{
   RENDERER, ///< The type of the SDL2 renderer in \ref VariableHeandler::enviornment
-  DOUBLE, ///< The most comon type a normal c-double
+  DOUBLE, ///< The most common type a normal c-double
   CONST_DOUBLE, ///< Constant c-double
   TESXTUR, ///< The sdl texture type
   //SURFACE, ///< The sdl surface for output of immages
@@ -33,7 +33,7 @@ struct Variable{
   private:
   std::string getTypeAndName() const;
   public:
-  ///@returns a code line that impliments this Variable and assigns it assigne
+  ///@returns a code line that implements this variable and assigns it assigne
   const std::string getDefinition(const std::string assigne = "0");
   FRIEND_TEST(Variable, TestGetNameAndType);
   friend class Function;

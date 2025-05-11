@@ -1,5 +1,6 @@
 #include <ANTLRInputStream.h>
 #include <any>
+#include <cstdlib>
 #include <ios>
 #include <istream>
 #include <sstream>
@@ -62,6 +63,12 @@ int progMain(int argc, const char *argv[]){
   } catch (std::bad_any_cast &a) {
     std::cerr << a.what() << std::endl ;
     throw a;
+  }
+
+  if(opt.interpretationMode){
+    std::string command = "./";
+    command += opt.outputFile;
+    std::system(command.c_str());
   }
 
   return 0;

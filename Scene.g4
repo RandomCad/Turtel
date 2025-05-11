@@ -27,8 +27,7 @@ Or    : [oO] [rR]       ;
 Not   : [nN] [oO] [tT]  ;
 
 Num   : [0-9]+ ;
-Float : [0-9]+ '.' [0-9]+
-      | '.' [0-9]+ ;
+Float : [0-9]* '.' [0-9]+ ;
 
 ID    : [_a-zA-Z] [_@a-zA-Z0-9]* ;
 CliID : '@' [0-9]+;
@@ -80,7 +79,7 @@ walk  	  : Walk expr       #WalkFront
 jump      : Jump expr       #JumpFront
           | Jump Back expr  #JumpBack
           ; ///< same as walk without drawing
-save      : Save ID ; ///<Save the drawen immage to the named Bitmap
+save      : Save ID ; ///<Save the drawn image to the named Bitmap
 walkHome  : Walk Home; ///< draw a line to the home position
 jumpHome  : Jump Home; ///< jump to the home position
 turnLeft  : Turn Left expr; ///< turn x deg to the left 
@@ -91,7 +90,7 @@ stop      : Stop #StopOK     ///< end the program and wait for user input
           | Stop expr #StopError ///< return code is expr (rounded)
           ;
 finish    : Finish #FinOK
-          | Finish expr #FinError ///< emediatly return
+          | Finish expr #FinError ///< immediately return
           ;
 mark      : Mark;
 walkMark  : Walk Mark;

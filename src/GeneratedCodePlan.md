@@ -10,5 +10,5 @@ This is the plan for the generated code:
 1. TurtelMain //internal main of the Turtel programm(SDL2 is already setup)
 2. pathdef
 3. calcdef
-4. main //setups the SDL2 and distroyes it.
+4. main //setups the SDL2 and destroyes it.
 5. Turtel Main
