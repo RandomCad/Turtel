@@ -1,23 +1,32 @@
+Main Page {#mainpage}
+=========
 # Turtel
 Program to run a derivative of the Turtle Programming Language designed for young learners.
 The following documentation will be done in german
 
 # Dokumentation
 
-Diese Projekt ist eine Umsetzung der Aufgabe im Rahmen der Forlesung Compilerbau an der DHGE. 
-Die Festlegungen zur Sprache sowie die Aufgabe sind [hier](https://www.computerix.info/comp-bau/turtle.pdf) zu finden. 
-Dieses Projekt nimmt einen leicht anderen weg als die in der Aufgabenstellung vorgeschlagenen wege. 
-Ziel soll die erstellung eines Transpilers von der Turtel Sprache zu C sein. 
-Als graphische bibliothek soll das endsystem SDL2 verwenden. 
-Der Transpiler selbst soll keine Bestandteile von SDL2 beinhlaten. 
-Einzige ausnahme ist der mitgeliverte UnitTest umfang. 
-Dieser kann zur überprüfung der korrekten Arbeitsweise SDL2 verwenden.  
+Dieses Projekt ist die Umsetzung der Aufgabe aus der Vorlesung „Compilerbau” an der DHGE. 
+Die Festlegungen zur Sprache sowie die Aufgabe selbst sind [hier](https://www.computerix.info/comp-bau/turtle.pdf) zu finden. 
+Dieses Projekt verfolgt einen leicht anderen Ansatz als in der Aufgabenstellung vorgesehen. 
+Ziel ist die Erstellung eines Transpilers von der Turtle-Sprache zu C und das Compilieren dieses mit Hilfe eines üblichen C-Compilers. 
+Als grafische Bibliothek soll SDL2 verwendet werden. 
+Der Transpiler selbst soll keine Bestandteile von SDL2 beinhalten. 
+Einzige Ausnahme ist die mitgelieferte Unit-Test-Umgebung. 
+Dieser kann zur Überprüfung der korrekten Arbeitsweise SDL2 nutzen.
 
-## Dependency
 
-on debian:
+## Abhängigkeiten
+
+Das Projekt ist ausschließlich unter Linux getestet und bekanterweise arbeitsfähig. 
+Die folgenden `apt` packeges werden unter debian zur erfolgreichen Compilierung und ausführung benötigt. 
+Bei anderen Distributionen müssen entsprechende Äquvalente Packete instaliert werden. 
+Eine Internet verbindung ist ebenfals zum Comüilieren nötig, da zusätzliche bestandteile nachgeladen werden.
+Folstädigkeit wird nicht garantiert.
 
 ### Pipline
+
+Für das Compilieren werden folgende Pakete benötigt:
 
 * git
 * cmake
@@ -27,132 +36,174 @@ on debian:
 
 ### Includes/Libs
 
-* llvm-19-dev
-* libclang-19-dev
-* Clang-19
+Folgende Bibliotheken werden zum linken benötigt:
+
+* mindestens llvm-19-dev
+* mindestens libclang-19-dev
+* mindestens clang-19
 * libsdl2-dev
 * libsdl2-image-dev
 
-
-
-* Clang-19
-* SDL2
-* SDL2-Immage
-* CMake
-* Java (17+)
-* c++17
-* git
-* libclang-19-dev
-* llvm-19
-* llvm-19-dev
-* libsdl2-image-dev
+Alle LLVM- und Clang-Bibliotheken sind auch in Version 20 getestet.
 
 ## Compilation
 
-Eigenes Bulddirectory erstellen:  
+Zum Compilieren und Testen des Projektes wird das folgende Verfahren empfohlen:
 
-`mkdir build` 
+1. Erstellen eines eigenen Build-Directorys: mkdir build
+2. CMake ausführen: cmake ..
+    * Zusätzliche Optionen wie -DCMAKE_BUILD_TYPE sind hier möglich. 
+    * Warnungen können momentan vernachlässigt werden.
+3. make aufrufen: make
+4. Optional Docu erstellen: make doc
+5. Optional UnitTests ausführen: ./Tests oder make test
 
-CMake ausführen:
-
-`cmake ..`
-Warnungen können momentatan vernachlässigt werden.  
-
-make oder ninja (nur bei weiterer Configuration) ausführen:
-
-`make` / `ninja` 
-
-Test ausführen.
-
-`./Tests`
+Es gibt noch keinen Install-Befehl.
 
 ## Ablauf
 
-Folgender Ablauf soll umgesetzt werden:
+Es soll folgender Ablauf umgesetzt werden:
 
 ```
 TurtelFile -> ThisProjekt -> Binary
 ```
 
-Dieser Aufbau gibt das gefühl, dass es sich um einen Folständiegen Compiler handelt. 
-Dies hängt schlussendlich von der Sichtweise ab. 
-Intern soll folgendes Umgesetzt werden:
+Dieser Aufbau vermittelt das Gefühl, dass es sich um einen vollwertigen Compiler handelt. 
+Letztendlich hängt dies von der Sichtweise ab. 
+Intern soll Folgendes umgesetzt werden:
 
 ```
 TurtelFile -> ANTLR-Lexer -> ANTLR-Parser -> C-CodeGen -> Clang -> Binary
 ```
 
-Wie an diesem detailierten ablauf zu erkennen ist, soll als backend Clang verwendet werden. 
-Dies soll möglichst folständig durch die verwendung der Clang-API geschehen. 
-Auf diese wird später weiter eingegangen.
-Als Front end wird ANTLR verwenden. 
+Wie aus diesem detaillierten Ablaufplan ersichtlich wird, soll Clang als Backend verwendet werden. 
+Dies soll möglichst vollständig durch die Verwendung der Clang-API erfolgen. 
+Dadurch entsteht der Eindruck, dass Trutel ein Compiler wäre, wobei die selbst entwickelten Bestandteile jedoch nur einen Transpiler bilden.
+Als Frontend wird ein von ANTLR generierter Parser verwendet.
 
 ### ANTLR
 
-ANTLR ist ein Compiler generator. 
-ANTLR erzeugt dabei ausschließlich Lexer und Parser. 
-In diesem Projekt wurde ANTLR4 verwendet.
-Es ist möglich Parser und Lexer in unterscchiedlichsten Sprachen mit ANTLR zu erzeugen. 
-Dieses Projekt ist soweit in c++ geschreiben. 
-Es wird demnach das Aktuelste ANTLR framwork verwendet.  
+Der Parser und der Lexer dieses Projekts wurden nicht von Hand geschrieben. 
+Stattdessen wurde ANTLR4 als Parser- und Lexer-Generator verwendet. 
+Im Folgenden wird immer von „ANTLR” gesprochen. Damit ist stets ANTLR4 gemeint.
 
-Wie bereits angegeben erzeugt ANTLR einen Lexer und Parser. 
-Diese erzeugen ihrereseits einen AST. 
-Dieser AST kann mit hilfe von zwei von ANTLR bereitgestellten mechanismen verarbeitet werden. 
-In diesem Projekt wird ausschließlich das Visitor Pattern zur verarbeitung des AST verwendet.  
+ANTLR arbeitet auf Basis einer Grammatik, die in einer separaten Datei im ANTLR-Format definiert werden muss. 
+Dieses Format ähnelt Yacc und Flex und ist auch an die EBNF angelehnt. 
+Auf Basis dieser Grammatik erzeugt ANTLR einen Lexer, einen Parser und alle Strukturen, die zur Erzeugung eines Syntaxbaums nötig sind. 
+Das Ergebnis des ANTLR-Parsers ist kein AST, sondern ein ST (Syntax Tree).
 
-ANTLR erzeugt Parser nach dem ALL(\*) algoritmuss. 
-Da die Turtelsprachen LL(1) kompatibel sein sollte, sollte der erzeugete Parser ebenfals LL(1) sein. 
-Für die hinzugefügeten bestandteile kann dies natürlich nicht grantiert werden. 
-Dennoch wird ein LL(1) Parser angenommen.
-Die Arbeitsweise des Erzeugten Parsers ist irrelevant, da die erzeugung des Parsers durch ANTLR durchgeführt wird und die eigenen Entwicklung keine nenenswerten Schnitstellen zu diesem besitzt.
-Neben dem Aufrufen des Parser interresiert sich die selbstentwickelten bestandteil nicht für innerenfunktionsweisen des Parsers. 
-Einzig die Deklaration der AST-Knoten ist für die eigene Entwicklung höchst relevant. 
+Zusätzlich ermöglicht ANTLR die Erstellung von zwei Arten von Baum-Betrachtern. 
+Dabei ist es möglich:
+1. einen Listener zu verwenden. Dieser kann jeweils über das Betreten und Verlassen einer Regel beim Parsen informiert werden.
+2. einen Visitor zu verwenden. Dieser kann zur Betrachtung des ST verwendet werden.
 
-## Besondere schwierigkeiten
+Das Projekt verwendet beide Optionen. Dabei wird ein Listener für das Parsen der Commandline-Optionen und ein Visitor für die Verarbeitung des erzeugten ST aus dem Turtle-Programm verwendet.
 
-Das API-Interface mit LLVM wurde im Sommer 2024 geschreiben. 
-Die entwicklung dieses Bestandteiles wahr besonders schwierig und vergleichsweise Zeitaufwändig. 
-Hauptproblem lag hier in dem schlechtem verständniss welche Struckturen wie erzeugt werden müssen. 
-Die umsetzung abssiert sehr stark auf einer übernahme aus dem internet, wobei die Quelle nicht mehr bekannt ist. 
-Die genaue funktionsweise wird dabei immernoch nicht verstanden. Da sie aber bereits über mehrere LLVM-Versionen funktioniert besteht großes vertrauen in sie. 
-Auch das dynamische erfassen der Linker und Comilereroptionen für SDL2 war nicht trivial. 
-Leider musste hiefür der umweg über die CLI gegangen werden. 
-Ein direkterer aufruf wäre wünschenswert. 
-Wie dieser umgesetzt werden könnte ist hingegen nicht bekannt. 
-Da der bestehende Ansatz funktioniert und Effizienz an dieser stell momentan noch keine Priorität ist, wird dieser nicht optimiert.
+Mit ANTLR können Parser und Lexer für eine Vielzahl von Sprachen erzeugt werden. 
+In diesem Projekt wurde C++ verwendet. 
 
-Seite dem Commit [e6c31b0](https://github.com/RandomCad/Turtel/commit/e6c31b0cf2c4676db9e5708714149faf89fdc43e) wird google-test als UnitTest framwork verwendet. 
-Die verwendung dieses und die Damit verbundene ablösung des Eigenen Test Framworks war eine Kluge entscheidung, da dies erhebliche Zeit einsparungen bedeuten. 
-Gleichzeitig war die entwicklung eines UnitTest-Framworkes ein Spaßieges unterfangen und lehrreich. 
-Dennoch war die Fehleranfälligkeit nicht positiv.  
+ANTLR erzeugt Parser nach dem ALL(\*)-(Algorithmus). 
+Das bedeutet, dass der Parser mit theoretisch unendlich vielen Zeichen Vorschau arbeitet. 
+Da die Turtelsprache sehr einfach ist, sollte ANTLR größtenteils mit nur einem Zeichen Vorschau entscheiden können, um welche Regel es sich handelt. 
+Teilweise wurde jedoch die Flexibilität des Parsers gezielt ausgenutzt. 
+So wurden viele Sonderbefehle in Turtle wie etwa die Definition der Commandline-Variablen oder der eingebauten mathematischen Funktionen über besondere Einzelregeln abgehandelt. 
+Diese Flexibilität war bei der Arbeit mit ANTLR teils sehr hilfreich.
 
-Der momentane versuch des Umschreibens des AST gestalten sich ebenfals schwirig. 
-Besonders Problematisch ist dabei das GDB nicht zur korrekten auflösung von AST Variablen fähig ist. 
-Zumindest ist dies mit den momentanen CMake settings nicht ordentlich möglich. 
-Das verständniss der Erzeugung von AST-konten ist momentan noch nicht hoch genug um einen Rewrite zufriedenstellend umzusetzen.
+### Besonderheiten der Verwendeten Grammatik
 
-Nervig an ANTLR ist, dass die erzeugten Vifitor auschlißlich std::any als rückgabe wert haben können. 
-Eine ordentlich Typisierung der rückgabe werten wäre angenehmer gelichzeitig aber Technisch erheblich schwieriger. 
+Die Verwendete Gramatick für das Turtel Programm ergibt sich zu großen teilen aus der Definition in der Aufgaben stellung folgende veränderungen sind Interresant:
 
-Die nicht verwendung und eigene Implementierung vom erzeugten SDL-Interface war ebenfals etwas Zeitaufwändig. 
-Im vergleich zum LLVM-Intervace aber erheblich einfacher. 
-Gerade die erstellung eines eigenen Screen Buffers war etwas aufwändig. 
-Gleichzeitig ermöglichte dies die umsetzung des `save` befehles.
+* Verwendung von Spezialregeln zur Abhandlung von Sonderfällen. Dies wurde bereits im forheriegen kapitel erklärt
+* Erweiterungen werden im nachfolgenden Kapitel behandelt
+* Verwendung der benanten Optionen: Es ist möglich mehrere Optionen einer Regel in ANTLR mit `#` unterschiedlich zu benenen. Dadurch werden weitere abgeleitete Kalssen erzeugt.
 
-## Erweiterungen
-### Save
+### Erweiterungen der Sprache
 
-Der `save` befehl ermöglicht das Speicher des Momentanen Programstandes in eine `.png`-Datei. 
-Die umsetzung diese war nach der Implementierung eines eingene Front-buffers, welcher für die generelle funktionsweise benötigt wird, recht einfach. 
-Hierfür wurde der Code von [Czipperz](https://stackoverflow.com/users/1692584/czipperz) antwort auf eine entsprechende [stackoverflow Frage](https://stackoverflow.com/questions/34255820/save-sdl-texture-to-file) verwendet. 
-Dieser Funktioniert sehr gut und die Integration war sehr einfach.
+Die Ursprüngliche Turtelsprache wurde um folgende Funktionen beraupt:
+* Das Schreiben auf die Delay Variable hat keinen effect. 
+Aus komüatibilitäts grunden existiert sie dennoch doch sie hat keinen effect.
+Das Kompilat soll so schnell wie möglich sein. Daher wäre die Existenz eines Delays nachteilhft.
 
+Die Sprache wurde um folgenden Funktionen erweitert:
+1. Save-Befehl. Mit diesem kann der Actuelle bildschirm status in eine png-Datei gespeichert werden.
+2. Angabe eines Return Falues. Alle befehle zum enden des Programmes erlauben das Angeben eines Optionalen Returncodes. Dieser ergibt sich über einfaches abrunden des Angegebenen Double values.
+3. Es sind grenzenlos viele Comandline Optionenen zulässig. Diese werden hingegen mit 0 indiziert.
+4. Warnung for unendlichen schleifen. Wird eine Unendliche schleife bei der Analys des Programmes erkannt wird for dieser gewarnt. Diese Warnung kann durch zusätzlich optionen Deaktiviert werden. Dabei ist es sowohl möglich anzugeben, dass Unendliche schleifen immer ein Fehler sind oder immer akzeptabel sind.
 
-Zyklische dependencys im Function system haben sicherlich 2-3h Zeit geraubt.
+### Nicht umgesetzte Funktionen
 
-### Doxygen
+Es wurden alle Funktionen umgesetzt. Der einzige Unterschied zur Vorgabe sind die vordefinierten Variablen. Bei diesen wurden bisher die folgenden nicht umgesetzt:
 
-cmake --build . --target doc
+* @dist: Wurde in keinem Beispiel verwendet und deswegen nicht umgesetzt. Sie wäre als Sonderregel ähnlich zu PI umzusetzen.
+* @delay: Die Umsetzung dieser Variable widerspricht dem Prinzip, dass das Compilat mit maximaler Geschwindigkeit arbeiten soll.
 
-Mit diesem Befehl kann die API-Dokumentation generiert werden
+Beide Variablen existieren und können verwendet werden. Sie haben jedoch nicht den erwarteten Effekt.
+
+Alle weiteren Funktionen sind umgesetzt.
+
+## Besondere Herausforderungen
+
+Nachfolgend soll dargestellt werden, welche Teile des Programms sich in der Entwicklung als besonders schwierig herausgestellt haben. 
+
+### LLVM und CLANG-Interface
+
+Die erste besonders hohe Hürde bei der Entwicklung war die Erstellung einer Abstraktion der Clang-API. 
+Wie aus den bisherigen Ausführungen ersichtlich sein sollte, ist das Ziel des Projekts, Clang direkt als API zu verwenden. 
+Im Sommer 2024 wurde die entsprechende Schnittstelle programmiert. 
+Konkret geht es um die Klasse LLVMInterface. 
+Sie kapselt alle benötigten Handlungen für die Interaktion mit Clang. 
+Dazu muss zunächst eine Datei für die Aufnahme des generierten Codes erstellt werden. 
+Der Code muss kompiliert werden. Schlussendlich müssen temporäre Dateien aufgeräumt werden. Auch die Verwaltung der Compileroptionen ist Aufgabe der Klasse.
+Die tatsächliche Implementierung der API-Verwendung wurde größtenteils aus dem Internet übernommen. Die Quelle ist leider nicht mehr bekannt. 
+Da die Quelle mit einer älteren Version als der hier verwendeten arbeitet und ein anderes Ziel verfolgt, musste der Code abgeändert werden. 
+Besonders schwierig war es herauszufinden, an welchen Stellen welche Elemente erzeugt werden müssen. Die ersten Versuche erzeugten häufig Segfaults in den Tiefen von Clang. 
+Die genaue Arbeitsweise ist bis heute nicht vollständig verständlich. 
+Da diese Schnittstelle jedoch seit eineinhalb Jahren kaum verändert wurde und fehlerfrei Arbeitet, wird ihr großes Vertrauen entgegengebracht.
+
+Auch das dynamische Erfassen der Linker- und Compileroptionen für SDL2 erwies sich als schwierig. 
+Leider musste hierfür der Umweg über die CLI genommen werden. Ein direkterer Aufruf wäre wünschenswert. 
+Wie dieser aussehen könnte, ist jedoch nicht bekannt. 
+Da der bestehende Ansatz funktioniert und Effizienz an dieser Stelle noch keine Priorität hat, wird er nicht optimiert.
+
+### Unit-Testing
+
+Ein großer Bestandteil und Hauptaufwand ist der umfangreiche Unit-Test. 
+Dabei gibt es etwa dreimal so viele Zeilen Unit-Test-Code wie Anwendungscode. 
+Es ist anzumerken, dass es einen sehr großen Wiederholungsanteil gibt.
+
+Seit dem Commit e6c31b0 wird Google Test als Unit-Test-Framework verwendet. 
+Die Verwendung dieses Frameworks und die damit verbundene Ablösung des eigenen Test-Frameworks war eine kluge Entscheidung. 
+Nach dem Umstieg konnte eine erhebliche Beschleunigung der Testentwicklung festgestellt werden. 
+Gleichzeitig war die Entwicklung des Unit-Test-Frameworks ein lehrreiches und spaßiges Unterfangen. 
+Dennoch war dessen Fehleranfälligkeit zu hoch.
+ 
+
+### ST-Umschreiben
+
+Zwischenzeitlich wurde versucht, bestimmte Befehle durch das Umschreiben des ST umzusetzen. 
+Hierfür würden sich beispielsweise die Befehle `walck back` oder `turn left` anbieten. 
+Da der ST jedoch nicht dazu gedacht ist, geändert zu werden – da dies de facto einer Änderung der Quelldatei gleichkommt –, war dies nicht möglich. 
+Schlussendlich wurde von diesem Vorgang abgesehen. 
+Die Idee ist nach wie vor gut und würde einen Teil der Arbeit an anderer Stelle einsparen.
+
+### SDL2
+
+Es wurde entschieden, kein bestehendes SDL2-Interface zu verwenden. 
+Stattdessen wird dieses direkt in den erzeugten Code hineincompiliert. 
+Überraschend war hierbei die Erkenntnis, dass SDL2 zwei interne Backbuffer verwendet und diese kontinuierlich austauscht. 
+Deshalb musste ein eigener interner Backbuffer verwendet werden, auf dem gearbeitet werden kann. 
+Dies ist jedoch langfristig nicht effizient, da das Anzeigen jeweils das Kopieren des gesamten Bildschirminhalts erfordert. 
+Momentan ist dies vertretbar. 
+Gleichzeitig wurde der Save-Befehl dadurch leicht vereinfacht.
+
+### Allgemeine Probleme
+
+Es ist ärgerlich, dass GDB den ST nicht korrekt auflösen kann. 
+Dadurch wird das Debugging häufig schwieriger als nötig, da der ST-Aufbau nicht ordentlich erkannt werden kann.
+
+Ein weiterer Punkt, der nervt, ist, dass der von ANTLR erzeugte Visitor ausschließlich std::any zurückgeben kann. 
+Dadurch wird viel Code zur Unterscheidung unterschiedlicher Rückgabetypen benötigt. 
+Eine ordentliche Typisierung der Rückgabewerte wäre zwar angenehmer, gleichzeitig aber technisch erheblich schwieriger.
+
+Zwischenzeitlich wurden die Aufgaben auf zu viele Klassen verteilt. 
+Die Auflösung und Bereinigung der daraus resultierenden zyklischen Includes kostete etwa sechs Stunden.
