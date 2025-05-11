@@ -23,6 +23,7 @@ extern std::regex matchClosingCrlBracket;
 extern std::regex matchFuncHead;
 extern std::regex matchAssigne5;
 extern std::regex checkForDraw;
+extern std::regex matchSetCollor;
 
 TEST_F(TopLevelVisitorTest, TurnExplizitRight){
   inputStream
@@ -153,6 +154,9 @@ TEST_F(TopLevelVisitorTest, WalkHome){
 
   std::string line;
   std::getline(retStream, line);
+  ASSERT_REGEX(line, matchSetCollor);
+
+  std::getline(retStream, line);
   ASSERT_REGEX(line, std::regex("\\s*SDL_RenderDrawLine\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s+\\/\\s+2\\s*,\\s*\\w+\\s+\\/\\s+2\\s*\\)\\s*;\\s*"));
 
   std::getline(retStream, line);
@@ -181,6 +185,9 @@ TEST_F(TopLevelVisitorTest, WalkFront){
   std::any ret = astStart->accept(&toTest);
 
   std::string line;
+  std::getline(retStream, line);
+  ASSERT_REGEX(line, matchSetCollor);
+
   std::getline(retStream, line);
   ASSERT_REGEX(line, checkForDraw);
 
@@ -224,6 +231,9 @@ TEST_F(TopLevelVisitorTest, WalkBack){
   std::any ret = astStart->accept(&toTest);
 
   std::string line;
+  std::getline(retStream, line);
+  ASSERT_REGEX(line, matchSetCollor);
+
   std::getline(retStream, line);
   ASSERT_REGEX(line, checkForDraw);
 

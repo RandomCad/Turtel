@@ -24,6 +24,13 @@
     << "SDL_RenderPresent( " << envVar[RND_NAME].getName() << ");\n" \
     << "SDL_SetRenderTarget(" << envVar[RND_NAME].getName() << ", " << envVar[TEXTURE_NAME].getName() << ");\n" 
 
+#define SET_COLOR\
+     "SDL_SetRenderDrawColor(" \
+  << envVar.at(RND_NAME).getName() << ", "\
+  << envVar.at(COLOR_R).getName() << "*2.55f, "\
+  << envVar.at(COLOR_G).getName() << "*2.55f, "\
+  << envVar.at(COLOR_B).getName() << "*2.55f, 255);\n"
+
 
 int TopLevelVisitor::infinitLoopFlag = 0;
 
@@ -153,6 +160,9 @@ std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
     << envVar.at(POS_X).getName() << '=' << envVar.at(WINDOW_X).getName() << "/2;\n"
     << envVar.at(POS_Y).getName() << '=' << envVar.at(WINDOW_Y).getName() << "/2;\n"
     << envVar.at(ROTATION).getName() << "=-M_PI/2;\n"
+    << envVar.at(COLOR_R).getName() << "=100;\n"
+    << envVar.at(COLOR_G).getName() << "=100;\n"
+    << envVar.at(COLOR_B).getName() << "=100;\n"
     << "SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);\n"///<creat window
     ///define the window
     << envVar.at(WINDOW_NAME).getName()
@@ -1076,12 +1086,7 @@ std::any TopLevelVisitor::visitTurnLeft(SceneParser::TurnLeftContext *ctx){
  * @return An empty std::any object.
  */
 std::any TopLevelVisitor::visitWalkHome(SceneParser::WalkHomeContext *ctx){
-
-  output  << "SDL_SetRenderDrawColor(" 
-          << envVar.at(RND_NAME).getName() << ", "
-          << envVar.at(COLOR_R).getName() << ", "
-          << envVar.at(COLOR_G).getName() << ", "
-          << envVar.at(COLOR_B).getName() << ", 255);\n"
+  output  << SET_COLOR
 
           << "SDL_RenderDrawLine("
           << envVar.at(RND_NAME).getName() 
@@ -1152,12 +1157,7 @@ std::any TopLevelVisitor::visitJumpHome(SceneParser::JumpHomeContext *ctx){
  * @return An empty std::any object.
  */
 std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
-  output << "SDL_SetRenderDrawColor(" 
-         << envVar.at(RND_NAME).getName() << ", "
-         << envVar.at(COLOR_R).getName() << ", "
-         << envVar.at(COLOR_G).getName() << ", "
-         << envVar.at(COLOR_B).getName() << ", 255);\n"
-
+  output << SET_COLOR
     << "SDL_RenderDrawLine("
     << envVar.at(RND_NAME).getName() 
     << ", " 
@@ -1185,12 +1185,7 @@ std::any TopLevelVisitor::visitWalkFront(SceneParser::WalkFrontContext *ctx){
  * @return An empty std::any object.
  */
 std::any TopLevelVisitor::visitWalkBack(SceneParser::WalkBackContext *ctx){
-  output << "SDL_SetRenderDrawColor(" 
-         << envVar.at(RND_NAME).getName() << ", "
-         << envVar.at(COLOR_R).getName() << ", "
-         << envVar.at(COLOR_G).getName() << ", "
-         << envVar.at(COLOR_B).getName() << ", 255);\n"
-
+  output << SET_COLOR
     << "SDL_RenderDrawLine("
     << envVar.at(RND_NAME).getName() 
     << ", " 
@@ -1342,13 +1337,11 @@ std::any TopLevelVisitor::visitColorCmd(SceneParser::ColorCmdContext *ctx) {
 
   output << envVar.at(COLOR_R).getName() << " = " << rValue << ";\n"
          << envVar.at(COLOR_G).getName() << " = " << gValue << ";\n"
-         << envVar.at(COLOR_B).getName() << " = " << bValue << ";\n";
+         << envVar.at(COLOR_B).getName() << " = " << bValue << ";\n"
 
-  output << "SDL_SetRenderDrawColor(" 
-         << envVar.at(RND_NAME).getName() << ", "
-         << envVar.at(COLOR_R).getName() << ", "
-         << envVar.at(COLOR_G).getName() << ", "
-         << envVar.at(COLOR_B).getName() << ", 255);\n";
+         << SET_COLOR
+         ;
+
 
   return std::any();
 }

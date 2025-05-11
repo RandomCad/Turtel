@@ -29,6 +29,7 @@ class TopLevelVisitorTest;
     {std::string(ARGC), Variable(VarType::SIZE_T, "__env_argc")},\
     {std::string(ARGV), Variable(VarType::DOUBLE_ARR, "__env_argv")},\
     {std::string("@delay"), Variable(VarType::DOUBLE, "__env_delay")},\
+    {std::string("@dist"), Variable(VarType::CONST_DOUBLE, "__env_dist")},\
   }
 
 /**
@@ -53,7 +54,7 @@ class TopLevelVisitor : public SceneBaseVisitor{
   public:
     ///\param fileName sets the name of the output file. Has a standart value.
     TopLevelVisitor(const char * const fileName = "file");
-    TopLevelVisitor(const Comandline::options opt);
+    TopLevelVisitor(const Comandline::options opt); 
     ///entry point for code generation
     std::any visitFile(SceneParser::FileContext *ctx) override;
     

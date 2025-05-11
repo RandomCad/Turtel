@@ -1,6 +1,7 @@
 #include "CommandlineParser.h"
 #include "libs/CommandlineBaseListener.h"
 #include <vector>
+#pragma once
 namespace Comandline {
   struct options{
     std::string inputFile;

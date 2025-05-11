@@ -37,6 +37,8 @@ std::regex matchFuncHead = std::regex("\\s*\\w+\\s+\\w+\\s*\\(\\s*(\\s*double\\s
 std::regex matchAssigne5 = std::regex("\\s*\\_\\_usr\\_\\w+\\s*=\\s*5\\s*;\\s*$");
 std::regex checkForDraw(
           "\\s*SDL_RenderDrawLine\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*\\+\\s*(-\\()?\\w+\\)?\\s*\\*\\s*cos\\s*\\(\\s*\\w+\\s*\\)\\s*,\\s*\\w+\\s*\\+\\s*(-\\()?\\w+\\)?\\s*\\*\\s*sin\\s*\\(\\s*\\w+\\s*\\)\\s*\\)\\s*;\\s*");
+std::regex matchSetCollor(
+    "\\s*SDL_SetRenderDrawColor\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*\\*2\\.55f\\s*,\\s*\\w+\\s*\\*2\\.55f\\s*,\\s*\\w+\\s*\\*2\\.55f\\s*,\\s*255\\s*\\)\\s*;\\s*");
 
 std::string getRandomID();
 
@@ -69,7 +71,7 @@ TopLevelVisitorTest::~TopLevelVisitorTest() {
   delete parser;
 }
 void TopLevelVisitorTest::SetVariables(antlr4::ParserRuleContext *a){
-  toTest.ctxVar = VarVisitor().getVariableContext(a, {{}});
+  toTest.ctxVar = VarVisitor().getVariableContext(a, {});
 }
 void TopLevelVisitorTest::SetInfLoopFlag(int a){
   toTest.infinitLoopFlag = a;
@@ -307,7 +309,7 @@ TEST(TopLevelVisitor, TestPythagoras){
   EXPECT_TRUE(astStart);
   EXPECT_TRUE(astStart->main());
   EXPECT_EQ(astStart->calcdef().size(), 0);
-  EXPECT_EQ(astStart->pathdef().size(), 3);
+  EXPECT_EQ(astStart->pathdef().size(), 1);
   
   TopLevelVisitor test(testFile);
   test.visitFile(astStart);
@@ -853,6 +855,10 @@ TEST_F(TopLevelVisitorTest, PathDef){
 
     std::getline(retStream, line);
     ASSERT_FALSE(retStream.eof());
+    ASSERT_REGEX(line, matchSetCollor);
+
+    std::getline(retStream, line);
+    ASSERT_FALSE(retStream.eof());
     ASSERT_REGEX(line, std::regex("\\s*SDL_RenderDrawLine\\s*\\(\\s*__env_rnd\\s*,\\s*__env_posX\\s*,\\s*__env_posY\\s*,\\s*__env_posX\\s*\\+\\s*__usr_\\w+\\s*\\*\\s*cos\\s*\\(\\s*__env_rot\\s*\\)\\s*,\\s*__env_posY\\s*\\+\\s*__usr_a\\s*\\*\\s*sin\\s*\\(\\s*__env_rot\\s*\\)\\s*\\)\\s*;\\s*$"));
 
     std::getline(retStream, line);
@@ -953,9 +959,6 @@ TEST_F(TopLevelVisitorTest, Color){
 
   std::string line;
   std::getline(retStream, line);
-  ASSERT_REGEX(line, std::regex("\\s*SDL_SetRenderDrawColor\\s*\\(\\s*\\w+\\s*,\\s*255\\s*,\\s*0\\s*,\\s*128\\s*,\\s*255\\s*\\)\\s*;\\s*"));
-
-  std::getline(retStream, line);
   ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*255\\s*;\\s*"));
 
   std::getline(retStream, line);
@@ -963,6 +966,9 @@ TEST_F(TopLevelVisitorTest, Color){
 
   std::getline(retStream, line);
   ASSERT_REGEX(line, std::regex("\\s*\\w+\\s*=\\s*128\\s*;\\s*"));
+
+  std::getline(retStream, line);
+  ASSERT_REGEX(line, matchSetCollor);
 
   std::getline(retStream, line);
   std::cerr << line << std::endl;
