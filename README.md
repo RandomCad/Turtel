@@ -2,7 +2,7 @@ Main Page {#mainpage}
 =========
 # Turtel
 Program to run a derivative of the Turtle Programming Language designed for young learners.
-The following documentation will be done in german
+The following documentation will be done in german.
 
 # Dokumentation
 
@@ -76,8 +76,8 @@ Intern soll Folgendes umgesetzt werden:
 TurtelFile -> ANTLR-Lexer -> ANTLR-Parser -> C-CodeGen -> Clang -> Binary
 ```
 
-Wie aus diesem detaillierten Ablaufplan ersichtlich wird, soll Clang als Backend verwendet werden. 
-Dies soll möglichst vollständig durch die Verwendung der Clang-API erfolgen. 
+Wie an diesem detaillierten Ablauf zu erkennen ist, soll als Backend Clang verwendet werden. 
+Dies soll möglichst vollständig durch die Verwendung der Clang-API geschehen. 
 Dadurch entsteht der Eindruck, dass Trutel ein Compiler wäre, wobei die selbst entwickelten Bestandteile jedoch nur einen Transpiler bilden.
 Als Frontend wird ein von ANTLR generierter Parser verwendet.
 
@@ -94,6 +94,7 @@ Das Ergebnis des ANTLR-Parsers ist kein AST, sondern ein ST (Syntax Tree).
 
 Zusätzlich ermöglicht ANTLR die Erstellung von zwei Arten von Baum-Betrachtern. 
 Dabei ist es möglich:
+
 1. einen Listener zu verwenden. Dieser kann jeweils über das Betreten und Verlassen einer Regel beim Parsen informiert werden.
 2. einen Visitor zu verwenden. Dieser kann zur Betrachtung des ST verwendet werden.
 

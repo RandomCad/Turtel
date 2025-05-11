@@ -59,8 +59,8 @@ std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
   else if (ret.type() == typeid(double))    return std::to_string(std::any_cast<double>(ret));
   else if (ret.type() == typeid(Variable))  return std::any_cast<Variable>(ret).getName();
   else{
-    std::cerr << "unknowen type: " << ret.type().name() << std::endl;
-    throw "Error unknowen type";
+    std::cerr << "unknown type: " << ret.type().name() << std::endl;
+    throw "Error unknown type";
   }
 }
 
@@ -74,7 +74,7 @@ std::string TopLevelVisitor::UnwrapExpre(SceneParser::ExprContext *ctx){
  * @return An empty std::any object.
  */
 std::any TopLevelVisitor::visitFile(SceneParser::FileContext *ctx){
-  ///do the preperation
+  ///do the preparation
   ///create the function Table
   {
     funcs.emplace(
@@ -424,20 +424,20 @@ std::any TopLevelVisitor::visitIf(SceneParser::IfContext *ctx){
       std::cerr << "if was constfolded to " << false << std::endl;
       if(ctx->else_()){
         std::cerr << "else branch is outputted" << std::endl;
-        output << "//if was optimiced out cond was false only generating else branche\n";
+        output << "//if was optimized out cond was false only generating else branche\n";
         ///inlinded visit else
         for (auto i : ctx->else_()->stat()) {
           i->accept(this);
         }
       }
       else{
-        output << "//if was optimiced out cond was false no else branch\n";
+        output << "//if was optimized out cond was false no else branch\n";
       }
       return std::any();
     }
     else{
       std::cerr << "if was constfolded to" << true << std::endl;
-      output << "//if was optimiced out cond was true else branch is irrelevant\n";
+      output << "//if was optimized out cond was true else branch is irrelevant\n";
       for (auto i : ctx->stat()) {
         i->accept(this);
       }
@@ -490,7 +490,7 @@ std::any TopLevelVisitor::visitWhile(SceneParser::WhileContext *ctx){
               << ctx->getTokens(SceneParser::While)[0]->getSymbol()->getCharPositionInLine()
               << ".\n"
               
-              << "This while wil not be excaped once enterde.\n"
+              << "This while will not be escaped once entered.\n"
               << "Continue generating? (y/n)" 
               << std::endl;
             std::cin >> usrInput;
@@ -561,7 +561,7 @@ std::any TopLevelVisitor::visitDoUntil(SceneParser::DoUntilContext *ctx){
               << ctx->getTokens(SceneParser::Untile)[0]->getSymbol()->getCharPositionInLine()
               << ".\n"
               
-              << "This repeat untill wil not be escaped once enterde.\n"
+              << "This repeat until will not be escaped once entered.\n"
               << "Continue generating? (y/n)" 
               << std::endl;
             std::cin >> usrInput;
@@ -1620,7 +1620,7 @@ std::any TopLevelVisitor::visitNegate(SceneParser::NegateContext *ctx){
   else if (number.type() == typeid(std::string))  return "-" + std::any_cast<std::string>(number);
   else if(number.type() == typeid(Variable))      return "-" + std::any_cast<Variable>(number).getName() ;
   else{
-    throw std::runtime_error("coudn't cast number context to number");
+    throw std::runtime_error("couldn't cast number context to number");
   }
 }
 
@@ -1738,7 +1738,7 @@ std::any TopLevelVisitor::visitKlamKon(SceneParser::KlamKonContext *ctx){
   else if (ret.type() == typeid(Variable))    return ret;
   else if (ret.type() == typeid(std::string)) return "(" + std::any_cast<std::string>(ret) + ")";
   else{
-    throw "TODO: visit Kalm unknowen type";
+    throw "TODO: visit Klam unknown type";
   }
 }
 
@@ -1749,7 +1749,7 @@ std::any TopLevelVisitor::visitCosCall(SceneParser::CosCallContext *ctx){
   else if (ret.type() == typeid(Variable))    return "cos((" + std::any_cast<Variable>(ret).getName() + ") * M_PI/180)";
   else if (ret.type() == typeid(std::string)) return "cos((" + std::any_cast<std::string>(ret) + ") * M_PI/180)";
   else{
-    throw "TODO: visit cos unknowen type";
+    throw "TODO: visit cos unknown type";
   }
 }
 std::any TopLevelVisitor::visitSinCall(SceneParser::SinCallContext *ctx){
@@ -1759,7 +1759,7 @@ std::any TopLevelVisitor::visitSinCall(SceneParser::SinCallContext *ctx){
   else if (ret.type() == typeid(Variable))    return "sin((" + std::any_cast<Variable>(ret).getName() + ") * M_PI/180)";
   else if (ret.type() == typeid(std::string)) return "sin((" + std::any_cast<std::string>(ret) + ") * M_PI/180)";
   else{
-    throw "TODO: visit cos unknowen type";
+    throw "TODO: visit cos unknown type";
   }
 }
 std::any TopLevelVisitor::visitSqrtCall(SceneParser::SqrtCallContext *ctx){
@@ -1769,7 +1769,7 @@ std::any TopLevelVisitor::visitSqrtCall(SceneParser::SqrtCallContext *ctx){
   else if (ret.type() == typeid(Variable))    return "sqrt(" + std::any_cast<Variable>(ret).getName() + ')';
   else if (ret.type() == typeid(std::string)) return "sqrt(" + std::any_cast<std::string>(ret) + ')';
   else{
-    throw "TODO: visit cos unknowen type";
+    throw "TODO: visit cos unknown type";
   }
 }
 std::any TopLevelVisitor::visitRandCall(SceneParser::RandCallContext *ctx){
@@ -1782,7 +1782,7 @@ std::any TopLevelVisitor::visitRandCall(SceneParser::RandCallContext *ctx){
   else if (ret1.type() == typeid(Variable))    p1 = std::any_cast<Variable>(ret1).getName();
   else if (ret1.type() == typeid(std::string)) p1 = std::any_cast<std::string>(ret1) ;
   else{
-    throw "TODO: visit cos unknowen type";
+    throw "TODO: visit cos unknown type";
   }
 
   if      (ret2.type() == typeid(int64_t)){
@@ -1792,7 +1792,7 @@ std::any TopLevelVisitor::visitRandCall(SceneParser::RandCallContext *ctx){
     else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName() + '-' + std::to_string(zwi);
     else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1) + '-' + std::to_string(zwi);
     else{
-      throw "TODO: visit cos unknowen type";
+      throw "TODO: visit cos unknown type";
     }
   }
   else if (ret2.type() == typeid(double)){
@@ -1802,7 +1802,7 @@ std::any TopLevelVisitor::visitRandCall(SceneParser::RandCallContext *ctx){
     else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName() + '-' + std::to_string(zwi);
     else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1) + '-' + std::to_string(zwi);
     else{
-      throw "TODO: visit cos unknowen type";
+      throw "TODO: visit cos unknown type";
     }
   }
   else if (ret2.type() == typeid(Variable)){
@@ -1812,7 +1812,7 @@ std::any TopLevelVisitor::visitRandCall(SceneParser::RandCallContext *ctx){
     else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName()       + '-' + zwi;
     else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1)              + '-' + zwi;
     else{
-      throw "TODO: visit cos unknowen type";
+      throw "TODO: visit cos unknown type";
     }
   }
   else if (ret2.type() == typeid(std::string)) {
@@ -1822,11 +1822,11 @@ std::any TopLevelVisitor::visitRandCall(SceneParser::RandCallContext *ctx){
     else if (ret1.type() == typeid(Variable))    p2 = std::any_cast<Variable>(ret1).getName()       + '-' + zwi;
     else if (ret1.type() == typeid(std::string)) p2 = std::any_cast<std::string>(ret1)              + '-' + zwi;
     else{
-      throw "TODO: visit cos unknowen type";
+      throw "TODO: visit cos unknown type";
     }
   }
   else{
-    throw "TODO: visit cos unknowen type";
+    throw "TODO: visit cos unknown type";
   }
   
   return '(' + p1 +" + rand() % " + p2 + ')';

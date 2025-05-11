@@ -34,25 +34,25 @@ class TopLevelVisitorTest;
 
 /**
  *This class is the Top Level visitor.
- *It should only be used to visit the stat and direckt childs.
- *It outputs direcktly to an ostream.
+ *It should only be used to visit the stat and direct childs.
+ *It outputs directly to an ostream.
  */
 class TopLevelVisitor : public SceneBaseVisitor{
   public:
     LLVMInterface llvm;
   private:
-    std::ostream &output; ///<The output of this class. Everything is writen to this.
+    std::ostream &output; ///<The output of this class. Everything is written to this.
     std::unordered_map<std::string, Variable> envVar;
     std::unordered_map<std::string, Variable> ctxVar;
     std::unordered_map<std::string, Function> funcs;
-    static int infinitLoopFlag; ///<The flag that says if infinit loops are allowed
-                                ///<0 is unknowen -> create error report
-                                ///<1 infinit loops are allowed
-                                ///<-1 infinit loops aren't allowed
+    static int infinitLoopFlag; ///<The flag that says if infinite loops are allowed
+                                ///<0 is unknown -> create error report
+                                ///<1 infinite loops are allowed
+                                ///<-1 infinite loops aren't allowed
     ///for UnitTesting
     TopLevelVisitor(std::ostream &a) : llvm(""), output(a){}
   public:
-    ///\param fileName sets the name of the output file. Has a standart value.
+    ///\param fileName sets the name of the output file. Has a standard value.
     TopLevelVisitor(const char * const fileName = "file");
     TopLevelVisitor(const Comandline::options opt); 
     ///entry point for code generation
@@ -63,7 +63,7 @@ class TopLevelVisitor : public SceneBaseVisitor{
     std::any visitCalcdef(SceneParser::CalcdefContext *ctx) override;
     std::any visitPathdef(SceneParser::PathdefContext *ctx) override;
     std::any visitMain(SceneParser::MainContext *ctx) override;
-    ///The visitor for a walk statment.
+    ///The visitor for a walk statement.
     std::any visitJumpFront(SceneParser::JumpFrontContext *ctx) override;
     std::any visitJumpBack(SceneParser::JumpBackContext *ctx) override;
     std::any visitWalkFront(SceneParser::WalkFrontContext *ctx) override;
@@ -152,7 +152,7 @@ class TopLevelVisitor : public SceneBaseVisitor{
     FRIEND_TEST(TOP_LEVEL_VISITOR_TEST_SUITE, While);
     FRIEND_TEST(TOP_LEVEL_VISITOR_TEST_SUITE, DoUntil);
 
-    ///The folowing commented out functions must be implimented by a preprocessing step by rewriteing the AST
+    ///The following commented functions must be implemented by a preprocessing step by rewriting the AST
     //std::any visitWalkBack(SceneParser::WalkBackContext *ctx) override;
     //std::any visitJumpBack(SceneParser::JumpBackContext *ctx) override;
 };
